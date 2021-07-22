@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:keylol_flutter/common/keylol_client.dart';
 
 void main() {
-  runApp(MyApp());
+  Future.any([
+    KeylolClient.init(),
+  ]).then((value) => runApp(MyApp()));
 }
 
 class MyApp extends StatelessWidget {
