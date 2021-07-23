@@ -2,7 +2,7 @@ class Profile {
   String? cookiePre;
   String? auth;
   String? saltKey;
-  int? memberUid;
+  String? memberUid;
   String? memberUsername;
   String? memberAvatar;
   int? groupId;
@@ -28,12 +28,9 @@ class Profile {
     cookiePre = json['cookiepre'];
     auth = json['auth'];
     saltKey = json['saltkey'];
-    String? memberUidStr = json['memberuid'];
-    if (memberUidStr != null) {
-      memberUid = int.parse(memberUidStr);
-    }
-    memberUsername = json['memberusername'];
-    memberAvatar = json['memberavatar'];
+    memberUid = json['member_uid'];
+    memberUsername = json['member_username'];
+    memberAvatar = json['member_avatar'];
     String? groupIdStr = json['groupid'];
     if (groupIdStr != null) {
       groupId = int.parse(groupIdStr);
@@ -55,9 +52,9 @@ class Profile {
     data['cookiepre'] = this.cookiePre;
     data['auth'] = this.auth;
     data['saltkey'] = this.saltKey;
-    data['memberuid'] = this.memberUid?.toString();
-    data['memberusername'] = this.memberUsername?.toString();
-    data['memberavatar'] = this.memberAvatar?.toString();
+    data['member_uid'] = this.memberUid;
+    data['member_username'] = this.memberUsername?.toString();
+    data['member_avatar'] = this.memberAvatar?.toString();
     data['groupid'] = this.groupId?.toString();
     data['formhash'] = this.formHash;
     data['ismoderator'] = this.isModerator;
@@ -76,10 +73,22 @@ class Notice {
   Notice(this.newPush, this.newPm, this.newPrompt, this.newMyPost);
 
   Notice.fromJson(Map<String, dynamic> json) {
-    newPush = json['newpush'];
-    newPm = json['newpm'];
-    newPrompt = json['newprompt'];
-    newMyPost = json['newmypost'];
+    var newPushStr = json['newpush'];
+    if (newPushStr != null) {
+      newPush = int.parse(newPushStr);
+    }
+    var newPmStr = json['newpm'];
+    if (newPmStr != null) {
+      newPm = int.parse(newPmStr);
+    }
+    var newPromptStr = json['newprompt'];
+    if (newPromptStr != null) {
+      newPrompt = int.parse(newPromptStr);
+    }
+    var newMyPostStr = json['newmypost'];
+    if (newMyPostStr != null) {
+      newMyPost = int.parse(newMyPostStr);
+    }
   }
 
   Map<String, dynamic> toJson() {
