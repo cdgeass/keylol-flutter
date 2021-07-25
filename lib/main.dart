@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/global.dart';
+import 'package:keylol_flutter/model/index.dart';
+import 'package:keylol_flutter/pages/index.dart';
+import 'package:keylol_flutter/pages/login.dart';
 import 'package:keylol_flutter/pages/user_account_drawer.dart';
 
 void main() async {
@@ -15,10 +18,11 @@ class KeylolApp extends StatelessWidget {
     return MaterialApp(
       title: 'Keylol',
       theme: ThemeData.light(),
-      home: Scaffold(
-        appBar: AppBar(),
-        drawer: UserAccountDrawer(),
-      ),
+      initialRoute: "/index",
+      routes: {
+        "/login": (context) => LoginPage(),
+        "/index": (context) => IndexPage(),
+      },
     );
   }
 }

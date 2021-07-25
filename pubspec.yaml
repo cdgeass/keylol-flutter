@@ -33,6 +33,8 @@ dependencies:
   path_provider: ^2.0.2
   cookie_jar: ^3.0.1
   provider: ^5.0.0
+  html: ^0.15.0
+  carousel_slider: ^4.0.0
 
 dev_dependencies:
   flutter_test:
@@ -55,6 +57,7 @@ flutter:
   #   - images/a_dot_ham.jpeg
   assets:
     - images/unknown_avatar.jpg
+    - images/slide_view_placeholder.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

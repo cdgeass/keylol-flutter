@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/global.dart';
-import 'package:keylol_flutter/pages/user_account_drawer.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -16,8 +15,9 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
-      drawer: UserAccountDrawer(),
+      appBar: AppBar(
+        title: Text('登陆'),
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -25,7 +25,8 @@ class _LoginPageState extends State<LoginPage> {
             _PasswordInput(passwordController: _passwordController),
             _LoginButton(onTap: () {
               Global.keylolClient
-                  .login(_usernameController.text, _passwordController.text);
+                  .login(_usernameController.text, _passwordController.text)
+                  .then((value) => Navigator.pop(context));
             })
           ],
         ),

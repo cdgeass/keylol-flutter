@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/global.dart';
 import 'package:keylol_flutter/model/profile.dart';
-import 'package:keylol_flutter/pages/login.dart';
 import 'package:provider/provider.dart';
 
 class UserAccountDrawer extends StatefulWidget {
@@ -41,13 +40,10 @@ class _UserAccountDrawerState extends State<UserAccountDrawer> {
     );
     final loginOrLogout = ListTile(
       leading: profile == null ? Icon(Icons.login) : Icon(Icons.logout),
-      title: Text(profile == null ? '登录' : '退出'),
+      title: Text(profile == null ? '登陆' : '退出'),
       onTap: () {
         if (profile == null) {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (BuildContext context) {
-            return LoginPage();
-          }));
+          Navigator.pushNamed(context, "/login");
         } else {
           Global.logout();
         }
