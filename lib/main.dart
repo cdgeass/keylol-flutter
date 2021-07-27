@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/global.dart';
 import 'package:keylol_flutter/model/index.dart';
-import 'package:keylol_flutter/pages/index.dart';
-import 'package:keylol_flutter/pages/login.dart';
+import 'package:keylol_flutter/pages/index_page.dart';
+import 'package:keylol_flutter/pages/login_page.dart';
+import 'package:keylol_flutter/pages/thread_page.dart';
 import 'package:keylol_flutter/pages/user_account_drawer.dart';
 
 void main() async {
@@ -22,6 +23,10 @@ class KeylolApp extends StatelessWidget {
       routes: {
         "/login": (context) => LoginPage(),
         "/index": (context) => IndexPage(),
+        "/thread": (context) {
+          var tid = ModalRoute.of(context)?.settings.arguments as String;
+          return ThreadPage(tid: tid);
+        }
       },
     );
   }
