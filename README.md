@@ -28,3 +28,7 @@ keylol.com mobile flutter client
     password:
     questionid:
     answer:
+    
+* /api/mobile/index.phh?version=4&module=forumindex
+
+    版块列表

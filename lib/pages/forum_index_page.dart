@@ -58,19 +58,28 @@ class ForumIndexPageState extends State<ForumIndexPage> {
                       child: ListView(
                         children: [
                           for (final forum in cats[_selectedIndex].forums!)
-                            ListTile(
-                              leading: forum.icon == null
-                                  ? SizedBox(
-                                      width: 40.0,
-                                    )
-                                  : CachedNetworkImage(
-                                      imageUrl: forum.icon!,
-                                      width: 40.0,
-                                    ),
-                              title: Text(forum.name!),
-                              subtitle: forum.description == null
-                                  ? null
-                                  : Text(forum.description!),
+                            InkWell(
+                              child: ListTile(
+                                leading: forum.icon == null
+                                    ? ClipOval(
+                                        child: Image.asset(
+                                          'images/forum.gif',
+                                          width: 40.0,
+                                        ),
+                                      )
+                                    : CachedNetworkImage(
+                                        imageUrl: forum.icon!,
+                                        width: 40.0,
+                                      ),
+                                title: Text(forum.name!),
+                                subtitle: forum.description == null
+                                    ? null
+                                    : Text(forum.description!),
+                              ),
+                              onTap: () {
+                                Navigator.of(context)
+                                    .pushNamed('/forum', arguments: forum.fid);
+                              },
                             )
                         ],
                       )),
