@@ -24,6 +24,8 @@ class _UserAccountDrawerState extends State<UserAccountDrawer> {
   }
 
   Widget _buildDrawerContent(Profile? profile) {
+    var items = List<Widget>.empty(growable: true);
+
     final avatarProvider = profile?.memberAvatar == null
         ? ExactAssetImage(
             'images/unknown_avatar.jpg',
@@ -38,6 +40,27 @@ class _UserAccountDrawerState extends State<UserAccountDrawer> {
         backgroundImage: avatarProvider,
       ),
     );
+    items.add(drawerHeader);
+
+    if (profile != null) {
+      final index = ListTile(
+          leading: Icon(Icons.home),
+          title: Text('主页'),
+          onTap: () {
+            Navigator.of(context).pushNamed('/index');
+          });
+      items.add(index);
+
+      final forums = ListTile(
+        leading: Icon(Icons.dashboard),
+        title: Text('版块'),
+        onTap: () {
+          Navigator.of(context).pushNamed('/forumIndex');
+        }
+      );
+      items.add(forums);
+    }
+
     final loginOrLogout = ListTile(
       leading: profile == null ? Icon(Icons.login) : Icon(Icons.logout),
       title: Text(profile == null ? '登陆' : '退出'),
@@ -49,13 +72,12 @@ class _UserAccountDrawerState extends State<UserAccountDrawer> {
         }
       },
     );
+    items.add(loginOrLogout);
+
     final drawItems = ListView(
-      children: [
-        drawerHeader,
-        // TODO other menus
-        loginOrLogout,
-      ],
+      children: items,
     );
+
     return Drawer(
       child: drawItems,
     );

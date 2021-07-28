@@ -1,13 +1,14 @@
-import 'dart:async';
+import 'dart:collection';
 
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
+import 'package:html/parser.dart' as parser;
 import 'package:keylol_flutter/common/global.dart';
+import 'package:keylol_flutter/model/forum.dart';
 import 'package:keylol_flutter/model/index.dart';
 import 'package:keylol_flutter/model/profile.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:html/parser.dart' as parser;
 
 class KeylolClient {
   late Dio _dio;
@@ -47,14 +48,10 @@ class KeylolClient {
   }
 
   // 用户信息
-  Future<Profile> fetchProfile() async {
-    try {
-      var res = await _dio
-          .get("/api/mobile/index.php", queryParameters: {'module': 'profile'});
-      return Profile.fromJson(res.data['Variables']);
-    } on DioError catch (e) {
-      throw e;
-    }
+  Future<Profile> fetchProfile({String? uid}) async {
+    var res = await _dio.get("/api/mobile/index.php",
+        queryParameters: {'module': 'profile', 'uid': uid});
+    return Profile.fromJson(res.data['Variables']);
   }
 
   // 首页
@@ -64,5 +61,28 @@ class KeylolClient {
     var document = parser.parse(res.data as String);
 
     return Index.fromDocument(document);
+  }
+
+  // 版块列表
+  Future<List<Cat>> fetchForumIndex() async {
+    var res = await _dio.get("/api/mobile/index.php",
+        queryParameters: {'module': 'forumindex'});
+
+    var variables = res.data['Variables'];
+    var forumMap = new HashMap<String, Forum>();
+    for (var forumJson
+        in (variables['forumlist'] as List<dynamic>)) {
+      final forum = Forum.fromJson(forumJson);
+      forumMap[forum.fid!] = forum;
+    }
+
+    return (variables['catlist'] as List<dynamic>).map((catJson) {
+      final cat = Cat.fromJson(catJson);
+      final forums = (catJson['forums'] as List<dynamic>)
+          .map((fid) => forumMap[fid]!)
+          .toList();
+      cat.forums = forums;
+      return cat;
+    }).toList();
   }
 }

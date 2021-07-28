@@ -14,8 +14,7 @@ class IndexPage extends StatefulWidget {
   State<StatefulWidget> createState() => _IndexPageState();
 }
 
-class _IndexPageState extends State<IndexPage>
-    with SingleTickerProviderStateMixin {
+class _IndexPageState extends State<IndexPage> {
   late Future<Index> _indexFuture;
 
   @override
@@ -31,45 +30,41 @@ class _IndexPageState extends State<IndexPage>
       appBar: AppBar(),
       drawer: UserAccountDrawer(),
       backgroundColor: Color(0xFFEEEEEE),
-      body: SafeArea(
-        child: FutureBuilder(
-          future: _indexFuture,
-          builder: (BuildContext context, AsyncSnapshot<Index> snapshot) {
-            if (snapshot.hasData) {
-              var index = snapshot.data!;
-
-              // 轮播图
-              final slideView = CarouselSlider(
-                options: CarouselOptions(
-                  height: 276.0,
-                  enableInfiniteScroll: true,
-                  autoPlay: true,
-                ),
-                items: index.slideViewItems
-                    ?.map((slideViewItem) =>
-                        _SlideViewItem(slideViewItem: slideViewItem))
-                    .toList(),
-              );
-
-              //  tab 页
-              final threads = index.tabThreadsMap!.keys.map((header) {
-                final threads = index.tabThreadsMap![header]!;
-                return _ThreadListItem(header: header, threads: threads);
-              }).toList();
-
-              return ListView(
-                children: [
-                  slideView,
-                  for (final thread in threads) thread,
-                ],
-              );
-            }
-
-            return Center(
-              child: CircularProgressIndicator(),
+      body: FutureBuilder(
+        future: _indexFuture,
+        builder: (BuildContext context, AsyncSnapshot<Index> snapshot) {
+          if (snapshot.hasData) {
+            var index = snapshot.data!;
+            // 轮播图
+            final slideView = CarouselSlider(
+              options: CarouselOptions(
+                height: 276.0,
+                enableInfiniteScroll: true,
+                autoPlay: true,
+              ),
+              items: index.slideViewItems
+                  ?.map((slideViewItem) =>
+                      _SlideViewItem(slideViewItem: slideViewItem))
+                  .toList(),
             );
-          },
-        ),
+            //  tab 页
+            final threads = index.tabThreadsMap!.keys.map((header) {
+              final threads = index.tabThreadsMap![header]!;
+              return _ThreadListItem(header: header, threads: threads);
+            }).toList();
+
+            return ListView(
+              children: [
+                slideView,
+                for (final thread in threads) thread,
+              ],
+            );
+          }
+
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        },
       ),
     );
   }
@@ -128,15 +123,11 @@ class _SlideViewItem extends StatelessWidget {
   }
 }
 
-typedef _ThreadListHeaderTapCallback = Function(bool shouldOpenList);
-
 class _ThreadListItem extends StatefulWidget {
   final IndexTabTitleItem header;
   final List<IndexTabThreadItem> threads;
-  final _ThreadListHeaderTapCallback? onTap;
 
-  _ThreadListItem(
-      {Key? key, required this.header, required this.threads, this.onTap})
+  _ThreadListItem({Key? key, required this.header, required this.threads})
       : super(key: key);
 
   @override
@@ -190,24 +181,18 @@ class _ThreadListItemState extends State<_ThreadListItem>
     switch (_controller.status) {
       case AnimationStatus.completed:
       case AnimationStatus.forward:
-        return false;
+        return true;
       case AnimationStatus.dismissed:
       case AnimationStatus.reverse:
-        return true;
+        return false;
     }
   }
 
   void _handleTap() {
     if (_shouldOpenList()) {
-      _controller.forward();
-      if (widget.onTap != null) {
-        widget.onTap!(true);
-      }
-    } else {
       _controller.reverse();
-      if (widget.onTap != null) {
-        widget.onTap!(false);
-      }
+    } else {
+      _controller.forward();
     }
   }
 
@@ -241,7 +226,7 @@ class _ThreadListItemState extends State<_ThreadListItem>
     return AnimatedBuilder(
       animation: _controller.view,
       builder: _buildHeaderWithChildren,
-      child: !_shouldOpenList()
+      child: _shouldOpenList()
           ? _ExpandedThreadList(header: widget.header, threads: widget.threads)
           : null,
     );
