@@ -70,8 +70,7 @@ class KeylolClient {
 
     var variables = res.data['Variables'];
     var forumMap = new HashMap<String, Forum>();
-    for (var forumJson
-        in (variables['forumlist'] as List<dynamic>)) {
+    for (var forumJson in (variables['forumlist'] as List<dynamic>)) {
       final forum = Forum.fromJson(forumJson);
       forumMap[forum.fid!] = forum;
     }
@@ -84,5 +83,17 @@ class KeylolClient {
       cat.forums = forums;
       return cat;
     }).toList();
+  }
+
+  // 板块帖子列表
+  Future<List<ForumThread>> fetchForum(String fid, int page) async {
+    var res = await _dio.get("/api/mobile/index.php",
+        queryParameters: {'module': 'forumdisplay', 'fid': fid, 'page': page});
+
+    var forumThreadList = res.data['Variables']['forum_threadlist'];
+
+    return (forumThreadList as List<dynamic>)
+        .map((forumThreadJson) => ForumThread.fromJson(forumThreadJson))
+        .toList();
   }
 }

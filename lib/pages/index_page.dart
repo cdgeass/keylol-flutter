@@ -339,21 +339,18 @@ class _ThreadItem extends StatelessWidget {
           onTap: () {
             Navigator.of(context).pushNamed("/thread", arguments: thread.tid);
           },
-          child: Padding(
-            padding:
-                EdgeInsetsDirectional.only(start: 32.0, top: 20.0, end: 8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(thread.title),
-                Text(thread.memberUsername),
-                const SizedBox(height: 20.0),
-                Divider(
-                  thickness: 1.0,
-                  height: 1.0,
-                )
-              ],
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ListTile(
+                title: Text(thread.title),
+                subtitle: Text(thread.memberUsername),
+              ),
+              Divider(
+                thickness: 1.0,
+                height: 1.0,
+              )
+            ],
           ),
         ),
       ),

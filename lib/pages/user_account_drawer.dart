@@ -42,24 +42,21 @@ class _UserAccountDrawerState extends State<UserAccountDrawer> {
     );
     items.add(drawerHeader);
 
-    if (profile != null) {
-      final index = ListTile(
-          leading: Icon(Icons.home),
-          title: Text('主页'),
-          onTap: () {
-            Navigator.of(context).pushNamed('/index');
-          });
-      items.add(index);
+    final index = ListTile(
+        leading: Icon(Icons.camera),
+        title: Text('聚焦'),
+        onTap: () {
+          Navigator.of(context).pushNamed('/index');
+        });
+    items.add(index);
 
-      final forums = ListTile(
+    final forums = ListTile(
         leading: Icon(Icons.dashboard),
         title: Text('版块'),
         onTap: () {
           Navigator.of(context).pushNamed('/forumIndex');
-        }
-      );
-      items.add(forums);
-    }
+        });
+    items.add(forums);
 
     final loginOrLogout = ListTile(
       leading: profile == null ? Icon(Icons.login) : Icon(Icons.logout),
