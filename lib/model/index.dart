@@ -39,7 +39,6 @@ class Index {
           var aTags = item.getElementsByTagName('a');
           var memberInfo = aTags[0];
           final memberUid = memberInfo.attributes['href']!.split('-')[1];
-          final memberUsername = memberInfo.innerHtml.toString();
 
           String? fid;
           if (aTags.length > 2) {
@@ -59,8 +58,13 @@ class Index {
           } else {
             title = fonts[0].innerHtml;
           }
+          final titleInfo =
+              tInfo.attributes['title']!.split('\n')[1].split(' ');
+          final memberUsername = titleInfo[1];
+          final dateLine = titleInfo[2].substring(1, titleInfo[2].length - 1);
 
-          return IndexTabThreadItem(tid, fid, title, memberUsername, memberUid);
+          return IndexTabThreadItem(
+              tid, fid, title, memberUsername, memberUid, dateLine);
         }).toList();
 
         var fid = titleId.split('_')[2];
@@ -97,7 +101,8 @@ class IndexTabThreadItem {
   final String title;
   final String memberUsername;
   final String memberUid;
+  final String dateLine;
 
-  IndexTabThreadItem(
-      this.tid, this.fid, this.title, this.memberUsername, this.memberUid);
+  IndexTabThreadItem(this.tid, this.fid, this.title, this.memberUsername,
+      this.memberUid, this.dateLine);
 }

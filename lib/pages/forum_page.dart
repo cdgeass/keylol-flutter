@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/global.dart';
 import 'package:keylol_flutter/model/forum.dart';
-import 'package:keylol_flutter/model/profile.dart';
+import 'package:keylol_flutter/pages/thread_author.dart';
 
 class ForumPage extends StatefulWidget {
   final String fid;
@@ -33,14 +33,16 @@ class _ForumPageState extends State<ForumPage> {
         builder:
             (BuildContext context, AsyncSnapshot<List<ForumThread>> snapshot) {
           if (snapshot.hasData) {
-            final forumThreads = snapshot.data!;
+            final forumThreads = snapshot.data!
+                .map(
+                    (forumThread) => _ForumThreadItem(forumThread: forumThread))
+                .toList();
 
-            return ListView(
-              children: [
-                for (final forumThread in forumThreads)
-                  _ForumThreadItem(forumThread: forumThread)
-              ],
-            );
+            return ListView.builder(
+                itemCount: forumThreads.length,
+                itemBuilder: (context, index) {
+                  return forumThreads[index];
+                });
           } else if (snapshot.hasError) {
             return Center(
               child: CircularProgressIndicator(),
@@ -64,7 +66,7 @@ class _ForumThreadItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    final threadWidget = InkWell(
       child: Column(
         children: [
           ListTile(
@@ -72,71 +74,34 @@ class _ForumThreadItem extends StatelessWidget {
             subtitle: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _ForumThreadAuthorItem(
-                    authorId: forumThread.authorId!,
-                    author: forumThread.author!),
+                ThreadAuthor(
+                  uid: forumThread.authorId!,
+                  username: forumThread.author!,
+                  size: Size(24.0, 24.0),
+                ),
                 Text(forumThread.dateLine!.replaceFirst('&nbsp;', ' '))
               ],
             ),
           ),
-          Divider()
+          Divider(
+            thickness: 1.0,
+            height: 1.0,
+          )
         ],
       ),
       onTap: () {
         Navigator.of(context).pushNamed('/thread', arguments: forumThread.tid);
       },
     );
-  }
-}
 
-class _ForumThreadAuthorItem extends StatefulWidget {
-  final String authorId;
-  final String author;
-
-  const _ForumThreadAuthorItem(
-      {Key? key, required this.authorId, required this.author})
-      : super(key: key);
-
-  @override
-  State<StatefulWidget> createState() => _ForumThreadAuthorItemState();
-}
-
-class _ForumThreadAuthorItemState extends State<_ForumThreadAuthorItem> {
-  late Future<Profile> _future;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _future = Global.keylolClient.fetchProfile(uid: widget.authorId);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _future,
-      builder: (BuildContext context, AsyncSnapshot<Profile> snapshot) {
-        // if (snapshot.hasData) {
-        //   final profile = snapshot.data!;
-        //   return Row(
-        //     mainAxisAlignment: MainAxisAlignment.start,
-        //     children: [
-        //       ClipOval(
-        //         child: FadeInImage.assetNetwork(
-        //             height: 16.0,
-        //             placeholder: 'images/unknown_avatar.jpg',
-        //             image: profile.memberAvatar!),
-        //       ),
-        //       SizedBox(
-        //         width: 4.0,
-        //       ),
-        //       Text(profile.memberUsername!)
-        //     ],
-        //   );
-        // }
-
-        return Text(widget.author);
-      },
-    );
+    if (forumThread.displayOrder == 1) {
+      return ClipRect(
+          child: Banner(
+              location: BannerLocation.topStart,
+              message: '置顶',
+              color: Color(0xFF81C784),
+              child: threadWidget));
+    }
+    return threadWidget;
   }
 }

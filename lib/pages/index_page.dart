@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/global.dart';
 import 'package:keylol_flutter/model/index.dart';
+import 'package:keylol_flutter/pages/thread_author.dart';
 import 'package:keylol_flutter/pages/user_account_drawer.dart';
 
 class IndexPage extends StatefulWidget {
@@ -343,9 +344,19 @@ class _ThreadItem extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ListTile(
-                title: Text(thread.title),
-                subtitle: Text(thread.memberUsername),
-              ),
+                  title: Text(thread.title),
+                  subtitle: Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          ThreadAuthor(
+                              uid: thread.memberUid,
+                              username: thread.memberUsername,
+                              size: Size(24.0, 24.0)),
+                          Text(thread.dateLine)
+                        ]),
+                  )),
               Divider(
                 thickness: 1.0,
                 height: 1.0,

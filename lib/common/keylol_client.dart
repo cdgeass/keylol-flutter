@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
+import 'package:dio_http_cache/dio_http_cache.dart';
 import 'package:html/parser.dart' as parser;
 import 'package:keylol_flutter/common/global.dart';
 import 'package:keylol_flutter/model/forum.dart';
@@ -24,6 +25,9 @@ class KeylolClient {
     cj = PersistCookieJar(
         ignoreExpires: false, storage: FileStorage(appDocPath + "/.cookies/"));
     _dio.interceptors.add(CookieManager(cj));
+    _dio.interceptors.add(
+        DioCacheManager(CacheConfig(baseUrl: 'https://keylol.com'))
+            .interceptor);
   }
 
   /// 登陆
@@ -50,13 +54,15 @@ class KeylolClient {
   // 用户信息
   Future<Profile> fetchProfile({String? uid}) async {
     var res = await _dio.get("/api/mobile/index.php",
-        queryParameters: {'module': 'profile', 'uid': uid});
+        queryParameters: {'module': 'profile', 'uid': uid},
+        options: buildCacheOptions(Duration(days: 1)));
     return Profile.fromJson(res.data['Variables']);
   }
 
   // 首页
   Future<Index> fetchIndex() async {
-    var res = await _dio.get("");
+    var res =
+        await _dio.get("", options: buildCacheOptions(Duration(minutes: 1)));
 
     var document = parser.parse(res.data as String);
 
@@ -66,7 +72,8 @@ class KeylolClient {
   // 版块列表
   Future<List<Cat>> fetchForumIndex() async {
     var res = await _dio.get("/api/mobile/index.php",
-        queryParameters: {'module': 'forumindex'});
+        queryParameters: {'module': 'forumindex'},
+        options: buildCacheOptions(Duration(days: 7)));
 
     var variables = res.data['Variables'];
     var forumMap = new HashMap<String, Forum>();

@@ -43,7 +43,7 @@ class _UserAccountDrawerState extends State<UserAccountDrawer> {
     items.add(drawerHeader);
 
     final index = ListTile(
-        leading: Icon(Icons.camera),
+        leading: Icon(Icons.home),
         title: Text('聚焦'),
         onTap: () {
           Navigator.of(context).pushNamed('/index');
