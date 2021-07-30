@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
-import 'package:keylol_flutter/model/profile.dart';
+import 'package:keylol_flutter/models/profile.dart';
 
 class Global {
   static final keylolClient = KeylolClient();

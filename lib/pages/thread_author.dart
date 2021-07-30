@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/global.dart';
-import 'package:keylol_flutter/model/profile.dart';
+import 'package:keylol_flutter/models/profile.dart';
 import 'package:keylol_flutter/pages/avatar.dart';
 
 const String avatarUrl =

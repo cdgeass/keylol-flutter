@@ -6,9 +6,10 @@ import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:dio_http_cache/dio_http_cache.dart';
 import 'package:html/parser.dart' as parser;
 import 'package:keylol_flutter/common/global.dart';
-import 'package:keylol_flutter/model/forum.dart';
-import 'package:keylol_flutter/model/index.dart';
-import 'package:keylol_flutter/model/profile.dart';
+import 'package:keylol_flutter/models/cat.dart';
+import 'package:keylol_flutter/models/forum_display.dart';
+import 'package:keylol_flutter/models/index.dart';
+import 'package:keylol_flutter/models/profile.dart';
 import 'package:path_provider/path_provider.dart';
 
 class KeylolClient {
@@ -76,9 +77,9 @@ class KeylolClient {
         options: buildCacheOptions(Duration(days: 7)));
 
     var variables = res.data['Variables'];
-    var forumMap = new HashMap<String, Forum>();
+    var forumMap = new HashMap<String, CatForum>();
     for (var forumJson in (variables['forumlist'] as List<dynamic>)) {
-      final forum = Forum.fromJson(forumJson);
+      final forum = CatForum.fromJson(forumJson);
       forumMap[forum.fid!] = forum;
     }
 
@@ -93,14 +94,15 @@ class KeylolClient {
   }
 
   // 板块帖子列表
-  Future<List<ForumThread>> fetchForum(String fid, int page) async {
-    var res = await _dio.get("/api/mobile/index.php",
-        queryParameters: {'module': 'forumdisplay', 'fid': fid, 'page': page});
+  Future<ForumDisplay> fetchForum(String fid, int page, int? typeId) async {
+    var res = await _dio.get("/api/mobile/index.php", queryParameters: {
+      'module': 'forumdisplay',
+      'fid': fid,
+      'page': page,
+      'filter': 'typeid',
+      'typeid': typeId
+    });
 
-    var forumThreadList = res.data['Variables']['forum_threadlist'];
-
-    return (forumThreadList as List<dynamic>)
-        .map((forumThreadJson) => ForumThread.fromJson(forumThreadJson))
-        .toList();
+    return ForumDisplay.fromJson(res.data['Variables']);
   }
 }
