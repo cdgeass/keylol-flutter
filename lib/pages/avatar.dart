@@ -11,19 +11,13 @@ class Avatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipOval(
-      child: FadeInImage(
-        width: size.width,
-        height: size.height,
-        placeholder: AssetImage('images/unknown_avatar.jpg'),
-        image: CachedNetworkImageProvider(avatarUrl),
-        imageErrorBuilder: (context, error, stackTrace) {
-          return Image.asset(
-            'images/unknown_avatar.jpg',
-            width: size.width,
-            height: size.height,
-          );
-        },
-      ),
-    );
+        child: CachedNetworkImage(
+      width: size.width,
+      height: size.height,
+      imageUrl: avatarUrl,
+      placeholder: (context, url) => Image.asset('images/unknown_avatar.jpg'),
+      errorWidget: (context, url, error) =>
+          Image.asset('images/unknown_avatar.jpg'),
+    ));
   }
 }

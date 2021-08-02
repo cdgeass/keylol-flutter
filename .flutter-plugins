@@ -1,12 +1,12 @@
 # This is a generated file; do not edit or check into version control.
-path_provider=C:\\Users\\linqihang\\scoop\\apps\\flutter\\current\\.pub-cache\\hosted\\pub.dartlang.org\\path_provider-2.0.2\\
-path_provider_linux=C:\\Users\\linqihang\\scoop\\apps\\flutter\\current\\.pub-cache\\hosted\\pub.dartlang.org\\path_provider_linux-2.0.2\\
-path_provider_macos=C:\\Users\\linqihang\\scoop\\apps\\flutter\\current\\.pub-cache\\hosted\\pub.dartlang.org\\path_provider_macos-2.0.2\\
-path_provider_windows=C:\\Users\\linqihang\\scoop\\apps\\flutter\\current\\.pub-cache\\hosted\\pub.dartlang.org\\path_provider_windows-2.0.3\\
-sqflite=C:\\Users\\linqihang\\scoop\\apps\\flutter\\current\\.pub-cache\\hosted\\pub.dartlang.org\\sqflite-2.0.0+3\\
-video_player=C:\\Users\\linqihang\\scoop\\apps\\flutter\\current\\.pub-cache\\hosted\\pub.dartlang.org\\video_player-2.1.12\\
-video_player_web=C:\\Users\\linqihang\\scoop\\apps\\flutter\\current\\.pub-cache\\hosted\\pub.dartlang.org\\video_player_web-2.0.2\\
-wakelock=C:\\Users\\linqihang\\scoop\\apps\\flutter\\current\\.pub-cache\\hosted\\pub.dartlang.org\\wakelock-0.5.2\\
-wakelock_macos=C:\\Users\\linqihang\\scoop\\apps\\flutter\\current\\.pub-cache\\hosted\\pub.dartlang.org\\wakelock_macos-0.1.0+1\\
-wakelock_web=C:\\Users\\linqihang\\scoop\\apps\\flutter\\current\\.pub-cache\\hosted\\pub.dartlang.org\\wakelock_web-0.2.0+1\\
-webview_flutter=C:\\Users\\linqihang\\scoop\\apps\\flutter\\current\\.pub-cache\\hosted\\pub.dartlang.org\\webview_flutter-2.0.10\\
+path_provider=C:\\Users\\linqi\\scoop\\apps\\flutter\\current\\.pub-cache\\hosted\\pub.dartlang.org\\path_provider-2.0.2\\
+path_provider_linux=C:\\Users\\linqi\\scoop\\apps\\flutter\\current\\.pub-cache\\hosted\\pub.dartlang.org\\path_provider_linux-2.0.2\\
+path_provider_macos=C:\\Users\\linqi\\scoop\\apps\\flutter\\current\\.pub-cache\\hosted\\pub.dartlang.org\\path_provider_macos-2.0.2\\
+path_provider_windows=C:\\Users\\linqi\\scoop\\apps\\flutter\\current\\.pub-cache\\hosted\\pub.dartlang.org\\path_provider_windows-2.0.3\\
+sqflite=C:\\Users\\linqi\\scoop\\apps\\flutter\\current\\.pub-cache\\hosted\\pub.dartlang.org\\sqflite-2.0.0+3\\
+video_player=C:\\Users\\linqi\\scoop\\apps\\flutter\\current\\.pub-cache\\hosted\\pub.dartlang.org\\video_player-2.1.12\\
+video_player_web=C:\\Users\\linqi\\scoop\\apps\\flutter\\current\\.pub-cache\\hosted\\pub.dartlang.org\\video_player_web-2.0.2\\
+wakelock=C:\\Users\\linqi\\scoop\\apps\\flutter\\current\\.pub-cache\\hosted\\pub.dartlang.org\\wakelock-0.5.2\\
+wakelock_macos=C:\\Users\\linqi\\scoop\\apps\\flutter\\current\\.pub-cache\\hosted\\pub.dartlang.org\\wakelock_macos-0.1.0+1\\
+wakelock_web=C:\\Users\\linqi\\scoop\\apps\\flutter\\current\\.pub-cache\\hosted\\pub.dartlang.org\\wakelock_web-0.2.0+1\\
+webview_flutter=C:\\Users\\linqi\\scoop\\apps\\flutter\\current\\.pub-cache\\hosted\\pub.dartlang.org\\webview_flutter-2.0.10\\

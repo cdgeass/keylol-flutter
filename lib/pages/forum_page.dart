@@ -121,7 +121,9 @@ class _ForumThreadListState extends State<_ForumThreadList> {
       final pixels = _scrollController.position.pixels;
 
       if (maxScroll == pixels) {
-        _loadMore();
+        if (_hasMore) {
+          _loadMore();
+        }
       }
     });
   }
@@ -239,18 +241,12 @@ class _ForumThreadListState extends State<_ForumThreadList> {
       child = StreamBuilder(
           stream: _streamController.stream,
           builder: (context, AsyncSnapshot<List<ForumDisplayThread>> snapshot) {
-            final forumThreads = [];
-            if (snapshot.hasData) {
-              forumThreads.addAll(snapshot.data!
-                  .map((forumThread) =>
-                      _ForumThreadItem(forumThread: forumThread))
-                  .toList());
-            }
+            final forumThreads = snapshot.data ?? [];
             return ListView.builder(
                 controller: _scrollController,
                 itemCount: forumThreads.length,
                 itemBuilder: (context, index) {
-                  return forumThreads[index];
+                  return _ForumThreadItem(forumThread: forumThreads[index]);
                 });
           });
     } else {
