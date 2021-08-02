@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/global.dart';
@@ -22,7 +24,7 @@ class _ForumPageState extends State<ForumPage>
   void initState() {
     super.initState();
 
-    _future = Global.keylolClient.fetchForum(widget.fid, 1, null);
+    _future = Global.keylolClient.fetchForum(widget.fid, 1, 'typeid', {});
   }
 
   @override
@@ -85,80 +87,193 @@ class _ForumThreadList extends StatefulWidget {
 
 class _ForumThreadListState extends State<_ForumThreadList> {
   var _page = 1;
-  late Future<ForumDisplay> _future;
-  final _digests = [
-    OutlinedButton(
-      child: Text('默认'),
-      onPressed: () {},
-    ),
-    OutlinedButton(
-      child: Text('最新'),
-      onPressed: () {},
-    ),
-    OutlinedButton(
-      child: Text('热门'),
-      onPressed: () {},
-    ),
-    OutlinedButton(
-      child: Text('热帖'),
-      onPressed: () {},
-    ),
-    OutlinedButton(
-      child: Text('精华'),
-      onPressed: () {},
-    ),
-  ];
+  String? _filter;
+  Map<String, String>? _param;
+
+  List<ForumDisplayThread> _threads = [];
+  bool _hasMore = true;
+  final StreamController<List<ForumDisplayThread>> _streamController =
+      StreamController();
+  final ScrollController _scrollController = ScrollController();
+
+  final _selectedStyle = ButtonStyle(
+      backgroundColor: MaterialStateProperty.all<Color>(Colors.blue),
+      foregroundColor: MaterialStateProperty.all<Color>(Colors.white));
+  final _unselectedStyle = ButtonStyle(
+      backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
+      foregroundColor: MaterialStateProperty.all<Color>(Colors.black));
+  String? _selectedButton;
 
   @override
   void initState() {
     super.initState();
 
-    _future = Global.keylolClient.fetchForum(widget.fid, _page, widget.typeId);
+    if (_filter == null) {
+      _filter = 'typeid';
+    }
+    if (_param == null) {
+      _param = {'typeid': widget.typeId.toString()};
+    }
+    _init();
+
+    _scrollController.addListener(() {
+      final maxScroll = _scrollController.position.maxScrollExtent;
+      final pixels = _scrollController.position.pixels;
+
+      if (maxScroll == pixels) {
+        _loadMore();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _streamController.close();
+  }
+
+  void _init() async {
+    _page = 1;
+    _hasMore = true;
+    _threads = await _fetchThreads();
+    if (_threads.isEmpty) {
+      _hasMore = false;
+    }
+    _streamController.sink.add(_threads);
+  }
+
+  void _loadMore() async {
+    if (!_hasMore) {
+      return;
+    }
+    _page++;
+    final threads = await _fetchThreads();
+    if (threads.isEmpty) {
+      _hasMore = false;
+    }
+    _threads.addAll(threads);
+    _streamController.sink.add(_threads);
+  }
+
+  Future<List<ForumDisplayThread>> _fetchThreads() async {
+    final forumDisplay = await Global.keylolClient
+        .fetchForum(widget.fid, _page, _filter!, _param!);
+    return forumDisplay.threads ?? [];
+  }
+
+  List<Widget> _filterButtons() {
+    return [
+      ElevatedButton(
+        child: Text('默认'),
+        style: _selectedButton == null || _selectedButton == '默认'
+            ? _selectedStyle
+            : _unselectedStyle,
+        onPressed: () {
+          setState(() {
+            _selectedButton = '默认';
+            _filter = 'typeid';
+            _param = {'typeid': widget.typeId.toString()};
+            _init();
+          });
+        },
+      ),
+      ElevatedButton(
+        child: Text('最新'),
+        style: _selectedButton == '最新' ? _selectedStyle : _unselectedStyle,
+        onPressed: () {
+          setState(() {
+            _selectedButton = '最新';
+            _filter = 'dateline';
+            _param = {'orderby': 'dateline'};
+            _page = 1;
+            _init();
+          });
+        },
+      ),
+      ElevatedButton(
+        child: Text('热门'),
+        style: _selectedButton == '热门' ? _selectedStyle : _unselectedStyle,
+        onPressed: () {
+          setState(() {
+            _selectedButton = '热门';
+            _filter = 'heat';
+            _param = {'orderby': 'heats'};
+            _page = 1;
+            _init();
+          });
+        },
+      ),
+      ElevatedButton(
+        child: Text('热帖'),
+        style: _selectedButton == '热帖' ? _selectedStyle : _unselectedStyle,
+        onPressed: () {
+          setState(() {
+            _selectedButton = '热帖';
+            _filter = 'hot';
+            _param = {};
+            _page = 1;
+            _init();
+          });
+        },
+      ),
+      ElevatedButton(
+        child: Text('精华'),
+        style: _selectedButton == '精华' ? _selectedStyle : _unselectedStyle,
+        onPressed: () {
+          setState(() {
+            _selectedButton = '精华';
+            _filter = 'digest';
+            _param = {'digest': '1'};
+            _page = 1;
+            _init();
+          });
+        },
+      ),
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
+    final Widget child;
     if (widget.typeId != null) {
-      return FutureBuilder(
-        future: _future,
-        builder: (BuildContext context, AsyncSnapshot<ForumDisplay> snapshot) {
-          if (snapshot.hasData) {
-            final forumDisplay = snapshot.data!;
-            final forumThreads = forumDisplay.threads!
-                .map(
-                    (forumThread) => _ForumThreadItem(forumThread: forumThread))
-                .toList();
+      child = StreamBuilder(
+          stream: _streamController.stream,
+          builder: (context, AsyncSnapshot<List<ForumDisplayThread>> snapshot) {
+            final forumThreads = [];
+            if (snapshot.hasData) {
+              forumThreads.addAll(snapshot.data!
+                  .map((forumThread) =>
+                      _ForumThreadItem(forumThread: forumThread))
+                  .toList());
+            }
             return ListView.builder(
-              itemCount: forumThreads.length,
-              itemBuilder: (context, index) {
-                return forumThreads[index];
-              },
-            );
-          }
-          return Center(
-            child: CircularProgressIndicator(),
-          );
-        },
-      );
+                controller: _scrollController,
+                itemCount: forumThreads.length,
+                itemBuilder: (context, index) {
+                  return forumThreads[index];
+                });
+          });
     } else {
-      return FutureBuilder(
-        future: _future,
-        builder: (BuildContext context, AsyncSnapshot<ForumDisplay> snapshot) {
-          if (snapshot.hasData) {
-            final forumDisplay = snapshot.data!;
-            final forumThreads = forumDisplay.threads!
-                .map(
-                    (forumThread) => _ForumThreadItem(forumThread: forumThread))
-                .toList();
+      child = StreamBuilder(
+          stream: _streamController.stream,
+          builder: (context, AsyncSnapshot<List<ForumDisplayThread>> snapshot) {
+            final forumThreads = [];
+            if (snapshot.hasData) {
+              forumThreads.addAll(snapshot.data!
+                  .map((forumThread) =>
+                      _ForumThreadItem(forumThread: forumThread))
+                  .toList());
+            }
 
             return CustomScrollView(
+              controller: _scrollController,
               slivers: [
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: EdgeInsetsDirectional.only(start: 8.0, end: 8.0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: _digests,
+                      children: _filterButtons(),
                     ),
                   ),
                 ),
@@ -169,14 +284,15 @@ class _ForumThreadListState extends State<_ForumThreadList> {
                 )
               ],
             );
-          }
-
-          return Center(
-            child: CircularProgressIndicator(),
-          );
-        },
-      );
+          });
     }
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        _init();
+      },
+      child: child,
+    );
   }
 }
 

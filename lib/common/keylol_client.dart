@@ -54,8 +54,12 @@ class KeylolClient {
 
   // 用户信息
   Future<Profile> fetchProfile({String? uid}) async {
+    final queryParameters = {'module': 'profile'};
+    if (uid != null) {
+      queryParameters['uid'] = uid;
+    }
     var res = await _dio.get("/api/mobile/index.php",
-        queryParameters: {'module': 'profile', 'uid': uid},
+        queryParameters: queryParameters,
         options: buildCacheOptions(Duration(days: 1)));
     return Profile.fromJson(res.data['Variables']);
   }
@@ -94,14 +98,17 @@ class KeylolClient {
   }
 
   // 板块帖子列表
-  Future<ForumDisplay> fetchForum(String fid, int page, int? typeId) async {
-    var res = await _dio.get("/api/mobile/index.php", queryParameters: {
+  Future<ForumDisplay> fetchForum(
+      String fid, int page, String filter, Map<String, String> param) async {
+    final queryParameters = {
       'module': 'forumdisplay',
       'fid': fid,
       'page': page,
-      'filter': 'typeid',
-      'typeid': typeId
-    });
+      'filter': filter,
+    };
+    queryParameters.addAll(param);
+    var res = await _dio.get("/api/mobile/index.php",
+        queryParameters: queryParameters);
 
     return ForumDisplay.fromJson(res.data['Variables']);
   }

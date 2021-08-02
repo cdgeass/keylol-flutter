@@ -168,7 +168,7 @@ class ForumDisplayThread {
       view = int.parse(viewStr);
     }
     var repliesStr = json['replies'];
-    if (repliesStr != null) {
+    if (repliesStr != null && repliesStr != '-') {
       replies = int.parse(repliesStr);
     }
     var displayOrderStr = json['displayorder'];
