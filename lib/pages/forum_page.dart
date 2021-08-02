@@ -317,7 +317,7 @@ class _ForumThreadItem extends StatelessWidget {
                   username: forumThread.author!,
                   size: Size(24.0, 24.0),
                 ),
-                Text(forumThread.dateLine!.replaceFirst('&nbsp;', ' '))
+                Text(forumThread.dateline!.replaceFirst('&nbsp;', ' '))
               ],
             ),
           ),

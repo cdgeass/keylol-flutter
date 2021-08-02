@@ -10,6 +10,7 @@ import 'package:keylol_flutter/models/cat.dart';
 import 'package:keylol_flutter/models/forum_display.dart';
 import 'package:keylol_flutter/models/index.dart';
 import 'package:keylol_flutter/models/profile.dart';
+import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:path_provider/path_provider.dart';
 
 class KeylolClient {
@@ -58,9 +59,10 @@ class KeylolClient {
     if (uid != null) {
       queryParameters['uid'] = uid;
     }
-    var res = await _dio.get("/api/mobile/index.php",
-        queryParameters: queryParameters,
-        options: buildCacheOptions(Duration(days: 1)));
+    var res = await _dio.get(
+      "/api/mobile/index.php",
+      queryParameters: queryParameters,
+    );
     return Profile.fromJson(res.data['Variables']);
   }
 
@@ -111,5 +113,13 @@ class KeylolClient {
         queryParameters: queryParameters);
 
     return ForumDisplay.fromJson(res.data['Variables']);
+  }
+
+  // 帖子详情
+  Future<ViewThread> fetchThread(String tid, int page) async {
+    var res = await _dio.get("/api/mobile/index.php",
+        queryParameters: {'module': 'viewthread', 'tid': tid, 'page': page});
+
+    return ViewThread.fromJson(res.data['Variables']);
   }
 }

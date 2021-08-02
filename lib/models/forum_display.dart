@@ -127,7 +127,7 @@ class ForumDisplayThread {
   String? author;
   String? authorId;
   String? subject;
-  String? dateLine;
+  String? dateline;
   String? lastPost;
   String? lastPoster;
   int? view;
@@ -138,7 +138,7 @@ class ForumDisplayThread {
   int? attachment;
   int? recommendAdd;
   int? replayCredit;
-  int? dbDateLine;
+  int? dbDateline;
   int? dbLastPost;
   int? rushReply;
   int? recommend;
@@ -160,7 +160,7 @@ class ForumDisplayThread {
     author = json['author'];
     authorId = json['authorid'];
     subject = json['subject'];
-    dateLine = json['dateline'];
+    dateline = json['dateline'];
     lastPost = json['lastpost'];
     lastPoster = json['lastposter'];
     var viewStr = json['view'];
@@ -197,7 +197,7 @@ class ForumDisplayThread {
     }
     var dbDateLineStr = json['dbdateline'];
     if (dbDateLineStr != null) {
-      dbDateLine = int.parse(dbDateLineStr);
+      dbDateline = int.parse(dbDateLineStr);
     }
     var dbLastPostStr = json['dblastpost'];
     if (dbLastPostStr != null) {
