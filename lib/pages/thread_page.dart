@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
+import 'package:keylol_flutter/common/constants.dart';
 import 'package:keylol_flutter/common/global.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
+import 'package:keylol_flutter/pages/avatar.dart';
 import 'package:keylol_flutter/pages/thread_author.dart';
+import 'package:keylol_flutter/pages/thread_content.dart';
 
 class ThreadPage extends StatefulWidget {
   final String tid;
@@ -101,7 +103,7 @@ class _PostListState extends State<_PostList> {
     final viewThread = await Global.keylolClient.fetchThread(widget.tid, _page);
     final posts = viewThread.posts;
     if (posts != null && posts.isNotEmpty) {
-      if (posts[1].position! > _posts[_posts.length - 1].position!) {
+      if (posts[0].position! > _posts[_posts.length - 1].position!) {
         _hasMore = true;
         _posts.addAll(posts);
       } else {
@@ -122,22 +124,31 @@ class _PostListState extends State<_PostList> {
           stream: _streamController.stream,
           builder: (context, AsyncSnapshot<List<ViewThreadPost>> snapshot) {
             final posts = snapshot.data ?? [];
-            return ListView.builder(
-                controller: _scrollController,
-                itemCount: posts.length,
-                itemBuilder: (context, index) {
-                  final post = posts[index];
-                  return _PostItem(post: post);
-                });
+            return ListView.separated(
+              controller: _scrollController,
+              itemCount: posts.length,
+              itemBuilder: (context, index) {
+                final post = posts[index];
+                return _PostItem(first: post.first == '1', post: post);
+              },
+              separatorBuilder: (BuildContext context, int index) {
+                return Divider(
+                  thickness: 1.0,
+                  height: 1.0,
+                );
+              },
+            );
           },
         ));
   }
 }
 
 class _PostItem extends StatefulWidget {
+  final bool first;
   final ViewThreadPost post;
 
-  const _PostItem({Key? key, required this.post}) : super(key: key);
+  const _PostItem({Key? key, required this.post, required this.first})
+      : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _PostItemState();
@@ -148,22 +159,30 @@ class _PostItemState extends State<_PostItem> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            ThreadAuthor(
+        ListTile(
+          leading: Avatar(
+            avatarUrl: avatarUrl + widget.post.authorId!,
+            size: Size(40.0, 40.0),
+          ),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ThreadAuthor(
                 uid: widget.post.authorId!,
                 username: widget.post.author!,
-                size: Size(24.0, 24.0)),
-            Text(widget.post.dateline!.replaceAll('&nbsp;', ''))
+                size: Size(1.0, 1.0),
+                needAvatar: false,
+              ),
+              Text(widget.post.number.toString() + '楼')
+            ],
+          ),
+          subtitle: Text(widget.post.dateline!.replaceAll('&nbsp;', '')),
+        ),
+        Row(
+          children: [
+            if (!widget.first) SizedBox(width: 40.0),
+            ThreadContent(data: widget.post.message!)
           ],
-        ),
-        Divider(
-          thickness: 1.0,
-          height: 1.0,
-        ),
-        Html(
-          data: widget.post.message!,
         )
       ],
     );

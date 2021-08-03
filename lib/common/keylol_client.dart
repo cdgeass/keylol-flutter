@@ -59,10 +59,9 @@ class KeylolClient {
     if (uid != null) {
       queryParameters['uid'] = uid;
     }
-    var res = await _dio.get(
-      "/api/mobile/index.php",
-      queryParameters: queryParameters,
-    );
+    var res = await _dio.get("/api/mobile/index.php",
+        queryParameters: queryParameters,
+        options: buildCacheOptions(Duration(days: 1)));
     return Profile.fromJson(res.data['Variables']);
   }
 
