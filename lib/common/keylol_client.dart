@@ -32,25 +32,27 @@ class KeylolClient {
             .interceptor);
   }
 
-  /// 登陆
-  Future login(String username, String password) {
-    var formData = FormData.fromMap({
-      'username': username,
-      'password': password,
-      'answer': '',
-      'questionid': '0'
-    });
-    var resFuture = _dio.post("/api/mobile/index.php",
+  /// 登录
+  Future login(String username, String password) async {
+    final res = await _dio.post("/api/mobile/index.php",
         queryParameters: {
           'module': 'login',
           'action': 'login',
           'loginsubmit': 'yes'
         },
-        data: formData);
-    return resFuture.then((res) {
+        data: FormData.fromMap({
+          'username': username,
+          'password': password,
+          'answer': '',
+          'questionid': '0'
+        }));
+    if (res.data['Message']!['messageval'] == 'login_succeed') {
       return fetchProfile()
           .then((profile) => Global.profileHolder.setProfile(profile));
-    });
+    } else if (res.data['Message']!['messageval'] == 'login_seccheck2') {
+    } else {
+      return Future.error(res.data['Message']!['messagestr']);
+    }
   }
 
   // 用户信息
@@ -59,9 +61,13 @@ class KeylolClient {
     if (uid != null) {
       queryParameters['uid'] = uid;
     }
-    var res = await _dio.get("/api/mobile/index.php",
-        queryParameters: queryParameters,
-        options: buildCacheOptions(Duration(days: 1)));
+    final res = await _dio.get(
+      "/api/mobile/index.php",
+      queryParameters: queryParameters,
+    );
+    if (res.data['Message'] != null) {
+      return Future.error(res.data['Message']!['messagestr']);
+    }
     return Profile.fromJson(res.data['Variables']);
   }
 

@@ -11,8 +11,10 @@ class Global {
   static Future init() async {
     await keylolClient.init();
 
-    var profile = await keylolClient.fetchProfile();
-    profileHolder.setProfile(profile);
+    try {
+      var profile = await keylolClient.fetchProfile();
+      profileHolder.setProfile(profile);
+    } catch (ignored) {}
   }
 
   static logout() {

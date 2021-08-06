@@ -22,7 +22,7 @@ keylol.com mobile flutter client
 
 * /api/mobile/index.php?version=4&module=login&action=login&loginsubmit=yes
 
-    登陆
+    登录
 
     username:
     password:

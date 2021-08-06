@@ -60,7 +60,7 @@ class _UserAccountDrawerState extends State<UserAccountDrawer> {
 
     final loginOrLogout = ListTile(
       leading: profile == null ? Icon(Icons.login) : Icon(Icons.logout),
-      title: Text(profile == null ? '登陆' : '退出'),
+      title: Text(profile == null ? '登录' : '退出'),
       onTap: () {
         if (profile == null) {
           Navigator.of(context).pushNamed("/login");
