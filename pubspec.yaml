@@ -39,6 +39,9 @@ dependencies:
   dio_http_cache: ^0.3.0
   flutter_html: ^2.1.1
   webview_flutter: ^2.0.10
+  polls: ^1.0.1
+  percent_indicator: ^3.0.1
+  webview_cookie_manager: ^2.0.1
 
 dev_dependencies:
   flutter_test:

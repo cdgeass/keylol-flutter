@@ -1,12 +1,13 @@
 import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/constants.dart';
 import 'package:keylol_flutter/common/global.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:keylol_flutter/pages/avatar.dart';
+import 'package:keylol_flutter/pages/post_content.dart';
 import 'package:keylol_flutter/pages/thread_author.dart';
-import 'package:keylol_flutter/pages/thread_content.dart';
 
 class ThreadPage extends StatefulWidget {
   final String tid;
@@ -32,20 +33,31 @@ class _ThreadPageState extends State<ThreadPage> {
     return FutureBuilder(
         future: _future,
         builder: (context, AsyncSnapshot<ViewThread> snapshot) {
-          Widget body;
           if (snapshot.hasData) {
             final viewThread = snapshot.data!;
-            body = _PostList(tid: widget.tid, posts: viewThread.posts ?? []);
+            return Scaffold(
+              appBar: AppBar(),
+              body: _PostList(tid: widget.tid, posts: viewThread.posts ?? []),
+              bottomNavigationBar: _Reply(
+                fid: viewThread.fid!,
+                tid: widget.tid,
+                onSuccess: () {
+                  setState(() {
+                    _page = 1;
+                    _future =
+                        Global.keylolClient.fetchThread(widget.tid, _page);
+                  });
+                },
+              ),
+            );
           } else {
-            body = Center(
-              child: CircularProgressIndicator(),
+            return Scaffold(
+              appBar: AppBar(),
+              body: Center(
+                child: CircularProgressIndicator(),
+              ),
             );
           }
-
-          return Scaffold(
-            appBar: AppBar(),
-            body: body,
-          );
         });
   }
 }
@@ -129,7 +141,7 @@ class _PostListState extends State<_PostList> {
               itemCount: posts.length,
               itemBuilder: (context, index) {
                 final post = posts[index];
-                return _PostItem(first: post.first == '1', post: post);
+                return _PostItem(post: post);
               },
               separatorBuilder: (BuildContext context, int index) {
                 return Divider(
@@ -144,11 +156,9 @@ class _PostListState extends State<_PostList> {
 }
 
 class _PostItem extends StatefulWidget {
-  final bool first;
   final ViewThreadPost post;
 
-  const _PostItem({Key? key, required this.post, required this.first})
-      : super(key: key);
+  const _PostItem({Key? key, required this.post}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _PostItemState();
@@ -178,13 +188,164 @@ class _PostItemState extends State<_PostItem> {
           ),
           subtitle: Text(widget.post.dateline!.replaceAll('&nbsp;', '')),
         ),
-        Row(
-          children: [
-            if (!widget.first) SizedBox(width: 40.0),
-            ThreadContent(data: widget.post.message!)
-          ],
-        )
+        PostContent(
+          message: widget.post.message!,
+          specialPoll: widget.post.specialPoll,
+        ),
       ],
     );
+  }
+}
+
+class _Reply extends StatefulWidget {
+  final String fid;
+  final String tid;
+  final Function onSuccess;
+
+  const _Reply(
+      {Key? key, required this.fid, required this.tid, required this.onSuccess})
+      : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => _ReplyState();
+}
+
+class _ReplyState extends State<_Reply> {
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    final profile = Global.profileHolder.profile;
+    if (profile != null) {
+      final formHash = profile.formHash!;
+      return Row(
+        children: [
+          IconButton(
+            icon: Icon(Icons.emoji_emotions_outlined),
+            onPressed: () {
+              showModalBottomSheet(
+                  context: context,
+                  builder: (_) {
+                    return _buildEmojiPicker();
+                  });
+            },
+          ),
+          Expanded(
+              child: Padding(
+            padding: EdgeInsets.only(bottom: 8.0),
+            child: TextField(
+              controller: _controller,
+            ),
+          )),
+          IconButton(
+              icon: Icon(Icons.send),
+              onPressed: () {
+                final message = _controller.text;
+                if (message.isNotEmpty) {
+                  final replyFuture = Global.keylolClient
+                      .sendReply(widget.fid, widget.tid, formHash, message);
+                  replyFuture.then((_) {
+                    _controller.clear();
+                    showDialog(
+                        context: context,
+                        builder: (_) {
+                          return AlertDialog(title: Text('回复成功'), actions: [
+                            TextButton(
+                                onPressed: () {
+                                  widget.onSuccess.call();
+                                  Navigator.pop(context);
+                                },
+                                child: Text('确定'))
+                          ]);
+                        });
+                  }).onError((error, _) {
+                    showDialog(
+                        context: context,
+                        builder: (_) {
+                          return AlertDialog(
+                              title: Text('回复失败'),
+                              content: Text(error as String),
+                              actions: [
+                                TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                    child: Text('确定'))
+                              ]);
+                        });
+                  });
+                }
+              })
+        ],
+      );
+    } else {
+      return Container();
+    }
+  }
+
+  Widget _buildEmojiPicker() {
+    return DefaultTabController(
+      length: EMOJI_MAP.keys.length,
+      child: NestedScrollView(
+          headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+            return [
+              SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _SliverTabBarDelegate(TabBar(
+                      indicatorColor: Colors.blueAccent,
+                      labelColor: Colors.blueAccent,
+                      unselectedLabelColor: Colors.black,
+                      isScrollable: true,
+                      tabs: EMOJI_MAP.keys
+                          .map((key) => Tab(text: key))
+                          .toList()))),
+            ];
+          },
+          body: TabBarView(
+              children: EMOJI_MAP.keys.map((key) {
+            var emojis = EMOJI_MAP[key]!;
+            return GridView.count(
+              crossAxisCount: 5,
+              children: emojis.map((pair) {
+                var url = pair.keys.first;
+                var alt = pair[url]!;
+                return GestureDetector(
+                  onTap: () {
+                    var text = _controller.text;
+                    _controller.text = text + alt;
+                  },
+                  child: CachedNetworkImage(
+                    imageUrl: url,
+                  ),
+                );
+              }).toList(),
+            );
+          }).toList())),
+    );
+  }
+}
+
+class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
+  _SliverTabBarDelegate(this.tabBar);
+
+  final TabBar tabBar;
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      child: tabBar,
+    );
+  }
+
+  @override
+  double get maxExtent => tabBar.preferredSize.height;
+
+  @override
+  double get minExtent => tabBar.preferredSize.height;
+
+  @override
+  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
+    return false;
   }
 }

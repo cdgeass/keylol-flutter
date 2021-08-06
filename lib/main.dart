@@ -5,6 +5,7 @@ import 'package:keylol_flutter/pages/forum_page.dart';
 import 'package:keylol_flutter/pages/index_page.dart';
 import 'package:keylol_flutter/pages/login_page.dart';
 import 'package:keylol_flutter/pages/thread_page.dart';
+import 'package:keylol_flutter/pages/webview_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,6 +32,10 @@ class KeylolApp extends StatelessWidget {
         "/thread": (context) {
           var tid = ModalRoute.of(context)?.settings.arguments as String;
           return ThreadPage(tid: tid);
+        },
+        "/webview": (context) {
+          var initialUrl = ModalRoute.of(context)?.settings.arguments as String;
+          return WebViewPage(initialUrl: initialUrl);
         }
       },
     );

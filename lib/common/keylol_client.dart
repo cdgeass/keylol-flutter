@@ -121,4 +121,43 @@ class KeylolClient {
 
     return ViewThread.fromJson(res.data['Variables']);
   }
+
+  // 回复
+  Future sendReply(
+      String fid, String tid, String formHash, String message) async {
+    final res = await _dio.post("/api/mobile/index.php",
+        queryParameters: {
+          'module': 'sendreply',
+          'replysubmit': 'yes',
+          'action': 'reply',
+          'fid': fid,
+          'tid': tid
+        },
+        data: FormData.fromMap({
+          'formhash': formHash,
+          'message': message,
+          'posttime': '${DateTime.now().millisecondsSinceEpoch}',
+          'usesig': 1
+        }));
+    if (res.data['Message']!['messageval'] == 'post_reply_succeed') {
+      return;
+    } else {
+      return Future.error(res.data['Message']!['messagestr']);
+    }
+  }
+
+  // 投票
+  Future sendPoll(String fid, String tid, String formHash,
+      List<String> pollOptionIds) async {
+    var res = await _dio.post("/api/mobile/index.php",
+        queryParameters: {
+          'module': 'pollvote',
+          'pollsubmit': 'yes',
+          'action': 'votepoll',
+          'fid': fid,
+          'tid': tid,
+        },
+        data: FormData.fromMap(
+            {'formhash': formHash, 'pollanswers': pollOptionIds}));
+  }
 }

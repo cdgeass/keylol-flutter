@@ -35,7 +35,7 @@ class _ForumPageState extends State<ForumPage>
         if (snapshot.hasData) {
           final forumDisplay = snapshot.data!;
           final forum = forumDisplay.forum!;
-          var threadTypes = forumDisplay.threadTypes!;
+          var threadTypes = forumDisplay.threadTypes ?? [];
           _tabController =
               TabController(length: threadTypes.length + 1, vsync: this);
 
