@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:typed_data';
 
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
@@ -10,6 +11,7 @@ import 'package:keylol_flutter/models/cat.dart';
 import 'package:keylol_flutter/models/forum_display.dart';
 import 'package:keylol_flutter/models/index.dart';
 import 'package:keylol_flutter/models/profile.dart';
+import 'package:keylol_flutter/models/sec_code.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -38,7 +40,7 @@ class KeylolClient {
         queryParameters: {
           'module': 'login',
           'action': 'login',
-          'loginsubmit': 'yes'
+          'loginsubmit': 'yes',
         },
         data: FormData.fromMap({
           'username': username,
@@ -50,8 +52,98 @@ class KeylolClient {
       return fetchProfile()
           .then((profile) => Global.profileHolder.setProfile(profile));
     } else if (res.data['Message']!['messageval'] == 'login_seccheck2') {
+      final auth = res.data['Variables']!['auth'];
+      final formHash = res.data['Variables']!['formhash'];
+      return fetchSecCodeParam(auth, formHash);
     } else {
       return Future.error(res.data['Message']!['messagestr']);
+    }
+  }
+
+  // 验证码页面
+  Future<SecCode> fetchSecCodeParam(String auth, String formHash) async {
+    final res = await _dio.get('/member.php', queryParameters: {
+      'mod': 'logging',
+      'action': 'login',
+      'auth': auth,
+      'refer': 'https://keylol.com',
+      'cookietime': 1
+    });
+
+    final document = parser.parse(res.data);
+    final secCode = SecCode.fromDocument(document);
+    secCode.auth = auth;
+    secCode.formHash = formHash;
+    return secCode;
+  }
+
+  // 获取验证码
+  Future<Uint8List> fetchSecCode(String update, String idHash) async {
+    final res = await _dio.get('/misc.php',
+        options: Options(responseType: ResponseType.bytes, headers: {
+          'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Accept-Language': 'zh-CN,zh;q=0.9',
+          'Connection': 'keep-alive',
+          'hostname': 'https://keylol.com',
+          'Referer': 'https://keylol.com/member.php?mod=logging&action=login',
+          'Sec-Fetch-Mode': 'no-cors',
+          'Sec-Fetch-Site': 'same-origin',
+          'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36'
+        }),
+        queryParameters: {
+          'mod': 'seccode',
+          'update': update,
+          'idhash': idHash
+        });
+
+    return Uint8List.fromList(res.data);
+  }
+
+  // 验证码校验
+  Future checkSecCode(String auth, String idHash, String secVerify) async {
+    final res = await _dio.get('/misc.php', queryParameters: {
+      'mod': 'seccode',
+      'action': 'check',
+      'inajax': 1,
+      'idhash': idHash,
+      'secverify': secVerify
+    });
+
+    if (!(res.data as String).contains('succeed')) {
+      return Future.error('验证码错误');
+    }
+  }
+
+  // 验证码登录
+  Future loginWithSecCode(String auth, String formHash, String loginHash,
+      String idHash, String secVerify) async {
+    final res = await _dio.post('/member.php',
+        queryParameters: {
+          'mod': 'logging',
+          'action': 'login',
+          'loginsubmit': 'yes',
+          'loginhash': loginHash,
+          'inajax': 1
+        },
+        data: FormData.fromMap({
+          'duceapp': 'yes',
+          'formhash': formHash,
+          'referer': 'https://keylol.com/',
+          'handlekey': 'login',
+          'auth': auth,
+          'seccodehash': idHash,
+          'seccodeverify': secVerify,
+          'cookietime': 2592000
+        }));
+
+    final data = res.data as String;
+    if (data.contains('succeedhandle_login')) {
+      return fetchProfile()
+          .then((profile) => Global.profileHolder.setProfile(profile));
+    } else {
+      return Future.error('登录出错');
     }
   }
 
@@ -76,7 +168,7 @@ class KeylolClient {
     var res =
         await _dio.get("", options: buildCacheOptions(Duration(minutes: 1)));
 
-    var document = parser.parse(res.data as String);
+    var document = parser.parse(res.data);
 
     return Index.fromDocument(document);
   }
