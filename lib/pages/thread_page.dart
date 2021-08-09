@@ -21,6 +21,7 @@ class ThreadPage extends StatefulWidget {
 class _ThreadPageState extends State<ThreadPage> {
   var _page = 1;
   late Future<ViewThread> _future;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -33,16 +34,32 @@ class _ThreadPageState extends State<ThreadPage> {
     return FutureBuilder(
         future: _future,
         builder: (context, AsyncSnapshot<ViewThread> snapshot) {
+          if (snapshot.hasError) {
+            final error = snapshot.error!;
+            return Scaffold(
+              appBar: AppBar(),
+              body: Center(
+                child: Text(error as String),
+              ),
+            );
+          }
           if (snapshot.hasData) {
             final viewThread = snapshot.data!;
             return Scaffold(
               appBar: AppBar(),
-              body: _PostList(tid: widget.tid, posts: viewThread.posts ?? []),
+              body: _PostList(
+                tid: widget.tid,
+                posts: viewThread.posts ?? [],
+                scrollController: _scrollController,
+              ),
               bottomNavigationBar: _Reply(
                 fid: viewThread.fid!,
                 tid: widget.tid,
                 onSuccess: () {
                   setState(() {
+                    _scrollController.animateTo(0.0,
+                        duration: Duration(milliseconds: 500),
+                        curve: Curves.decelerate);
                     _page = 1;
                     _future =
                         Global.keylolClient.fetchThread(widget.tid, _page);
@@ -65,8 +82,13 @@ class _ThreadPageState extends State<ThreadPage> {
 class _PostList extends StatefulWidget {
   final String tid;
   final List<ViewThreadPost> posts;
+  final ScrollController scrollController;
 
-  const _PostList({Key? key, required this.tid, required this.posts})
+  const _PostList(
+      {Key? key,
+      required this.tid,
+      required this.posts,
+      required this.scrollController})
       : super(key: key);
 
   @override
@@ -77,7 +99,6 @@ class _PostListState extends State<_PostList> {
   var _page = 1;
   late List<ViewThreadPost> _posts;
   bool _hasMore = true;
-  final ScrollController _scrollController = ScrollController();
   final StreamController<List<ViewThreadPost>> _streamController =
       StreamController();
 
@@ -85,9 +106,9 @@ class _PostListState extends State<_PostList> {
   void initState() {
     super.initState();
     _init();
-    _scrollController.addListener(() {
-      final maxScroll = _scrollController.position.maxScrollExtent;
-      final pixels = _scrollController.position.pixels;
+    widget.scrollController.addListener(() {
+      final maxScroll = widget.scrollController.position.maxScrollExtent;
+      final pixels = widget.scrollController.position.pixels;
       if (maxScroll == pixels) {
         _loadMore();
       }
@@ -137,7 +158,7 @@ class _PostListState extends State<_PostList> {
           builder: (context, AsyncSnapshot<List<ViewThreadPost>> snapshot) {
             final posts = snapshot.data ?? [];
             return ListView.separated(
-              controller: _scrollController,
+              controller: widget.scrollController,
               itemCount: posts.length,
               itemBuilder: (context, index) {
                 final post = posts[index];
@@ -279,7 +300,9 @@ class _ReplyState extends State<_Reply> {
         ],
       );
     } else {
-      return Container();
+      return Container(
+        height: 0.0,
+      );
     }
   }
 

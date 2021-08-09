@@ -1,7 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+import 'package:video_player/video_player.dart';
 
 class PostContent extends StatelessWidget {
   final String message;
@@ -37,8 +40,9 @@ class PostContent extends StatelessWidget {
       }
       message = message.replaceAll('[/spoil]', '</spoil>');
     }
-
-    return message;
+    return message
+        .replaceAll('[media]', '<video src="')
+        .replaceAll('[/media]', '"/>');
   }
 
   @override
@@ -73,6 +77,34 @@ class PostContent extends StatelessWidget {
             final title = context.tree.element!.attributes['title'] ?? '';
             final message = context.tree.element!.innerHtml;
             return _Collapse(title: title, message: message);
+          },
+          'img': (context, child) {
+            var src = context.tree.element!.attributes['src'];
+            if (src != null) {
+              return CachedNetworkImage(
+                  placeholder: (context, url) => CircularProgressIndicator(),
+                  errorWidget: (context, url, error) =>
+                      CircularProgressIndicator(),
+                  imageUrl: src);
+            }
+            return null;
+          },
+          'video': (context, child) {
+            var src = context.tree.element!.attributes['src'];
+            if (src != null) {
+              src = src.replaceFirst('http', 'https');
+              var videoPlayerController = VideoPlayerController.network(src);
+              return Container(
+                  height: 320.0,
+                  child: Chewie(
+                    controller: ChewieController(
+                        videoPlayerController: videoPlayerController,
+                        autoInitialize: true,
+                        autoPlay: true,
+                        looping: false),
+                  ));
+            }
+            return Container();
           }
         },
       ),

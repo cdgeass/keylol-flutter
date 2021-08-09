@@ -217,6 +217,9 @@ class KeylolClient {
     var res = await _dio.get("/api/mobile/index.php",
         queryParameters: {'module': 'viewthread', 'tid': tid, 'page': page});
 
+    if (res.data['Message'] != null) {
+      return Future.error(res.data['Message']!['messagestr']!);
+    }
     return ViewThread.fromJson(res.data['Variables']);
   }
 
