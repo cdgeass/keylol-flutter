@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
@@ -26,70 +28,86 @@ class _IndexPageState extends State<IndexPage> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _indexFuture,
-      builder: (BuildContext context, AsyncSnapshot<Index> snapshot) {
-        if (snapshot.hasData) {
-          var index = snapshot.data!;
-          // 轮播图
-          final slideView = CarouselSlider(
-            options: CarouselOptions(
-              height: 300.0,
-              enableInfiniteScroll: true,
-              viewportFraction: 1.0,
-              autoPlay: true,
-            ),
-            items: index.slideViewItems
-                ?.map((slideViewItem) =>
-                    _SlideViewItem(slideViewItem: slideViewItem))
-                .toList(),
-          );
+    return RefreshIndicator(
+        notificationPredicate: (notification) {
+          if (notification is OverscrollNotification || Platform.isIOS) {
+            return notification.depth == 2;
+          }
+          return notification.depth == 0;
+        },
+        onRefresh: () {
+          setState(() {
+            _indexFuture = Global.keylolClient.fetchIndex();
+          });
+          return Future.value();
+        },
+        child: FutureBuilder(
+          future: _indexFuture,
+          builder: (BuildContext context, AsyncSnapshot<Index> snapshot) {
+            if (snapshot.hasData) {
+              var index = snapshot.data!;
+              // 轮播图
+              final slideView = CarouselSlider(
+                options: CarouselOptions(
+                  height: 300.0,
+                  enableInfiniteScroll: true,
+                  viewportFraction: 1.0,
+                  autoPlay: true,
+                ),
+                items: index.slideViewItems
+                    ?.map((slideViewItem) =>
+                        _SlideViewItem(slideViewItem: slideViewItem))
+                    .toList(),
+              );
 
-          return DefaultTabController(
-              length: index.tabThreadsMap!.keys.length,
-              child: Scaffold(
-                  drawer: UserAccountDrawer(),
-                  backgroundColor: Color(0xFFEEEEEE),
-                  body: NestedScrollView(
-                    headerSliverBuilder: (context, innerBoxIsScrolled) {
-                      return [
-                        SliverAppBar(
-                          expandedHeight: 275.0,
-                          flexibleSpace: slideView,
+              return DefaultTabController(
+                  length: index.tabThreadsMap!.keys.length,
+                  child: Scaffold(
+                      drawer: UserAccountDrawer(),
+                      backgroundColor: Color(0xFFEEEEEE),
+                      body: NestedScrollView(
+                        headerSliverBuilder: (context, innerBoxIsScrolled) {
+                          return [
+                            SliverAppBar(
+                              expandedHeight: 275.0,
+                              flexibleSpace: slideView,
+                            ),
+                            SliverPersistentHeader(
+                                delegate: _SliverTabBarDelegate(TabBar(
+                                    indicatorColor: Colors.blueAccent,
+                                    labelColor: Colors.blueAccent,
+                                    unselectedLabelColor: Colors.black,
+                                    isScrollable: true,
+                                    tabs: index.tabThreadsMap!.keys
+                                        .map((key) => Tab(text: key.name))
+                                        .toList())))
+                          ];
+                        },
+                        body: TabBarView(
+                          children: index.tabThreadsMap!.keys.map((key) {
+                            final threads = index.tabThreadsMap![key]!;
+                            return ListView.builder(
+                              padding: EdgeInsets.zero,
+                              addAutomaticKeepAlives: true,
+                              addRepaintBoundaries: true,
+                              itemCount: threads.length,
+                              itemBuilder: (context, index) {
+                                return _ThreadItem(thread: threads[index]);
+                              },
+                            );
+                          }).toList(),
                         ),
-                        SliverPersistentHeader(
-                            delegate: _SliverTabBarDelegate(TabBar(
-                                indicatorColor: Colors.blueAccent,
-                                labelColor: Colors.blueAccent,
-                                unselectedLabelColor: Colors.black,
-                                isScrollable: true,
-                                tabs: index.tabThreadsMap!.keys
-                                    .map((key) => Tab(text: key.name))
-                                    .toList())))
-                      ];
-                    },
-                    body: TabBarView(
-                      children: index.tabThreadsMap!.keys.map((key) {
-                        final threads = index.tabThreadsMap![key]!;
-                        return ListView.builder(
-                          padding: EdgeInsets.zero,
-                          addAutomaticKeepAlives: true,
-                          addRepaintBoundaries: true,
-                          itemCount: threads.length,
-                          itemBuilder: (context, index) {
-                            return _ThreadItem(thread: threads[index]);
-                          },
-                        );
-                      }).toList(),
-                    ),
-                  )));
-        }
+                      )));
+            }
 
-        return Center(
-          child: CircularProgressIndicator(),
-        );
-      },
-    );
+            return Scaffold(
+                appBar: AppBar(),
+                drawer: UserAccountDrawer(),
+                body: Center(
+                  child: CircularProgressIndicator(),
+                ));
+          },
+        ));
   }
 }
 
