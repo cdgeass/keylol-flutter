@@ -96,9 +96,9 @@ class _PostList extends StatefulWidget {
 }
 
 class _PostListState extends State<_PostList> {
-  var _page = 1;
+  late int _page;
   late List<ViewThreadPost> _posts;
-  bool _hasMore = true;
+  late bool _hasMore;
   final StreamController<List<ViewThreadPost>> _streamController =
       StreamController();
 

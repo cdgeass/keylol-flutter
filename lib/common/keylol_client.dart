@@ -148,7 +148,7 @@ class KeylolClient {
   }
 
   // 用户信息
-  Future<Profile> fetchProfile({String? uid}) async {
+  Future<Profile> fetchProfile({String? uid, bool cached = true}) async {
     final queryParameters = {'module': 'profile'};
     if (uid != null) {
       queryParameters['uid'] = uid;
@@ -156,6 +156,7 @@ class KeylolClient {
     final res = await _dio.get(
       "/api/mobile/index.php",
       queryParameters: queryParameters,
+      options: cached ? buildCacheOptions(Duration(days: 1)) : null
     );
     if (res.data['Message'] != null) {
       return Future.error(res.data['Message']!['messagestr']);

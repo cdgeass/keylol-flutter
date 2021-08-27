@@ -12,7 +12,7 @@ class Global {
     await keylolClient.init();
 
     try {
-      var profile = await keylolClient.fetchProfile();
+      var profile = await keylolClient.fetchProfile(cached: false);
       profileHolder.setProfile(profile);
     } catch (ignored) {}
   }
