@@ -61,7 +61,7 @@ class KeylolClient {
   }
 
   // 验证码页面
-  Future<SecCode> fetchSecCodeParam(String auth, String formHash) async {
+  Future<SecCode> fetchSecCodeParam(String? auth, String formHash) async {
     final res = await _dio.get('/member.php', queryParameters: {
       'mod': 'logging',
       'action': 'login',
@@ -72,7 +72,9 @@ class KeylolClient {
 
     final document = parser.parse(res.data);
     final secCode = SecCode.fromDocument(document);
-    secCode.auth = auth;
+    if (auth != null) {
+      secCode.auth = auth;
+    }
     secCode.formHash = formHash;
     return secCode;
   }
@@ -147,17 +149,119 @@ class KeylolClient {
     }
   }
 
+  // 获取短信发送验证码参数
+  Future<SecCode> fetchSmsSecCodeParam(String cellphone) async {
+    var res = await _dio.get('/member.php',
+        queryParameters: {'mod': 'logging', 'action': 'login'});
+
+    var document = parser.parse(res.data);
+    final inputs = document.getElementsByTagName('input');
+    late String formHash;
+    for (var input in inputs) {
+      if (input.attributes['name'] == 'formhash') {
+        formHash = input.attributes['value'] ?? '';
+        break;
+      }
+    }
+    late String loginHash;
+    final pwLoginTypes = document.getElementsByClassName('pwLogintype');
+    final actionExp = pwLoginTypes.first
+            .getElementsByTagName('li')
+            .first
+            .attributes['_action'] ??
+        '';
+    if (actionExp.isNotEmpty) {
+      loginHash = actionExp.substring(actionExp.length - 4);
+    }
+
+    res = await _dio.post('/plugin.php',
+        queryParameters: {
+          'id': 'duceapp_smsauth',
+          'ac': 'sendcode',
+          'handlekey': 'sendsmscode',
+          'smscodesubmit': 'login',
+          'inajax': 1,
+          'loginhash': loginHash
+        },
+        data: FormData.fromMap({
+          'duceapp': 'yes',
+          'formhash': formHash,
+          'smscodesubmit': 'login',
+          'referer': 'https://keylol.com',
+          'lssubmit': 'yes',
+          'loginfield': 'auto',
+          'cellphone': cellphone,
+        }));
+
+    document = parser.parse(res.data);
+    final secCode = SecCode.fromDocument(document);
+    secCode.formHash = formHash;
+    return secCode;
+  }
+
+  // 发送验证码
+  Future sendSmsCode(String loginHash, String formHash, String cellphone,
+      String secCodeHash, String secCodeVerify) async {
+    final res = await _dio.post('/plugin.php',
+        queryParameters: {
+          'id': 'duceapp_smsauth',
+          'ac': 'sendcode',
+          'handlekey': 'sendsmscode',
+          'smscodesubmit': 'login',
+          'inajax': 1,
+          'loginhash': loginHash
+        },
+        data: FormData.fromMap({
+          'formhash': formHash,
+          'smscodesubmit': 'login',
+          'cellphone': cellphone,
+          'smsauth': 'yes',
+          'seccodehash': secCodeHash,
+          'seccodeverify': secCodeVerify
+        }));
+
+    final data = res.data as String;
+  }
+
+  // 短信验证码登录
+  Future loginWithSms(String loginHash, String formHash, String cellphone,
+      String smsCode) async {
+    final res = await _dio.post('/plugin.php',
+        queryParameters: {
+          'id': 'duceapp_smsauth',
+          'ac': 'login',
+          'loginsubmit': 'yes',
+          'loginhash': loginHash,
+          'inajax': 1
+        },
+        data: FormData.fromMap({
+          'duceapp': 'yes',
+          'formhash': formHash,
+          'referer': 'https://keylol.com',
+          'lssubmit': 'yes',
+          'loginfield': 'auto',
+          'cellphone': cellphone,
+          'smscode': smsCode
+        }));
+
+    final data = res.data as String;
+    if (data.contains('succeedhandle_login')) {
+      return fetchProfile()
+          .then((profile) => Global.profileHolder.setProfile(profile));
+    } else {
+      return Future.error('登录出错');
+    }
+  }
+
   // 用户信息
   Future<Profile> fetchProfile({String? uid, bool cached = true}) async {
     final queryParameters = {'module': 'profile'};
     if (uid != null) {
       queryParameters['uid'] = uid;
     }
-    final res = await _dio.get(
-      "/api/mobile/index.php",
-      queryParameters: queryParameters,
-      options: cached ? buildCacheOptions(Duration(days: 1)) : null
-    );
+    final res = await _dio.get("/api/mobile/index.php",
+        queryParameters: queryParameters,
+        options: cached ? buildCacheOptions(Duration(days: 1)) : null);
     if (res.data['Message'] != null) {
       return Future.error(res.data['Message']!['messagestr']);
     }
@@ -246,20 +350,5 @@ class KeylolClient {
     } else {
       return Future.error(res.data['Message']!['messagestr']);
     }
-  }
-
-  // 投票
-  Future sendPoll(String fid, String tid, String formHash,
-      List<String> pollOptionIds) async {
-    var res = await _dio.post("/api/mobile/index.php",
-        queryParameters: {
-          'module': 'pollvote',
-          'pollsubmit': 'yes',
-          'action': 'votepoll',
-          'fid': fid,
-          'tid': tid,
-        },
-        data: FormData.fromMap(
-            {'formhash': formHash, 'pollanswers': pollOptionIds}));
   }
 }

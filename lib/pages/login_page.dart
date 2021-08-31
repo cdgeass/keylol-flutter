@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:keylol_flutter/common/global.dart';
 import 'package:keylol_flutter/models/sec_code.dart';
 
@@ -13,11 +14,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final GlobalKey<FormState> _formKey = GlobalKey();
-  final _usernameController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _secCodeController = TextEditingController();
-  SecCode? _secCode;
+  var _loginMethod = 1;
 
   @override
   Widget build(BuildContext context) {
@@ -27,27 +24,283 @@ class _LoginPageState extends State<LoginPage> {
       ),
       body: Padding(
         padding: EdgeInsets.all(8.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              _UsernameInput(usernameController: _usernameController),
-              _PasswordInput(passwordController: _passwordController),
-              if (_secCode != null)
-                _SecCodeInput(
-                    secCode: _secCode!, secCodeController: _secCodeController),
-              ElevatedButton(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [Text('登录')],
+        child: Column(
+          children: [
+            if (_loginMethod == 1) _SmsLogin(),
+            if (_loginMethod == 2) _PasswordLogin(),
+            Divider(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.sms),
+                  onPressed: () {
+                    setState(() {
+                      _loginMethod = 1;
+                    });
+                  },
                 ),
-                onPressed: () {
-                  _login(context);
-                },
-              )
-            ],
-          ),
+                IconButton(
+                  icon: Icon(Icons.input),
+                  onPressed: () {
+                    setState(() {
+                      _loginMethod = 2;
+                    });
+                  },
+                )
+              ],
+            )
+          ],
         ),
+      ),
+    );
+  }
+}
+
+class _SmsLogin extends StatefulWidget {
+  const _SmsLogin({Key? key}) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => _SmsLoginState();
+}
+
+class _SmsLoginState extends State<_SmsLogin> {
+  final GlobalKey<FormState> _formKey = GlobalKey();
+  final _cellphoneController = TextEditingController();
+  final _smsController = TextEditingController();
+  final _secCodeController = TextEditingController();
+  SecCode? _secCode;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      key: _formKey,
+      child: Column(
+        children: [
+          _CellphoneInput(cellphoneController: _cellphoneController),
+          if (_secCode != null)
+            _SecCodeInput(
+                secCode: _secCode!, secCodeController: _secCodeController),
+          _SmsInput(smsController: _smsController, sendSms: _sendSms),
+          ElevatedButton(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [Text('登录')],
+            ),
+            onPressed: () {
+              _login(context);
+            },
+          )
+        ],
+      ),
+    );
+  }
+
+  void _login(BuildContext context) async {
+    if (_formKey.currentState?.validate() == true) {
+      final loginFuture = Global.keylolClient.loginWithSms(_secCode!.loginHash!,
+          _secCode!.formHash!, _cellphoneController.text, _smsController.text);
+
+      loginFuture.then((value) {
+        Navigator.pop(context);
+      }).onError((error, stackTrace) => _showErrorDialog(error));
+    }
+  }
+
+  Future<int> _sendSms() {
+    if (_secCode == null) {
+      final smsSecCodeFuture =
+          Global.keylolClient.fetchSmsSecCodeParam(_cellphoneController.text);
+      smsSecCodeFuture.then((value) {
+        setState(() {
+          _secCode = value;
+          _secCodeController.text = '';
+        });
+      }).onError((error, stackTrace) => _showErrorDialog(error));
+
+      return Future.value(0);
+    } else {
+      final sendSmsFuture = Global.keylolClient.sendSmsCode(
+          _secCode!.loginHash!,
+          _secCode!.formHash!,
+          _cellphoneController.text,
+          _secCode!.currentIdHash!,
+          _secCodeController.text);
+      sendSmsFuture.onError((error, stackTrace) => _showErrorDialog(error));
+
+      return Future.value(1);
+    }
+  }
+
+  FutureOr<Null> _showErrorDialog(Object? error) {
+    showDialog(
+        context: context,
+        builder: (_) {
+          return AlertDialog(content: Text(error as String), actions: [
+            TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('确定'))
+          ]);
+        });
+  }
+}
+
+class _CellphoneInput extends StatelessWidget {
+  const _CellphoneInput({Key? key, required this.cellphoneController})
+      : super(key: key);
+
+  final TextEditingController cellphoneController;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      autofocus: true,
+      controller: cellphoneController,
+      decoration: InputDecoration(labelText: '手机号'),
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp('[0-9]')),
+        LengthLimitingTextInputFormatter(11)
+      ],
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return '手机号不能为空';
+        }
+        return null;
+      },
+    );
+  }
+}
+
+class _SmsInput extends StatefulWidget {
+  final TextEditingController smsController;
+  final Future<int> Function() sendSms;
+
+  const _SmsInput(
+      {Key? key, required this.smsController, required this.sendSms})
+      : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => _SmsInputState();
+}
+
+class _SmsInputState extends State<_SmsInput> {
+  final StreamController<int> _streamController = StreamController();
+  int _second = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _streamController.sink.add(0);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    _streamController.close();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Expanded(
+            child: TextFormField(
+          controller: widget.smsController,
+          decoration: InputDecoration(labelText: '短信验证码'),
+          inputFormatters: [LengthLimitingTextInputFormatter(4)],
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return '短信验证码不能为空';
+            }
+            return null;
+          },
+        )),
+        StreamBuilder(
+          stream: _streamController.stream,
+          builder: (context, snapshot) {
+            final second = snapshot.data ?? 0;
+            if (second == 0) {
+              return ElevatedButton(
+                  child: Text('获取短信验证码'),
+                  style: ButtonStyle(
+                      minimumSize:
+                          MaterialStateProperty.all(Size(133.0, 48.0))),
+                  onPressed: () {
+                    final sendSmsFuture = widget.sendSms.call();
+
+                    sendSmsFuture.then((value) {
+                      if (value == 1) {
+                        _second = 60;
+                        Timer.periodic(Duration(seconds: 1), (timer) {
+                          _second--;
+                          _streamController.sink.add(_second);
+                          if (_second == 0) {
+                            timer.cancel();
+                          }
+                        });
+                      }
+                    });
+                  });
+            } else {
+              return ElevatedButton(
+                  child: Text('重新获取(${second}s)'),
+                  style: ButtonStyle(
+                      minimumSize:
+                          MaterialStateProperty.all(Size(133.0, 48.0))),
+                  onPressed: null);
+            }
+          },
+        )
+      ],
+    );
+  }
+}
+
+class _PasswordLogin extends StatefulWidget {
+  const _PasswordLogin({Key? key}) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => _PasswordLoginState();
+}
+
+class _PasswordLoginState extends State<_PasswordLogin> {
+  final GlobalKey<FormState> _formKey = GlobalKey();
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _secCodeController = TextEditingController();
+  SecCode? _secCode;
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      key: _formKey,
+      child: Column(
+        children: [
+          _UsernameInput(usernameController: _usernameController),
+          _PasswordInput(passwordController: _passwordController),
+          if (_secCode != null)
+            _SecCodeInput(
+                secCode: _secCode!, secCodeController: _secCodeController),
+          ElevatedButton(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [Text('登录')],
+            ),
+            onPressed: () {
+              _login(context);
+            },
+          )
+        ],
       ),
     );
   }
@@ -201,8 +454,11 @@ class _SecCodeInputState extends State<_SecCodeInput> {
         Expanded(
             child: TextFormField(
           controller: widget.secCodeController,
-          decoration: InputDecoration(labelText: '验证码', counterText: ''),
-          maxLength: 4,
+          decoration: InputDecoration(labelText: '验证码'),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp('[a-zA-Z]|[0-9]')),
+            LengthLimitingTextInputFormatter(4)
+          ],
           validator: (value) {
             if (value == null || value.isEmpty) {
               return '验证码不能为空';
@@ -216,7 +472,10 @@ class _SecCodeInputState extends State<_SecCodeInput> {
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   final data = snapshot.data as Uint8List;
-                  return Image.memory(data, height: 40.0,);
+                  return Image.memory(
+                    data,
+                    height: 40.0,
+                  );
                 }
                 return CircularProgressIndicator();
               }),

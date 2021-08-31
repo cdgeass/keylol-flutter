@@ -21,6 +21,14 @@ class SecCode {
 
     loginHash = updateSecCodeExp.substring(23, 28);
     update = updateSecCodeExp.substring(31, 36);
+
+    final inputs = document.getElementsByTagName('input');
+    for (var input in inputs) {
+      if (input.attributes['name'] == 'formhash') {
+        formHash = input.attributes['value'];
+        break;
+      }
+    }
   }
 
   String getIdHash() {
