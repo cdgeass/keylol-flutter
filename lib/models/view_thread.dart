@@ -1,9 +1,16 @@
 class ViewThread {
   String? fid;
+  String? subject;
+  int? replies;
   List<ViewThreadPost>? posts;
 
   ViewThread.fromJson(Map<String, dynamic> json) {
     fid = json['fid'];
+    subject = json['thread']['subject'];
+    var repliesStr = json['thread']['replies'];
+    if (repliesStr != null) {
+      replies = int.parse(repliesStr);
+    }
     SpecialPoll? specialPoll;
     var specialPollJson = json['special_poll'];
     if (specialPollJson != null) {

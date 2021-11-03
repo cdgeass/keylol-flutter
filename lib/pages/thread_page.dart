@@ -46,10 +46,11 @@ class _ThreadPageState extends State<ThreadPage> {
           if (snapshot.hasData) {
             final viewThread = snapshot.data!;
             return Scaffold(
-              appBar: AppBar(),
+              appBar: AppBar(
+                title: Text(viewThread.subject!),
+              ),
               body: _PostList(
                 tid: widget.tid,
-                posts: viewThread.posts ?? [],
                 scrollController: _scrollController,
               ),
               bottomNavigationBar: _Reply(
@@ -79,16 +80,12 @@ class _ThreadPageState extends State<ThreadPage> {
   }
 }
 
+// 帖子内回复列表
 class _PostList extends StatefulWidget {
   final String tid;
-  final List<ViewThreadPost> posts;
   final ScrollController scrollController;
 
-  const _PostList(
-      {Key? key,
-      required this.tid,
-      required this.posts,
-      required this.scrollController})
+  const _PostList({Key? key, required this.tid, required this.scrollController})
       : super(key: key);
 
   @override
@@ -96,21 +93,21 @@ class _PostList extends StatefulWidget {
 }
 
 class _PostListState extends State<_PostList> {
-  late int _page;
-  late List<ViewThreadPost> _posts;
-  late bool _hasMore;
-  final StreamController<List<ViewThreadPost>> _streamController =
-      StreamController();
+  int _page = 1;
+  int _total = 0;
+  List<ViewThreadPost> _posts = [];
 
   @override
   void initState() {
     super.initState();
-    _init();
+    _onRefresh();
     widget.scrollController.addListener(() {
       final maxScroll = widget.scrollController.position.maxScrollExtent;
       final pixels = widget.scrollController.position.pixels;
       if (maxScroll == pixels) {
-        _loadMore();
+        setState(() {
+          _loadMore();
+        });
       }
     });
   }
@@ -118,61 +115,59 @@ class _PostListState extends State<_PostList> {
   @override
   void dispose() {
     super.dispose();
-    _streamController.close();
   }
 
-  void _init() {
-    _page = 1;
-    _posts = List.from(widget.posts);
-    _hasMore = true;
-    _streamController.sink.add(_posts);
+  Future<void> _onRefresh() async {
+    final viewThread = await Global.keylolClient.fetchThread(widget.tid, 1);
+    setState(() {
+      _page = 1;
+      _total = (viewThread.replies ?? 0) + 1;
+      _posts = viewThread.posts ?? [];
+    });
   }
 
   void _loadMore() async {
-    if (!_hasMore) {
-      return;
-    }
-    _page++;
-    final viewThread = await Global.keylolClient.fetchThread(widget.tid, _page);
+    final page = _page + 1;
+    final viewThread = await Global.keylolClient.fetchThread(widget.tid, page);
     final posts = viewThread.posts;
-    if (posts != null && posts.isNotEmpty) {
-      if (posts[0].position! > _posts[_posts.length - 1].position!) {
-        _hasMore = true;
-        _posts.addAll(posts);
-      } else {
-        _hasMore = false;
+    setState(() {
+      _total = (viewThread.replies ?? 0) + 1;
+      if (posts != null && posts.isNotEmpty) {
+        for (final post in posts) {
+          if (post.position! > _posts[_posts.length - 1].position!) {
+            _posts.add(post);
+            _page = page;
+          }
+        }
       }
-    }
-    _streamController.sink.add(_posts);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-        onRefresh: () {
-          _init();
-          return Future.value();
+      onRefresh: _onRefresh,
+      child: ListView.separated(
+        controller: widget.scrollController,
+        itemCount: _posts.length + 1,
+        itemBuilder: (context, index) {
+          if (index == _posts.length && _total > _posts.length) {
+            return Center(child: RefreshProgressIndicator());
+          } else if (index != _posts.length) {
+            final post = _posts[index];
+            return _PostItem(post: post);
+          } else {
+            return Container();
+          }
         },
-        child: StreamBuilder(
-          stream: _streamController.stream,
-          builder: (context, AsyncSnapshot<List<ViewThreadPost>> snapshot) {
-            final posts = snapshot.data ?? [];
-            return ListView.separated(
-              controller: widget.scrollController,
-              itemCount: posts.length,
-              itemBuilder: (context, index) {
-                final post = posts[index];
-                return _PostItem(post: post);
-              },
-              separatorBuilder: (BuildContext context, int index) {
-                return Divider(
-                  thickness: 1.0,
-                  height: 1.0,
-                );
-              },
-            );
-          },
-        ));
+        separatorBuilder: (context, index) {
+          return Divider(
+            thickness: 1.0,
+            height: 1.0,
+          );
+        },
+      ),
+    );
   }
 }
 

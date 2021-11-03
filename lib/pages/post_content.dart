@@ -158,7 +158,7 @@ class _CollapseState extends State<_Collapse> with RestorationMixin {
                     children: [
                       _expanded.value
                           ? Icon(Icons.arrow_drop_up, color: Colors.white)
-                          : Icon(Icons.arrow_drop_down, color: Colors.white),
+                          : Icon(Icons.arrow_right, color: Colors.white),
                       Text(
                         widget.title,
                         style: TextStyle(color: Colors.white),
