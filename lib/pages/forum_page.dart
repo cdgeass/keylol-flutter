@@ -89,11 +89,9 @@ class _ForumThreadListState extends State<_ForumThreadList> {
   var _page = 1;
   String? _filter;
   Map<String, String>? _param;
-
-  List<ForumDisplayThread> _threads = [];
   bool _hasMore = true;
-  final StreamController<List<ForumDisplayThread>> _streamController =
-      StreamController();
+  List<ForumDisplayThread> _threads = [];
+
   final ScrollController _scrollController = ScrollController();
 
   final _selectedStyle = ButtonStyle(
@@ -114,47 +112,43 @@ class _ForumThreadListState extends State<_ForumThreadList> {
     if (_param == null) {
       _param = {'typeid': widget.typeId.toString()};
     }
-    _init();
+
+    _onRefresh();
 
     _scrollController.addListener(() {
       final maxScroll = _scrollController.position.maxScrollExtent;
       final pixels = _scrollController.position.pixels;
 
       if (maxScroll == pixels) {
-        if (_hasMore) {
-          _loadMore();
-        }
+        _loadMore();
       }
     });
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-    _streamController.close();
-  }
-
-  void _init() async {
-    _page = 1;
-    _hasMore = true;
-    _threads = await _fetchThreads();
-    if (_threads.isEmpty) {
-      _hasMore = false;
-    }
-    _streamController.sink.add(_threads);
+  Future<void> _onRefresh() async {
+    final threads = await _fetchThreads();
+    setState(() {
+      _page = 1;
+      _threads = threads;
+      if (threads.length >= 20) {
+        _hasMore = true;
+      } else {
+        _hasMore = false;
+      }
+    });
   }
 
   void _loadMore() async {
-    if (!_hasMore) {
-      return;
-    }
     _page++;
     final threads = await _fetchThreads();
-    if (threads.isEmpty) {
-      _hasMore = false;
-    }
-    _threads.addAll(threads);
-    _streamController.sink.add(_threads);
+    setState(() {
+      _threads.addAll(threads);
+      if (threads.length >= 20) {
+        _hasMore = true;
+      } else {
+        _hasMore = false;
+      }
+    });
   }
 
   Future<List<ForumDisplayThread>> _fetchThreads() async {
@@ -175,7 +169,7 @@ class _ForumThreadListState extends State<_ForumThreadList> {
             _selectedButton = '默认';
             _filter = 'typeid';
             _param = {'typeid': widget.typeId.toString()};
-            _init();
+            _onRefresh();
           });
         },
       ),
@@ -188,7 +182,7 @@ class _ForumThreadListState extends State<_ForumThreadList> {
             _filter = 'dateline';
             _param = {'orderby': 'dateline'};
             _page = 1;
-            _init();
+            _onRefresh();
           });
         },
       ),
@@ -201,7 +195,7 @@ class _ForumThreadListState extends State<_ForumThreadList> {
             _filter = 'heat';
             _param = {'orderby': 'heats'};
             _page = 1;
-            _init();
+            _onRefresh();
           });
         },
       ),
@@ -214,7 +208,7 @@ class _ForumThreadListState extends State<_ForumThreadList> {
             _filter = 'hot';
             _param = {};
             _page = 1;
-            _init();
+            _onRefresh();
           });
         },
       ),
@@ -227,7 +221,7 @@ class _ForumThreadListState extends State<_ForumThreadList> {
             _filter = 'digest';
             _param = {'digest': '1'};
             _page = 1;
-            _init();
+            _onRefresh();
           });
         },
       ),
@@ -238,55 +232,52 @@ class _ForumThreadListState extends State<_ForumThreadList> {
   Widget build(BuildContext context) {
     final Widget child;
     if (widget.typeId != null) {
-      child = StreamBuilder(
-          stream: _streamController.stream,
-          builder: (context, AsyncSnapshot<List<ForumDisplayThread>> snapshot) {
-            final forumThreads = snapshot.data ?? [];
-            return ListView.builder(
-                controller: _scrollController,
-                itemCount: forumThreads.length,
-                itemBuilder: (context, index) {
-                  return _ForumThreadItem(forumThread: forumThreads[index]);
-                });
+      child = ListView.builder(
+          controller: _scrollController,
+          itemCount: _threads.length + 1,
+          itemBuilder: (context, index) {
+            if (index == _threads.length) {
+              return Center(
+                  child: Opacity(
+                opacity: _hasMore ? 1.0 : 0.0,
+                child: CircularProgressIndicator(),
+              ));
+            } else {
+              return _ForumThreadItem(forumThread: _threads[index]);
+            }
           });
     } else {
-      child = StreamBuilder(
-          stream: _streamController.stream,
-          builder: (context, AsyncSnapshot<List<ForumDisplayThread>> snapshot) {
-            final forumThreads = [];
-            if (snapshot.hasData) {
-              forumThreads.addAll(snapshot.data!
-                  .map((forumThread) =>
-                      _ForumThreadItem(forumThread: forumThread))
-                  .toList());
-            }
-
-            return CustomScrollView(
-              controller: _scrollController,
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsetsDirectional.only(start: 8.0, end: 8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: _filterButtons(),
-                    ),
-                  ),
-                ),
-                SliverList(
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    return forumThreads[index];
-                  }, childCount: forumThreads.length),
-                )
-              ],
-            );
-          });
+      child = CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsetsDirectional.only(start: 8.0, end: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: _filterButtons(),
+              ),
+            ),
+          ),
+          SliverList(
+            delegate: SliverChildBuilderDelegate((context, index) {
+              if (index == _threads.length) {
+                return Center(
+                    child: Opacity(
+                  opacity: _hasMore ? 1.0 : 0.0,
+                  child: CircularProgressIndicator(),
+                ));
+              } else {
+                return _ForumThreadItem(forumThread: _threads[index]);
+              }
+            }, childCount: _threads.length + 1),
+          )
+        ],
+      );
     }
 
     return RefreshIndicator(
-      onRefresh: () async {
-        _init();
-      },
+      onRefresh: _onRefresh,
       child: child,
     );
   }

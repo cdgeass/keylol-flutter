@@ -100,7 +100,9 @@ class _PostListState extends State<_PostList> {
   @override
   void initState() {
     super.initState();
+
     _onRefresh();
+
     widget.scrollController.addListener(() {
       final maxScroll = widget.scrollController.position.maxScrollExtent;
       final pixels = widget.scrollController.position.pixels;
@@ -110,11 +112,6 @@ class _PostListState extends State<_PostList> {
         });
       }
     });
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   Future<void> _onRefresh() async {
@@ -151,13 +148,14 @@ class _PostListState extends State<_PostList> {
         controller: widget.scrollController,
         itemCount: _posts.length + 1,
         itemBuilder: (context, index) {
-          if (index == _posts.length && _total > _posts.length) {
-            return Center(child: RefreshProgressIndicator());
-          } else if (index != _posts.length) {
-            final post = _posts[index];
-            return _PostItem(post: post);
+          if (index == _posts.length) {
+            return Center(
+                child: Opacity(
+              opacity: _total > _posts.length ? 1.0 : 0.0,
+              child: CircularProgressIndicator(),
+            ));
           } else {
-            return Container();
+            return _PostItem(post: _posts[index]);
           }
         },
         separatorBuilder: (context, index) {

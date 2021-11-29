@@ -5,6 +5,7 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:video_player/video_player.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class PostContent extends StatelessWidget {
   final String message;
@@ -13,101 +14,120 @@ class PostContent extends StatelessWidget {
   const PostContent({Key? key, required this.message, this.specialPoll})
       : super(key: key);
 
-  String _formatMessage(String message) {
+  String _formatMessage(BuildContext context, String message) {
     // 折叠内容
-    final collapseReg = RegExp(r'\[collapse=([^\]]*)]');
+    final collapseReg = RegExp(r'\[collapse(=?)([^\]]*)]');
     if (collapseReg.hasMatch(message)) {
       final collapseMatches = collapseReg.allMatches(message);
       for (var collapseMatch in collapseMatches) {
-        final title = collapseMatch.group(1);
-        if (title != null) {
+        final title = collapseMatch.group(1) ?? "";
+        if (title != "") {
           message = message.replaceFirst(
               '[collapse=' + title + ']', '<collapse title="' + title + '">');
+        } else {
+          message = message.replaceFirst(
+              '[collapse]', '<collapse title="' + title + '">');
         }
       }
       message = message.replaceAll('[/collapse]', '</collapse>');
     }
     // 折叠内容
-    final spoilReg = RegExp(r'\[spoil=([^\]]*)]');
+    final spoilReg = RegExp(r'\[spoil(=?)([^\]]*)]');
     if (spoilReg.hasMatch(message)) {
       final spoilMatches = spoilReg.allMatches(message);
       for (var spoilMatch in spoilMatches) {
-        final title = spoilMatch.group(1);
-        if (title != null) {
+        final title = spoilMatch.group(1) ?? "";
+        if (title != "") {
           message = message.replaceFirst(
               '[spoil=' + title + ']', '<spoil title="' + title + '">');
+        } else {
+          message =
+              message.replaceFirst('[spoil]', '<spoil title="' + title + '">');
         }
       }
       message = message.replaceAll('[/spoil]', '</spoil>');
     }
     return message
         .replaceAll('[media]', '<video src="')
-        .replaceAll('[/media]', '"/>');
+        .replaceAll('[/media]', '"/>')
+        // TODO iframe 的 style 当前版本不生效
+        .replaceAll('<iframe',
+            '<iframe width="${MediaQuery.of(context).size.width}" height="80"');
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(children: [
       Html(
-        data: _formatMessage(message),
-        onLinkTap: (url, _, attributes, element) {
-          if (url != null && url.startsWith('https://keylol.com/')) {
-            final subUrl = url.replaceFirst('https://keylol.com/', '');
-            if (subUrl.startsWith('t')) {
-              final tid = subUrl.split('-')[0].replaceFirst('t', '');
-              Navigator.of(context).pushNamed('/thread', arguments: tid);
-            } else if (subUrl.startsWith('f')) {
-              final fid = subUrl.split('-')[0].replaceFirst('f', '');
-              Navigator.of(context).pushNamed('/forum', arguments: fid);
+          data: _formatMessage(context, message),
+          onLinkTap: (url, _, attributes, element) {
+            if (url != null && url.startsWith('https://keylol.com/')) {
+              final subUrl = url.replaceFirst('https://keylol.com/', '');
+              if (subUrl.contains(".php")) {
+                Navigator.of(context).pushNamed('/webview', arguments: url);
+              } else if (subUrl.startsWith('t')) {
+                final tid = subUrl.split('-')[0].replaceFirst('t', '');
+                Navigator.of(context).pushNamed('/thread', arguments: tid);
+              } else if (subUrl.startsWith('f')) {
+                final fid = subUrl.split('-')[0].replaceFirst('f', '');
+                Navigator.of(context).pushNamed('/forum', arguments: fid);
+              } else {
+                Navigator.of(context).pushNamed('/webview', arguments: url);
+              }
             } else {
               Navigator.of(context).pushNamed('/webview', arguments: url);
             }
-          } else {
-            Navigator.of(context).pushNamed('/webview', arguments: url);
-          }
-        },
-        tagsList: Html.tags..addAll(['collapse', 'spoil']),
-        customRender: {
-          'collapse': (RenderContext context, child) {
-            final title = context.tree.element!.attributes['title'] ?? '';
-            final message = context.tree.element!.innerHtml;
-            return _Collapse(title: title, message: message);
           },
-          'spoil': (context, child) {
-            final title = context.tree.element!.attributes['title'] ?? '';
-            final message = context.tree.element!.innerHtml;
-            return _Collapse(title: title, message: message);
-          },
-          'img': (context, child) {
-            var src = context.tree.element!.attributes['src'];
-            if (src != null) {
-              return CachedNetworkImage(
-                  placeholder: (context, url) => CircularProgressIndicator(),
-                  errorWidget: (context, url, error) =>
-                      CircularProgressIndicator(),
-                  imageUrl: src);
+          tagsList: Html.tags..addAll(['collapse', 'spoil']),
+          customRender: {
+            'collapse': (RenderContext context, child) {
+              final title = context.tree.element!.attributes['title'] ?? '';
+              final message = context.tree.element!.innerHtml;
+              return _Collapse(title: title, message: message);
+            },
+            'spoil': (context, child) {
+              final title = context.tree.element!.attributes['title'] ?? '';
+              final message = context.tree.element!.innerHtml;
+              return _Collapse(title: title, message: message);
+            },
+            'img': (context, child) {
+              var src = context.tree.element!.attributes['src'];
+              if (src != null) {
+                return CachedNetworkImage(
+                    placeholder: (context, url) => CircularProgressIndicator(),
+                    errorWidget: (context, url, error) =>
+                        CircularProgressIndicator(),
+                    imageUrl: src);
+              }
+              return null;
+            },
+            'video': (context, child) {
+              var src = context.tree.element!.attributes['src'];
+              if (src != null) {
+                src = src.replaceFirst('http', 'https');
+                var videoPlayerController = VideoPlayerController.network(src);
+                return Container(
+                    height: 320.0,
+                    child: Chewie(
+                      controller: ChewieController(
+                          videoPlayerController: videoPlayerController,
+                          autoInitialize: true,
+                          autoPlay: false,
+                          looping: false),
+                    ));
+              }
+              return Container();
             }
-            return null;
           },
-          'video': (context, child) {
-            var src = context.tree.element!.attributes['src'];
-            if (src != null) {
-              src = src.replaceFirst('http', 'https');
-              var videoPlayerController = VideoPlayerController.network(src);
-              return Container(
-                  height: 320.0,
-                  child: Chewie(
-                    controller: ChewieController(
-                        videoPlayerController: videoPlayerController,
-                        autoInitialize: true,
-                        autoPlay: true,
-                        looping: false),
-                  ));
-            }
-            return Container();
-          }
-        },
-      ),
+          style: {
+            '.reply_wrap': Style(
+                backgroundColor: Colors.white,
+                padding: EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 12.0))
+          },
+          navigationDelegateForIframe: (request) {
+            Navigator.of(context).pushNamed("/webview", arguments: request.url);
+            return NavigationDecision.prevent;
+          }),
       if (specialPoll != null) _Poll(specialPoll: specialPoll!)
     ]);
   }
@@ -169,8 +189,9 @@ class _CollapseState extends State<_Collapse> with RestorationMixin {
               ),
               if (_expanded.value)
                 Material(
-                  color: Colors.blue,
+                  color: Colors.white,
                   shape: RoundedRectangleBorder(
+                      side: BorderSide(color: Colors.blue),
                       borderRadius:
                           BorderRadius.vertical(bottom: Radius.circular(10.0))),
                   child: PostContent(message: widget.message),
