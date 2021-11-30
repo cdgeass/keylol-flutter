@@ -6,10 +6,7 @@
 
 ## 界面
 
-![](https://raw.githubusercontent.com/cdgeass/pictures/main/20211130184535.jpg)
-![](https://raw.githubusercontent.com/cdgeass/pictures/main/20211130184556.jpg)
-![](https://raw.githubusercontent.com/cdgeass/pictures/main/20211130184608.jpg)
-![](https://raw.githubusercontent.com/cdgeass/pictures/main/20211130184618.jpg)
+<img src="https://raw.githubusercontent.com/cdgeass/pictures/main/20211130184535.jpg" width=200/> <img src="https://raw.githubusercontent.com/cdgeass/pictures/main/20211130184556.jpg" width=200/> <img src="https://raw.githubusercontent.com/cdgeass/pictures/main/20211130184608.jpg" width=200/> <img src="https://raw.githubusercontent.com/cdgeass/pictures/main/20211130184618.jpg" width=200/>
 
 ## 安装
 
