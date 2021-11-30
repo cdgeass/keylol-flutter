@@ -57,6 +57,8 @@ class _NoteListPageState extends State<NoteListPage> {
     return Scaffold(
       appBar: AppBar(
         leading: buildAppBarLeading(),
+        title: Text('提醒'),
+        centerTitle: true,
       ),
       drawer: UserAccountDrawer(),
       body: RefreshIndicator(

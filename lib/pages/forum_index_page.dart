@@ -26,6 +26,8 @@ class ForumIndexPageState extends State<ForumIndexPage> {
     return Scaffold(
       appBar: AppBar(
         leading: buildAppBarLeading(),
+        title: Text('版块'),
+        centerTitle: true,
       ),
       drawer: UserAccountDrawer(),
       body: FutureBuilder(
