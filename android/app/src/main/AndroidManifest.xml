@@ -7,7 +7,7 @@
 
     <application
         android:icon="@mipmap/ic_launcher"
-        android:label="keylol_flutter"
+        android:label="KeylolF"
         android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"

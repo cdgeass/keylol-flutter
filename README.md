@@ -1,34 +1,20 @@
-# keylol_flutter
-keylol.com mobile flutter client
+# KeylolF
 
-# API 列表  
+![License](https://img.shields.io/github/license/cdgeass/keylol-flutter)
 
-* /api/mobile/index.php?version=4&module=profile  
+使用 Flutter 开发的 [keylol](https://keylol.com) 移动端应用
 
-    用户信息  
+## 界面
 
-* /api/mobile/index.php?version=4&module=viewthread&tid=?&page=?  
+![](https://raw.githubusercontent.com/cdgeass/pictures/main/20211130184535.jpg)
+![](https://raw.githubusercontent.com/cdgeass/pictures/main/20211130184556.jpg)
+![](https://raw.githubusercontent.com/cdgeass/pictures/main/20211130184608.jpg)
+![](https://raw.githubusercontent.com/cdgeass/pictures/main/20211130184618.jpg)
 
-    帖子  
-   
-* /api/mobile/index.php?version=4&module=sendreply&action=reply&replysubmit=yes&fid=?&tid=?
+## 安装
 
-    回复
-    
-    message:
-    posttime:
-    formhash:
-    usesig:
 
-* /api/mobile/index.php?version=4&module=login&action=login&loginsubmit=yes
 
-    登录
+## License
 
-    username:
-    password:
-    questionid:
-    answer:
-    
-* /api/mobile/index.phh?version=4&module=forumindex
-
-    版块列表
+[GPL © cdgeass.](LICENSE)
