@@ -203,8 +203,7 @@ class _PostItemState extends State<_PostItem> {
           subtitle: Text(widget.post.dateline!.replaceAll('&nbsp;', '')),
         ),
         PostContent(
-          message: widget.post.message!,
-          specialPoll: widget.post.specialPoll,
+          post: widget.post,
         ),
       ],
     );

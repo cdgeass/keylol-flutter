@@ -49,6 +49,8 @@ class ViewThreadPost {
   int? number;
   int? dbDateline;
   String? groupIconId;
+  Map<String, Attachment>? attachments;
+  List<String>? imageList;
   SpecialPoll? specialPoll;
 
   ViewThreadPost.fromJson(Map<String, dynamic> json) {
@@ -92,6 +94,20 @@ class ViewThreadPost {
       dbDateline = int.parse(dbDatelineStr);
     }
     groupIconId = json['groupiconid'];
+    var attachmentsMap = json['attachments'];
+    if (attachmentsMap != null && attachmentsMap is Map) {
+      attachments = {};
+      attachmentsMap.forEach((key, value) {
+        attachments![key] = Attachment.fromJson(value);
+      });
+    }
+    var imageListTemp = json['imagelist'];
+    if (imageListTemp != null && imageListTemp is List) {
+      imageList = [];
+      imageListTemp.forEach((element) {
+        imageList!.add(element);
+      });
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -116,6 +132,16 @@ class ViewThreadPost {
     data['dbdateline'] = dbDateline?.toString();
     data['groupiconid'] = groupIconId?.toString();
     return data;
+  }
+}
+
+class Attachment {
+  String? attachment;
+  String? url;
+
+  Attachment.fromJson(Map<String, dynamic> json) {
+    attachment = json['attachment'];
+    url = json['url'];
   }
 }
 

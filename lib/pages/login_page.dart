@@ -193,6 +193,7 @@ class _SmsInput extends StatefulWidget {
 class _SmsInputState extends State<_SmsInput> {
   final StreamController<int> _streamController = StreamController();
   int _second = 0;
+  Timer? _timer;
 
   @override
   void initState() {
@@ -205,6 +206,7 @@ class _SmsInputState extends State<_SmsInput> {
   void dispose() {
     super.dispose();
 
+    _timer?.cancel();
     _streamController.close();
   }
 
@@ -241,7 +243,7 @@ class _SmsInputState extends State<_SmsInput> {
                     sendSmsFuture.then((value) {
                       if (value == 1) {
                         _second = 60;
-                        Timer.periodic(Duration(seconds: 1), (timer) {
+                        _timer = Timer.periodic(Duration(seconds: 1), (timer) {
                           _second--;
                           _streamController.sink.add(_second);
                           if (_second == 0) {

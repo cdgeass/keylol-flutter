@@ -101,7 +101,11 @@ class _IndexPageState extends State<IndexPage> {
             }
 
             return Scaffold(
-                appBar: AppBar(),
+                appBar: AppBar(
+                  actions: [
+
+                  ],
+                ),
                 drawer: UserAccountDrawer(),
                 body: Center(
                   child: CircularProgressIndicator(),
