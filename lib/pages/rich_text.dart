@@ -78,7 +78,7 @@ class _KRichTextState extends State<KRichText> {
         .replaceAll('[/media]', '"></video>')
         // TODO iframe 的 style 当前版本不生效
         .replaceAll('<iframe',
-            '<iframe width="${MediaQuery.of(context).size.width}" height="80"');
+            '<iframe width="${MediaQuery.of(context).size.width}" height="150"');
   }
 
   @override
@@ -156,7 +156,6 @@ class _KRichTextState extends State<KRichText> {
               padding: EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 12.0))
         },
         navigationDelegateForIframe: (request) {
-          Navigator.of(context).pushNamed("/webview", arguments: request.url);
           return NavigationDecision.prevent;
         });
   }
