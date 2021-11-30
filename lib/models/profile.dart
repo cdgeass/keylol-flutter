@@ -1,3 +1,5 @@
+import 'notice.dart';
+
 class Profile {
   String? cookiePre;
   String? auth;
@@ -66,43 +68,6 @@ class Profile {
     data['readaccess'] = this.readAccess?.toString();
     data['space'] = this.space?.toJson();
     data['notice'] = this.notice?.toJson();
-    return data;
-  }
-}
-
-class Notice {
-  int? newPush;
-  int? newPm;
-  int? newPrompt;
-  int? newMyPost;
-
-  Notice(this.newPush, this.newPm, this.newPrompt, this.newMyPost);
-
-  Notice.fromJson(Map<String, dynamic> json) {
-    var newPushStr = json['newpush'];
-    if (newPushStr != null) {
-      newPush = int.parse(newPushStr);
-    }
-    var newPmStr = json['newpm'];
-    if (newPmStr != null) {
-      newPm = int.parse(newPmStr);
-    }
-    var newPromptStr = json['newprompt'];
-    if (newPromptStr != null) {
-      newPrompt = int.parse(newPromptStr);
-    }
-    var newMyPostStr = json['newmypost'];
-    if (newMyPostStr != null) {
-      newMyPost = int.parse(newMyPostStr);
-    }
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['newpush'] = this.newPush?.toString();
-    data['newpm'] = this.newPm?.toString();
-    data['newprompt'] = this.newPrompt?.toString();
-    data['newmypost'] = this.newMyPost?.toString();
     return data;
   }
 }

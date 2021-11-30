@@ -55,13 +55,13 @@ class _IndexPageState extends State<IndexPage> {
                   autoPlay: true,
                 ),
                 items: index.slideViewItems
-                    ?.map((slideViewItem) =>
+                    .map((slideViewItem) =>
                         _SlideViewItem(slideViewItem: slideViewItem))
                     .toList(),
               );
 
               return DefaultTabController(
-                  length: index.tabThreadsMap!.keys.length,
+                  length: index.tabThreadsMap.keys.length,
                   child: Scaffold(
                       drawer: UserAccountDrawer(),
                       backgroundColor: Color(0xFFEEEEEE),
@@ -69,6 +69,7 @@ class _IndexPageState extends State<IndexPage> {
                         headerSliverBuilder: (context, innerBoxIsScrolled) {
                           return [
                             SliverAppBar(
+                              leading: buildAppBarLeading(),
                               expandedHeight: 275.0,
                               flexibleSpace: slideView,
                             ),
@@ -78,14 +79,14 @@ class _IndexPageState extends State<IndexPage> {
                                     labelColor: Colors.blueAccent,
                                     unselectedLabelColor: Colors.black,
                                     isScrollable: true,
-                                    tabs: index.tabThreadsMap!.keys
+                                    tabs: index.tabThreadsMap.keys
                                         .map((key) => Tab(text: key.name))
                                         .toList())))
                           ];
                         },
                         body: TabBarView(
-                          children: index.tabThreadsMap!.keys.map((key) {
-                            final threads = index.tabThreadsMap![key]!;
+                          children: index.tabThreadsMap.keys.map((key) {
+                            final threads = index.tabThreadsMap[key]!;
                             return ListView.builder(
                               padding: EdgeInsets.zero,
                               addAutomaticKeepAlives: true,
@@ -101,11 +102,7 @@ class _IndexPageState extends State<IndexPage> {
             }
 
             return Scaffold(
-                appBar: AppBar(
-                  actions: [
-
-                  ],
-                ),
+                appBar: AppBar(leading: buildAppBarLeading()),
                 drawer: UserAccountDrawer(),
                 body: Center(
                   child: CircularProgressIndicator(),

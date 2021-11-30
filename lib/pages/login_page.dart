@@ -103,8 +103,8 @@ class _SmsLoginState extends State<_SmsLogin> {
 
   void _login(BuildContext context) async {
     if (_formKey.currentState?.validate() == true) {
-      final loginFuture = Global.keylolClient.loginWithSms(_secCode!.loginHash!,
-          _secCode!.formHash!, _cellphoneController.text, _smsController.text);
+      final loginFuture = Global.keylolClient.loginWithSms(_secCode!.loginHash,
+          _secCode!.formHash, _cellphoneController.text, _smsController.text);
 
       loginFuture.then((value) {
         Navigator.pop(context);
@@ -126,10 +126,10 @@ class _SmsLoginState extends State<_SmsLogin> {
       return Future.value(0);
     } else {
       final sendSmsFuture = Global.keylolClient.sendSmsCode(
-          _secCode!.loginHash!,
-          _secCode!.formHash!,
+          _secCode!.loginHash,
+          _secCode!.formHash,
           _cellphoneController.text,
-          _secCode!.currentIdHash!,
+          _secCode!.currentIdHash,
           _secCodeController.text);
       sendSmsFuture.onError((error, stackTrace) => _showErrorDialog(error));
 
@@ -315,13 +315,13 @@ class _PasswordLoginState extends State<_PasswordLogin> {
             .login(_usernameController.text, _passwordController.text);
       } else {
         loginFuture = Global.keylolClient
-            .checkSecCode(_secCode!.auth!, _secCode!.currentIdHash!,
+            .checkSecCode(_secCode!.auth, _secCode!.currentIdHash,
                 _secCodeController.text)
             .then((value) => Global.keylolClient.loginWithSecCode(
-                _secCode!.auth!,
-                _secCode!.formHash!,
-                _secCode!.loginHash!,
-                _secCode!.currentIdHash!,
+                _secCode!.auth,
+                _secCode!.formHash,
+                _secCode!.loginHash,
+                _secCode!.currentIdHash,
                 _secCodeController.text));
       }
       loginFuture.then((value) {
@@ -443,7 +443,7 @@ class _SecCodeInputState extends State<_SecCodeInput> {
   void initState() {
     super.initState();
 
-    update = widget.secCode.update!;
+    update = widget.secCode.update;
     idHash = widget.secCode.getIdHash();
   }
 

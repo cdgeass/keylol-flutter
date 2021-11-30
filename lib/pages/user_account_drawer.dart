@@ -1,3 +1,4 @@
+import 'package:badges/badges.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -58,6 +59,33 @@ class _UserAccountDrawerState extends State<UserAccountDrawer> {
         });
     items.add(forums);
 
+    if (profile != null) {
+      final notice = ChangeNotifierProvider.value(
+          value: Global.noticeHolder,
+          child: Consumer<NoticeHolder>(
+            builder: (context, notifier, child) {
+              final notice = notifier.notice;
+              late Widget leading;
+              if (notice.count() > 0) {
+                leading = Badge(
+                  child: Icon(Icons.notifications),
+                );
+              } else {
+                leading = Icon(Icons.notifications);
+              }
+
+              return ListTile(
+                  leading: leading,
+                  title: Text('提醒'),
+                  onTap: () {
+                    notifier.clear();
+                    Navigator.of(context).pushNamed('/noteList');
+                  });
+            },
+          ));
+      items.add(notice);
+    }
+
     final loginOrLogout = ListTile(
       leading: profile == null ? Icon(Icons.login) : Icon(Icons.logout),
       title: Text(profile == null ? '登录' : '退出'),
@@ -79,4 +107,34 @@ class _UserAccountDrawerState extends State<UserAccountDrawer> {
       child: drawItems,
     );
   }
+}
+
+Widget buildAppBarLeading() {
+  return ChangeNotifierProvider.value(
+    value: Global.noticeHolder,
+    child: Consumer<NoticeHolder>(
+      builder: (context, notifier, child) {
+        final notice = notifier.notice;
+        if (notice.count() > 0) {
+          return IconButton(
+            icon: Badge(
+              child: Icon(Icons.menu),
+            ),
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
+            tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
+          );
+        } else {
+          return IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
+            tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
+          );
+        }
+      },
+    ),
+  );
 }

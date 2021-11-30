@@ -1,39 +1,53 @@
+// 板块分类
 class Cat {
-  String? fid;
-  String? name;
-  List<CatForum>? forums;
+  // 分类id
+  final String fid;
 
-  Cat.fromJson(Map<String, dynamic> json) {
-    fid = json['fid'];
-    name = json['name'];
-  }
+  // 分类名称
+  final String name;
+
+  // 板块
+  late List<CatForum> forums;
+
+  Cat(this.fid, this.name);
+
+  Cat.fromJson(Map<String, dynamic> json)
+      : fid = json['fid'],
+        name = json['name'];
 }
 
+// 分类下板块
 class CatForum {
-  String? fid;
-  String? name;
-  int? threads;
-  int? posts;
-  int? todayPosts;
-  String? description;
-  String? icon;
+  // 板块id
+  final String fid;
 
-  CatForum.fromJson(Map<String, dynamic> json) {
-    fid = json['fid'];
-    name = json['name'];
-    var threadsStr = json['threads'];
-    if (threadsStr != null) {
-      threads = int.parse(threadsStr);
-    }
-    var postsStr = json['posts'];
-    if (postsStr != null) {
-      posts = int.parse(postsStr);
-    }
-    var todayPostsStr = json['todayposts'];
-    if (todayPostsStr != null) {
-      todayPosts = int.parse(todayPostsStr);
-    }
-    description = json['description'];
-    icon = json['icon'];
-  }
+  // 板块名称
+  final String name;
+
+  // 帖子数
+  final int threads;
+
+  // 回复数
+  final int posts;
+
+  // 今日回复数
+  final int todayPosts;
+
+  // 描述
+  final String? description;
+
+  // 图标
+  final String? icon;
+
+  CatForum(this.fid, this.name, this.threads, this.posts, this.todayPosts,
+      this.description, this.icon);
+
+  CatForum.fromJson(Map<String, dynamic> json)
+      : fid = json['fid'],
+        name = json['name'],
+        threads = int.parse(json['threads'] ?? '0'),
+        posts = int.parse(json['posts'] ?? '0'),
+        todayPosts = int.parse(json['todayposts'] ?? '0'),
+        description = json['description'],
+        icon = json['icon'];
 }

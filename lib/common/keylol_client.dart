@@ -10,6 +10,7 @@ import 'package:keylol_flutter/common/global.dart';
 import 'package:keylol_flutter/models/cat.dart';
 import 'package:keylol_flutter/models/forum_display.dart';
 import 'package:keylol_flutter/models/index.dart';
+import 'package:keylol_flutter/models/notice.dart';
 import 'package:keylol_flutter/models/profile.dart';
 import 'package:keylol_flutter/models/sec_code.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
@@ -20,15 +21,19 @@ class KeylolClient {
   late CookieJar cj;
 
   Future<void> init() async {
+    // 初始化 dio client
     _dio = Dio(BaseOptions(
         baseUrl: "https://keylol.com", queryParameters: {'version': 4}));
 
+    // app 目录
     var appDocDir = await getApplicationDocumentsDirectory();
     var appDocPath = appDocDir.path;
 
+    // cookie持久化
     cj = PersistCookieJar(
         ignoreExpires: false, storage: FileStorage(appDocPath + "/.cookies/"));
     _dio.interceptors.add(CookieManager(cj));
+    // 缓存
     _dio.interceptors.add(
         DioCacheManager(CacheConfig(baseUrl: 'https://keylol.com'))
             .interceptor);
@@ -48,15 +53,19 @@ class KeylolClient {
           'answer': '',
           'questionid': '0'
         }));
-    if (res.data['Message']!['messageval'] == 'login_succeed') {
+
+    if (res.data['Message']?['messageval'] == 'login_succeed') {
+      // 登录成功 更新 profile
       return fetchProfile()
           .then((profile) => Global.profileHolder.setProfile(profile));
-    } else if (res.data['Message']!['messageval'] == 'login_seccheck2') {
+    } else if (res.data['Message']?['messageval'] == 'login_seccheck2') {
+      // 需要验证码 走网页验证码登录
       final auth = res.data['Variables']!['auth'];
       final formHash = res.data['Variables']!['formhash'];
       return fetchSecCodeParam(auth, formHash);
     } else {
-      return Future.error(res.data['Message']!['messagestr']);
+      // 登录失败
+      return Future.error(res.data['Message']?['messagestr'] ?? '登录失败');
     }
   }
 
@@ -202,7 +211,7 @@ class KeylolClient {
   // 发送验证码
   Future sendSmsCode(String loginHash, String formHash, String cellphone,
       String secCodeHash, String secCodeVerify) async {
-    final res = await _dio.post('/plugin.php',
+    await _dio.post('/plugin.php',
         queryParameters: {
           'id': 'duceapp_smsauth',
           'ac': 'sendcode',
@@ -219,8 +228,6 @@ class KeylolClient {
           'seccodehash': secCodeHash,
           'seccodeverify': secCodeVerify
         }));
-
-    final data = res.data as String;
   }
 
   // 短信验证码登录
@@ -285,15 +292,16 @@ class KeylolClient {
         options: buildCacheOptions(Duration(days: 7)));
 
     var variables = res.data['Variables'];
+
     var forumMap = new HashMap<String, CatForum>();
     for (var forumJson in (variables['forumlist'] as List<dynamic>)) {
       final forum = CatForum.fromJson(forumJson);
-      forumMap[forum.fid!] = forum;
+      forumMap[forum.fid] = forum;
     }
 
     return (variables['catlist'] as List<dynamic>).map((catJson) {
       final cat = Cat.fromJson(catJson);
-      final forums = (catJson['forums'] as List<dynamic>)
+      List<CatForum> forums = (catJson['forums'] as List<dynamic>)
           .map((fid) => forumMap[fid]!)
           .toList();
       cat.forums = forums;
@@ -350,5 +358,13 @@ class KeylolClient {
     } else {
       return Future.error(res.data['Message']!['messagestr']);
     }
+  }
+
+  // 提醒列表
+  Future<NoteList> fetchNoteList(int? page) async {
+    final res = await _dio.post('/api/mobile/index.php',
+        queryParameters: {'module': 'mynotelist', 'page': page ?? 1});
+
+    return NoteList.fromJson(res.data['Variables']);
   }
 }

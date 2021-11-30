@@ -6,7 +6,7 @@ import 'package:keylol_flutter/common/constants.dart';
 import 'package:keylol_flutter/common/global.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:keylol_flutter/pages/avatar.dart';
-import 'package:keylol_flutter/pages/post_content.dart';
+import 'package:keylol_flutter/pages/rich_text.dart';
 import 'package:keylol_flutter/pages/thread_author.dart';
 
 class ThreadPage extends StatefulWidget {
@@ -202,7 +202,7 @@ class _PostItemState extends State<_PostItem> {
           ),
           subtitle: Text(widget.post.dateline!.replaceAll('&nbsp;', '')),
         ),
-        PostContent(
+        _PostContent(
           post: widget.post,
         ),
       ],
@@ -362,5 +362,34 @@ class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
   @override
   bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
     return false;
+  }
+}
+
+class _PostContent extends StatelessWidget {
+  final ViewThreadPost post;
+
+  const _PostContent({Key? key, required this.post}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> children = [];
+    children.add(KRichText(message: post.message ?? ""));
+    if (post.imageList != null && post.attachments != null) {
+      post.imageList!.forEach((imageId) {
+        var attachment = post.attachments![imageId];
+        children.add(Container(
+            padding: EdgeInsets.fromLTRB(8.0, 0.0, 8.0, 8.0),
+            child: CachedNetworkImage(
+                placeholder: (context, url) => CircularProgressIndicator(),
+                errorWidget: (context, url, error) =>
+                    CircularProgressIndicator(),
+                imageUrl: attachment!.url! + attachment.attachment!)));
+      });
+    }
+    if (post.specialPoll != null) {
+      children.add(Poll(specialPoll: post.specialPoll!));
+    }
+
+    return Column(children: children);
   }
 }

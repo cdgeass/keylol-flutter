@@ -24,7 +24,9 @@ class ForumIndexPageState extends State<ForumIndexPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        leading: buildAppBarLeading(),
+      ),
       drawer: UserAccountDrawer(),
       body: FutureBuilder(
         future: _future,
@@ -38,7 +40,7 @@ class ForumIndexPageState extends State<ForumIndexPage> {
                     for (final cat in cats)
                       NavigationRailDestination(
                         icon: SizedBox.shrink(),
-                        label: Text(cat.name!),
+                        label: Text(cat.name),
                       )
                   ],
                   labelType: NavigationRailLabelType.all,
@@ -57,7 +59,7 @@ class ForumIndexPageState extends State<ForumIndexPage> {
                       context: context,
                       child: ListView(
                         children: [
-                          for (final forum in cats[_selectedIndex].forums!)
+                          for (final forum in cats[_selectedIndex].forums)
                             InkWell(
                               child: ListTile(
                                 leading: forum.icon == null
@@ -71,7 +73,7 @@ class ForumIndexPageState extends State<ForumIndexPage> {
                                         imageUrl: forum.icon!,
                                         width: 40.0,
                                       ),
-                                title: Text(forum.name!),
+                                title: Text(forum.name),
                                 subtitle: forum.description == null
                                     ? null
                                     : Text(forum.description!),

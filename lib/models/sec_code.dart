@@ -2,12 +2,16 @@ import 'dart:math';
 
 import 'package:html/dom.dart';
 
+// 验证码相关参数
 class SecCode {
-  String? auth;
-  String? formHash;
-  String? update;
-  String? loginHash;
-  String? currentIdHash;
+  late final String auth;
+  late String formHash;
+  late final String update;
+  late final String loginHash;
+  late final String currentIdHash;
+
+  SecCode(this.auth, this.formHash, this.update, this.loginHash,
+      this.currentIdHash);
 
   SecCode.fromDocument(Document document) {
     final refreshButtons = document.getElementsByClassName('sec_button');
@@ -25,7 +29,7 @@ class SecCode {
     final inputs = document.getElementsByTagName('input');
     for (var input in inputs) {
       if (input.attributes['name'] == 'formhash') {
-        formHash = input.attributes['value'];
+        formHash = input.attributes['value']!;
         break;
       }
     }
@@ -35,6 +39,6 @@ class SecCode {
     final random = Random();
     final randomSeed = (random.nextDouble() * 1000).floor();
     currentIdHash = 'S$randomSeed';
-    return currentIdHash!;
+    return currentIdHash;
   }
 }

@@ -1,10 +1,11 @@
 import 'package:html/dom.dart';
 
+// 首页
 class Index {
-  List<IndexSlideViewItem>? slideViewItems;
-  Map<IndexTabTitleItem, List<IndexTabThreadItem>>? tabThreadsMap;
+  late final List<IndexSlideViewItem> slideViewItems;
+  late final Map<IndexTabTitleItem, List<IndexTabThreadItem>> tabThreadsMap;
 
-  Index(this.slideViewItems);
+  Index(this.slideViewItems, this.tabThreadsMap);
 
   Index.fromDocument(Document document) {
     // 轮播图
@@ -15,12 +16,10 @@ class Index {
           slideShow.getElementsByTagName('li').map((slideShowItem) {
         final title =
             slideShowItem.getElementsByClassName('title')[0].innerHtml;
-
         final content = slideShowItem.getElementsByTagName('a')[0];
         final tid =
             content.attributes['href']?.split('-')[0].replaceFirst('t', '');
         final img = content.getElementsByTagName('img')[0].attributes['src'];
-
         return IndexSlideViewItem(tid!, title, img!);
       }).toList();
     }
@@ -74,33 +73,55 @@ class Index {
             .innerHtml;
         var tabTitleItem = IndexTabTitleItem(fid, name);
 
-        tabThreadsMap![tabTitleItem] = tabThreads;
+        tabThreadsMap[tabTitleItem] = tabThreads;
       }
     }
   }
 }
 
+// 轮播图
 class IndexSlideViewItem {
+  // 帖子id
   final String tid;
+
+  // 标题
   final String title;
+
+  // 封面图
   final String img;
 
   const IndexSlideViewItem(this.tid, this.title, this.img);
 }
 
+// Tab页标题
 class IndexTabTitleItem {
+  // 板块id
   final String fid;
+
+  // 板块名称
   final String name;
 
   IndexTabTitleItem(this.fid, this.name);
 }
 
+// Tab页板块
 class IndexTabThreadItem {
+  // 帖子id
   final String tid;
+
+  // 板块id
   final String? fid;
+
+  // 标题
   final String title;
+
+  // 作者名
   final String memberUsername;
+
+  // 作者uid
   final String memberUid;
+
+  // 日期
   final String dateLine;
 
   IndexTabThreadItem(this.tid, this.fid, this.title, this.memberUsername,
