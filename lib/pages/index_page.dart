@@ -57,7 +57,11 @@ class _IndexPageState extends State<IndexPage> {
                 child: CircularProgressIndicator(),
               );
             }
-            return Scaffold(drawer: UserAccountDrawer(), body: body);
+            return Scaffold(
+                backgroundColor: LightColorSettings.backgroundColor,
+                drawer: UserAccountDrawer(),
+                body: body
+            );
           },
         ));
   }
@@ -118,11 +122,9 @@ class _IndexPageState extends State<IndexPage> {
                       isScrollable: true)))
             ];
           },
-          body: Container(
-              color: LightColorSettings.backgroundColor,
-              child: TabBarView(
-                children: tabChildren,
-              )),
+          body: TabBarView(
+            children: tabChildren,
+          ),
         ));
   }
 }

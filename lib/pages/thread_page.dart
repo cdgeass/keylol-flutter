@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/constants.dart';
 import 'package:keylol_flutter/common/global.dart';
+import 'package:keylol_flutter/common/settings.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:keylol_flutter/pages/avatar.dart';
 import 'package:keylol_flutter/pages/rich_text.dart';
@@ -34,48 +35,52 @@ class _ThreadPageState extends State<ThreadPage> {
     return FutureBuilder(
         future: _future,
         builder: (context, AsyncSnapshot<ViewThread> snapshot) {
+          late AppBar appBar;
+          late Widget body;
+          Widget? bottomNavigationBar;
+
           if (snapshot.hasError) {
             final error = snapshot.error!;
-            return Scaffold(
-              appBar: AppBar(),
-              body: Center(
-                child: Text(error as String),
-              ),
+            appBar = AppBar();
+            body = Center(
+              child: Text(error as String),
             );
-          }
-          if (snapshot.hasData) {
+          } else if (snapshot.hasData) {
             final viewThread = snapshot.data!;
-            return Scaffold(
-              appBar: AppBar(
-                title: Text(viewThread.subject!),
-              ),
-              body: _PostList(
-                tid: widget.tid,
-                scrollController: _scrollController,
-              ),
-              bottomNavigationBar: _Reply(
-                fid: viewThread.fid!,
-                tid: widget.tid,
-                onSuccess: () {
-                  setState(() {
-                    _scrollController.animateTo(0.0,
-                        duration: Duration(milliseconds: 500),
-                        curve: Curves.decelerate);
-                    _page = 1;
-                    _future =
-                        Global.keylolClient.fetchThread(widget.tid, _page);
-                  });
-                },
-              ),
+
+            appBar = AppBar(
+              title: Text(viewThread.subject!),
+            );
+            body = _PostList(
+              tid: widget.tid,
+              scrollController: _scrollController,
+            );
+            bottomNavigationBar = _Reply(
+              fid: viewThread.fid!,
+              tid: widget.tid,
+              onSuccess: () {
+                setState(() {
+                  _scrollController.animateTo(0.0,
+                      duration: Duration(milliseconds: 500),
+                      curve: Curves.decelerate);
+                  _page = 1;
+                  _future = Global.keylolClient.fetchThread(widget.tid, _page);
+                });
+              },
             );
           } else {
-            return Scaffold(
-              appBar: AppBar(),
-              body: Center(
-                child: CircularProgressIndicator(),
-              ),
+            appBar = AppBar();
+            body = Center(
+              child: CircularProgressIndicator(),
             );
           }
+
+          return Scaffold(
+            backgroundColor: LightColorSettings.backgroundColor,
+            appBar: appBar,
+            body: body,
+            bottomNavigationBar: bottomNavigationBar,
+          );
         });
   }
 }
@@ -144,27 +149,20 @@ class _PostListState extends State<_PostList> {
   Widget build(BuildContext context) {
     return RefreshIndicator(
       onRefresh: _onRefresh,
-      child: ListView.separated(
-        controller: widget.scrollController,
-        itemCount: _posts.length + 1,
-        itemBuilder: (context, index) {
-          if (index == _posts.length) {
-            return Center(
-                child: Opacity(
-              opacity: _total > _posts.length ? 1.0 : 0.0,
-              child: CircularProgressIndicator(),
-            ));
-          } else {
-            return _PostItem(post: _posts[index]);
-          }
-        },
-        separatorBuilder: (context, index) {
-          return Divider(
-            thickness: 1.0,
-            height: 1.0,
-          );
-        },
-      ),
+      child: ListView.builder(
+          controller: widget.scrollController,
+          itemCount: _posts.length + 1,
+          itemBuilder: (context, index) {
+            if (index == _posts.length) {
+              return Center(
+                  child: Opacity(
+                opacity: _total > _posts.length ? 1.0 : 0.0,
+                child: CircularProgressIndicator(),
+              ));
+            } else {
+              return _PostItem(post: _posts[index]);
+            }
+          }),
     );
   }
 }
@@ -181,32 +179,40 @@ class _PostItem extends StatefulWidget {
 class _PostItemState extends State<_PostItem> {
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Card(
+        child: Column(
       children: [
         ListTile(
+          visualDensity: VisualDensity(horizontal: 0, vertical: -4),
           leading: Avatar(
             avatarUrl: avatarUrl + widget.post.authorId!,
-            size: Size(40.0, 40.0),
+            size: Size(32.0, 32.0),
           ),
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ThreadAuthor(
                 uid: widget.post.authorId!,
                 username: widget.post.author!,
-                size: Size(1.0, 1.0),
+                size: Size(0.8, 0.8),
                 needAvatar: false,
+                fontSize: 14.0,
               ),
-              Text(widget.post.number.toString() + '楼')
+              Text(
+                widget.post.number.toString() + '楼',
+                style: TextStyle(fontSize: 14.0),
+              )
             ],
           ),
           subtitle: Text(widget.post.dateline!.replaceAll('&nbsp;', '')),
         ),
+        Divider(),
         _PostContent(
           post: widget.post,
         ),
       ],
-    );
+    ));
   }
 }
 

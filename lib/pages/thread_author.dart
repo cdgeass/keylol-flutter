@@ -10,13 +10,15 @@ class ThreadAuthor extends StatefulWidget {
   final String username;
   final Size size;
   final bool needAvatar;
+  final double? fontSize;
 
   ThreadAuthor(
       {Key? key,
       required this.uid,
       required this.username,
       required this.size,
-      this.needAvatar = true})
+      this.needAvatar = true,
+      this.fontSize})
       : super(key: key);
 
   @override
@@ -40,7 +42,10 @@ class _ThreadAuthorState extends State<ThreadAuthor> {
       builder: (BuildContext context, AsyncSnapshot<Profile> snapshot) {
         final avatar =
             Avatar(avatarUrl: avatarUrl + widget.uid, size: widget.size);
-        final username = Text(widget.username);
+        final username = Text(
+          widget.username,
+          style: TextStyle(fontSize: widget.fontSize),
+        );
 
         final children = [
           if (widget.needAvatar) avatar,
@@ -58,15 +63,15 @@ class _ThreadAuthorState extends State<ThreadAuthor> {
               width: 8.0,
             ));
             children.add(Text(group.groupTitle!,
-                style: group.color?.isNotEmpty == true
-                    ? TextStyle(
-                        color: Color(int.parse(group.color!, radix: 16)))
-                    : null));
+                style: TextStyle(
+                    fontSize: widget.fontSize,
+                    color: group.color?.isNotEmpty == true
+                        ? Color(int.parse(group.color!, radix: 16))
+                        : null)));
           }
 
           return Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: children);
+              crossAxisAlignment: CrossAxisAlignment.end, children: children);
         }
 
         return Row(
