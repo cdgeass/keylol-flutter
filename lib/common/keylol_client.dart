@@ -37,6 +37,8 @@ class KeylolClient {
     _dio.interceptors.add(
         DioCacheManager(CacheConfig(baseUrl: 'https://keylol.com'))
             .interceptor);
+    // 解析返回里通知信息
+    _dio.interceptors.add(_NoticeIntercept());
   }
 
   /// 登录
@@ -366,5 +368,26 @@ class KeylolClient {
         queryParameters: {'module': 'mynotelist', 'page': page ?? 1});
 
     return NoteList.fromJson(res.data['Variables']);
+  }
+}
+
+// 通知拦截器, 获取 notice 信息
+class _NoticeIntercept extends Interceptor {
+  _NoticeIntercept();
+
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    if (response.statusCode == 200) {
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        final noticeJson = data['Variables']?['notice'];
+        if (noticeJson != null) {
+          final notice = Notice.fromJson(noticeJson);
+          Global.noticeHolder.update(notice);
+        }
+      }
+    }
+
+    return handler.next(response);
   }
 }
