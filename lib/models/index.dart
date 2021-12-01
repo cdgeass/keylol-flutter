@@ -40,9 +40,11 @@ class Index {
           final memberUid = memberInfo.attributes['href']!.split('-')[1];
 
           String? fid;
+          String? fname;
           if (aTags.length > 2) {
             var fInfo = aTags[1];
             fid = fInfo.attributes['href']!.replaceFirst('f', '').split('-')[0];
+            fname = fInfo.text;
           } else {
             fid = null;
           }
@@ -63,7 +65,7 @@ class Index {
           final dateLine = titleInfo[2].substring(1, titleInfo[2].length - 1);
 
           return IndexTabThreadItem(
-              tid, fid, title, memberUsername, memberUid, dateLine);
+              tid, fid, fname, title, memberUsername, memberUid, dateLine);
         }).toList();
 
         var fid = titleId.split('_')[2];
@@ -109,8 +111,11 @@ class IndexTabThreadItem {
   // 帖子id
   final String tid;
 
-  // 板块id
+  // 版块id
   final String? fid;
+
+  // 版块名称
+  final String? fname;
 
   // 标题
   final String title;
@@ -124,6 +129,6 @@ class IndexTabThreadItem {
   // 日期
   final String dateLine;
 
-  IndexTabThreadItem(this.tid, this.fid, this.title, this.memberUsername,
-      this.memberUid, this.dateLine);
+  IndexTabThreadItem(this.tid, this.fid, this.fname, this.title,
+      this.memberUsername, this.memberUid, this.dateLine);
 }
