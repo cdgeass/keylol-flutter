@@ -355,7 +355,8 @@ class KeylolClient {
       queryParameters['uid'] = uid;
     }
     final res = await _dio.get("/api/mobile/index.php",
-        queryParameters: queryParameters);
+        queryParameters: queryParameters,
+        options: uid != null ? buildCacheOptions(Duration(days: 1)) : null);
     if (res.data['Message'] != null) {
       return Future.error(res.data['Message']!['messagestr']);
     }
