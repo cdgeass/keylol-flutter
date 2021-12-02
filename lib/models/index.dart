@@ -54,7 +54,9 @@ class Index {
               tInfo.attributes['href']!.replaceFirst('t', '').split('-')[0];
           var fonts = tInfo.getElementsByTagName('font');
           String title;
-          if (fonts.isEmpty) {
+          if (tInfo.innerHtml.contains('data-yjshash')) {
+            title = calculateProtectedEmail(tInfo);
+          } else if (fonts.isEmpty) {
             title = tInfo.innerHtml;
           } else {
             title = fonts[0].innerHtml;
@@ -78,6 +80,22 @@ class Index {
         tabThreadsMap[tabTitleItem] = tabThreads;
       }
     }
+  }
+
+  // 计算加密的含@字符串
+  String calculateProtectedEmail(Element element) {
+    final span = element.getElementsByClassName('__yjs_email__')[0];
+    var a = span.attributes['data-yjsemail']!;
+
+    final r = int.parse('0x' + a.substring(0, 2)) | 0;
+    var e = '';
+    for (var n = 2; a.length - n > 0; n += 2) {
+      final temp =
+          ('0' + (int.parse('0x' + a.substring(n, n + 2)) ^ r).toRadixString(16));
+      e += '%' + temp.substring(temp.length - 2);
+    }
+
+    return Uri.decodeComponent(e);
   }
 }
 
