@@ -152,8 +152,8 @@ class _ForumThreadListState extends State<_ForumThreadList> {
   }
 
   Future<List<ForumDisplayThread>> _fetchThreads() async {
-    final forumDisplay = await KeylolClient()
-        .fetchForum(widget.fid, _page, _filter!, _param!);
+    final forumDisplay =
+        await KeylolClient().fetchForum(widget.fid, _page, _filter!, _param!);
     return forumDisplay.threads ?? [];
   }
 
@@ -319,21 +319,25 @@ class _ForumThreadItem extends StatelessWidget {
       },
     );
 
+    late final widget;
     if (forumThread.displayOrder == 1) {
-      return ClipRect(
+      widget = ClipRect(
           child: Banner(
               location: BannerLocation.topStart,
               message: '置顶',
               color: Color(0xFF81C784),
               child: threadWidget));
     } else if (forumThread.displayOrder == 3) {
-      return ClipRect(
+      widget = ClipRect(
           child: Banner(
               location: BannerLocation.topStart,
               message: '置顶',
               color: Color(0xFFFFD54F),
               child: threadWidget));
+    } else {
+      widget = threadWidget;
     }
-    return threadWidget;
+
+    return Card(child: widget);
   }
 }
