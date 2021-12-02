@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cookie_jar/cookie_jar.dart';
@@ -6,7 +7,7 @@ import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:dio_http_cache/dio_http_cache.dart';
 import 'package:html/parser.dart' as parser;
-import 'package:keylol_flutter/common/global.dart';
+import 'package:keylol_flutter/common/notifiers.dart';
 import 'package:keylol_flutter/models/cat.dart';
 import 'package:keylol_flutter/models/forum_display.dart';
 import 'package:keylol_flutter/models/index.dart';
@@ -16,9 +17,87 @@ import 'package:keylol_flutter/models/sec_code.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:path_provider/path_provider.dart';
 
+// 统一拦截 keylol mobile 请求
+abstract class _KeylolMobileInterceptor extends Interceptor {
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    if (isSupported(response)) {
+      doIntercept(response);
+    }
+    handler.next(response);
+  }
+
+  bool isSupported(Response response) {
+    final uri = response.realUri;
+    return uri.path.contains('/api/mobile/index.php');
+  }
+
+  void doIntercept(Response response);
+}
+
+// profile 拦截器, 获取 profile 信息
+class _ProfileInterceptor extends _KeylolMobileInterceptor {
+  _ProfileInterceptor();
+
+  @override
+  void doIntercept(Response<dynamic> response) {
+    if (response.statusCode == 200) {
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        final profileJson = data['Variables'];
+        if (profileJson != null) {
+          final profile = Profile.fromJson(profileJson);
+
+          ProfileNotifier().update(profile);
+        }
+      }
+    }
+  }
+
+  bool isSupported(Response response) {
+    if (!super.isSupported(response)) {
+      return false;
+    }
+
+    final queryParameters = response.requestOptions.queryParameters;
+    if (queryParameters['module'] == 'profile' &&
+        queryParameters['uid'] != null) {
+      return false;
+    }
+    return true;
+  }
+}
+
+// 通知拦截器, 获取 notice 信息
+class _NoticeInterceptor extends _KeylolMobileInterceptor {
+  _NoticeInterceptor();
+
+  @override
+  void doIntercept(Response<dynamic> response) {
+    if (response.statusCode == 200) {
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        final noticeJson = data['Variables']?['notice'];
+        if (noticeJson != null) {
+          final notice = Notice.fromJson(noticeJson);
+
+          NoticeNotifier().update(notice);
+        }
+      }
+    }
+  }
+}
+
+// 访问 keylol.com dio 单例
 class KeylolClient {
   late Dio _dio;
-  late CookieJar cj;
+  late CookieJar _cj;
+
+  KeylolClient._internal();
+
+  static late final _instance = KeylolClient._internal();
+
+  factory KeylolClient() => _instance;
 
   Future<void> init() async {
     // 初始化 dio client
@@ -26,19 +105,30 @@ class KeylolClient {
         baseUrl: "https://keylol.com", queryParameters: {'version': 4}));
 
     // app 目录
-    var appDocDir = await getApplicationDocumentsDirectory();
-    var appDocPath = appDocDir.path;
+    final appDocDir = await getApplicationDocumentsDirectory();
+    final appDocPath = appDocDir.path;
 
     // cookie持久化
-    cj = PersistCookieJar(
+    _cj = PersistCookieJar(
         ignoreExpires: false, storage: FileStorage(appDocPath + "/.cookies/"));
-    _dio.interceptors.add(CookieManager(cj));
+    _dio.interceptors.add(CookieManager(_cj));
+
     // 缓存
     _dio.interceptors.add(
         DioCacheManager(CacheConfig(baseUrl: 'https://keylol.com'))
             .interceptor);
+    // 解析返回里profile信息
+    _dio.interceptors.add(_ProfileInterceptor());
     // 解析返回里通知信息
-    _dio.interceptors.add(_NoticeIntercept());
+    _dio.interceptors.add(_NoticeInterceptor());
+  }
+
+  void clearCookies() {
+    _cj.deleteAll();
+  }
+
+  Future<List<Cookie>> getCookies() {
+    return _cj.loadForRequest(Uri.parse('https://keylol.com'));
   }
 
   /// 登录
@@ -57,9 +147,7 @@ class KeylolClient {
         }));
 
     if (res.data['Message']?['messageval'] == 'login_succeed') {
-      // 登录成功 更新 profile
-      return fetchProfile()
-          .then((profile) => Global.profileHolder.setProfile(profile));
+      return fetchProfile();
     } else if (res.data['Message']?['messageval'] == 'login_seccheck2') {
       // 需要验证码 走网页验证码登录
       final auth = res.data['Variables']!['auth'];
@@ -153,8 +241,7 @@ class KeylolClient {
 
     final data = res.data as String;
     if (data.contains('succeedhandle_login')) {
-      return fetchProfile()
-          .then((profile) => Global.profileHolder.setProfile(profile));
+      return fetchProfile();
     } else {
       return Future.error('登录出错');
     }
@@ -182,7 +269,8 @@ class KeylolClient {
             .attributes['_action'] ??
         '';
     if (actionExp.isNotEmpty) {
-      loginHash = actionExp.substring(actionExp.length - 4);
+      final lastIndexOfEqual = actionExp.lastIndexOf('=');
+      loginHash = actionExp.substring(lastIndexOfEqual + 1);
     }
 
     res = await _dio.post('/plugin.php',
@@ -197,7 +285,6 @@ class KeylolClient {
         data: FormData.fromMap({
           'duceapp': 'yes',
           'formhash': formHash,
-          'smscodesubmit': 'login',
           'referer': 'https://keylol.com',
           'lssubmit': 'yes',
           'loginfield': 'auto',
@@ -255,22 +342,20 @@ class KeylolClient {
 
     final data = res.data as String;
     if (data.contains('succeedhandle_login')) {
-      return fetchProfile()
-          .then((profile) => Global.profileHolder.setProfile(profile));
+      return fetchProfile();
     } else {
       return Future.error('登录出错');
     }
   }
 
   // 用户信息
-  Future<Profile> fetchProfile({String? uid, bool cached = true}) async {
+  Future<Profile> fetchProfile({String? uid}) async {
     final queryParameters = {'module': 'profile'};
     if (uid != null) {
       queryParameters['uid'] = uid;
     }
     final res = await _dio.get("/api/mobile/index.php",
-        queryParameters: queryParameters,
-        options: cached ? buildCacheOptions(Duration(days: 1)) : null);
+        queryParameters: queryParameters);
     if (res.data['Message'] != null) {
       return Future.error(res.data['Message']!['messagestr']);
     }
@@ -368,26 +453,5 @@ class KeylolClient {
         queryParameters: {'module': 'mynotelist', 'page': page ?? 1});
 
     return NoteList.fromJson(res.data['Variables']);
-  }
-}
-
-// 通知拦截器, 获取 notice 信息
-class _NoticeIntercept extends Interceptor {
-  _NoticeIntercept();
-
-  @override
-  void onResponse(Response response, ResponseInterceptorHandler handler) {
-    if (response.statusCode == 200) {
-      final data = response.data;
-      if (data is Map<String, dynamic>) {
-        final noticeJson = data['Variables']?['notice'];
-        if (noticeJson != null) {
-          final notice = Notice.fromJson(noticeJson);
-          Global.noticeHolder.update(notice);
-        }
-      }
-    }
-
-    return handler.next(response);
   }
 }

@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:keylol_flutter/common/global.dart';
+import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/models/cat.dart';
 import 'package:keylol_flutter/pages/user_account_drawer.dart';
 
@@ -18,7 +18,7 @@ class ForumIndexPageState extends State<ForumIndexPage> {
   void initState() {
     super.initState();
 
-    _future = Global.keylolClient.fetchForumIndex();
+    _future = KeylolClient().fetchForumIndex();
   }
 
   @override

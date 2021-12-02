@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:keylol_flutter/common/global.dart';
+import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/models/sec_code.dart';
 
 class LoginPage extends StatefulWidget {
@@ -103,7 +103,7 @@ class _SmsLoginState extends State<_SmsLogin> {
 
   void _login(BuildContext context) async {
     if (_formKey.currentState?.validate() == true) {
-      final loginFuture = Global.keylolClient.loginWithSms(_secCode!.loginHash,
+      final loginFuture = KeylolClient().loginWithSms(_secCode!.loginHash,
           _secCode!.formHash, _cellphoneController.text, _smsController.text);
 
       loginFuture.then((value) {
@@ -115,7 +115,7 @@ class _SmsLoginState extends State<_SmsLogin> {
   Future<int> _sendSms() {
     if (_secCode == null) {
       final smsSecCodeFuture =
-          Global.keylolClient.fetchSmsSecCodeParam(_cellphoneController.text);
+          KeylolClient().fetchSmsSecCodeParam(_cellphoneController.text);
       smsSecCodeFuture.then((value) {
         setState(() {
           _secCode = value;
@@ -125,7 +125,7 @@ class _SmsLoginState extends State<_SmsLogin> {
 
       return Future.value(0);
     } else {
-      final sendSmsFuture = Global.keylolClient.sendSmsCode(
+      final sendSmsFuture = KeylolClient().sendSmsCode(
           _secCode!.loginHash,
           _secCode!.formHash,
           _cellphoneController.text,
@@ -163,6 +163,7 @@ class _CellphoneInput extends StatelessWidget {
     return TextFormField(
       autofocus: true,
       controller: cellphoneController,
+      autofillHints: [AutofillHints.telephoneNumber],
       decoration: InputDecoration(labelText: '手机号'),
       inputFormatters: [
         FilteringTextInputFormatter.allow(RegExp('[0-9]')),
@@ -284,7 +285,8 @@ class _PasswordLoginState extends State<_PasswordLogin> {
 
   @override
   Widget build(BuildContext context) {
-    return Form(
+    return AutofillGroup(
+        child: Form(
       key: _formKey,
       child: Column(
         children: [
@@ -304,20 +306,20 @@ class _PasswordLoginState extends State<_PasswordLogin> {
           )
         ],
       ),
-    );
+    ));
   }
 
   void _login(BuildContext context) {
     if (_formKey.currentState?.validate() == true) {
       Future loginFuture;
       if (_secCode == null) {
-        loginFuture = Global.keylolClient
+        loginFuture = KeylolClient()
             .login(_usernameController.text, _passwordController.text);
       } else {
-        loginFuture = Global.keylolClient
+        loginFuture = KeylolClient()
             .checkSecCode(_secCode!.auth, _secCode!.currentIdHash,
                 _secCodeController.text)
-            .then((value) => Global.keylolClient.loginWithSecCode(
+            .then((value) => KeylolClient().loginWithSecCode(
                 _secCode!.auth,
                 _secCode!.formHash,
                 _secCode!.loginHash,
@@ -363,6 +365,7 @@ class _UsernameInput extends StatelessWidget {
     return TextFormField(
       autofocus: true,
       controller: usernameController,
+      autofillHints: [AutofillHints.username],
       decoration: InputDecoration(labelText: '用户名'),
       validator: (value) {
         if (value == null || value.isEmpty) {
@@ -397,6 +400,7 @@ class _PasswordInputState extends State<_PasswordInput> {
   Widget build(BuildContext context) {
     return TextFormField(
       controller: widget.passwordController,
+      autofillHints: [AutofillHints.password],
       decoration: InputDecoration(
           labelText: '密码',
           suffix: IconButton(
@@ -449,7 +453,7 @@ class _SecCodeInputState extends State<_SecCodeInput> {
 
   @override
   Widget build(BuildContext context) {
-    final future = Global.keylolClient.fetchSecCode(update, idHash!);
+    final future = KeylolClient().fetchSecCode(update, idHash!);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [

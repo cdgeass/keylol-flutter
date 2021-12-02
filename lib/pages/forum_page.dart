@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:keylol_flutter/common/global.dart';
+import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/models/forum_display.dart';
 import 'package:keylol_flutter/pages/thread_author.dart';
 
@@ -24,7 +24,7 @@ class _ForumPageState extends State<ForumPage>
   void initState() {
     super.initState();
 
-    _future = Global.keylolClient.fetchForum(widget.fid, 1, 'typeid', {});
+    _future = KeylolClient().fetchForum(widget.fid, 1, 'typeid', {});
   }
 
   @override
@@ -152,7 +152,7 @@ class _ForumThreadListState extends State<_ForumThreadList> {
   }
 
   Future<List<ForumDisplayThread>> _fetchThreads() async {
-    final forumDisplay = await Global.keylolClient
+    final forumDisplay = await KeylolClient()
         .fetchForum(widget.fid, _page, _filter!, _param!);
     return forumDisplay.threads ?? [];
   }

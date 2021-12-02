@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/constants.dart';
-import 'package:keylol_flutter/common/global.dart';
+import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/models/profile.dart';
 import 'package:keylol_flutter/pages/avatar.dart';
 
@@ -32,7 +32,7 @@ class _ThreadAuthorState extends State<ThreadAuthor> {
   void initState() {
     super.initState();
 
-    _future = Global.keylolClient.fetchProfile(uid: widget.uid);
+    _future = KeylolClient().fetchProfile(uid: widget.uid);
   }
 
   @override

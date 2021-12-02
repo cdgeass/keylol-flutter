@@ -4,7 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:keylol_flutter/common/global.dart';
+import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/common/settings.dart';
 import 'package:keylol_flutter/models/index.dart';
 import 'package:keylol_flutter/pages/thread_author.dart';
@@ -29,7 +29,7 @@ class _IndexPageState extends State<IndexPage> {
   }
 
   Future<void> _onRefresh() async {
-    final index = Global.keylolClient.fetchIndex();
+    final index = KeylolClient().fetchIndex();
     setState(() {
       _future = index;
     });

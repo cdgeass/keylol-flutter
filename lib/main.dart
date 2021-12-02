@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:keylol_flutter/common/global.dart';
+import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/pages/forum_index_page.dart';
 import 'package:keylol_flutter/pages/forum_page.dart';
 import 'package:keylol_flutter/pages/index_page.dart';
@@ -11,7 +11,10 @@ import 'package:keylol_flutter/pages/webview_page.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Global.init();
+  await KeylolClient().init();
+
+  KeylolClient().fetchProfile();
+
   runApp(KeylolApp());
 }
 
@@ -27,12 +30,12 @@ class KeylolApp extends StatelessWidget {
         "/index": (context) => IndexPage(),
         "/forumIndex": (context) => ForumIndexPage(),
         "/forum": (context) {
-          var fid = ModalRoute.of(context)?.settings.arguments as String;
+          final fid = ModalRoute.of(context)?.settings.arguments as String;
           return ForumPage(fid: fid);
         },
         "/noteList": (context) => NoteListPage(),
         "/thread": (context) {
-          var tid = ModalRoute.of(context)?.settings.arguments as String;
+          final tid = ModalRoute.of(context)?.settings.arguments as String;
           return ThreadPage(tid: tid);
         },
         "/webview": (context) {

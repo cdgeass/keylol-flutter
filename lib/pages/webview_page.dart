@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:keylol_flutter/common/global.dart';
+import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:webview_cookie_manager/webview_cookie_manager.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -45,8 +45,7 @@ class WebViewPage extends StatelessWidget {
   }
 
   Future _loadCookies() async {
-    final cookies = await Global.keylolClient.cj
-        .loadForRequest(Uri.parse('https://keylol.com'));
+    final cookies = await KeylolClient().getCookies();
     await _cookieManager.setCookies(cookies);
   }
 }

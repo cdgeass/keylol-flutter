@@ -2,7 +2,8 @@ import 'package:badges/badges.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:keylol_flutter/common/global.dart';
+import 'package:keylol_flutter/common/keylol_client.dart';
+import 'package:keylol_flutter/common/notifiers.dart';
 import 'package:keylol_flutter/models/profile.dart';
 import 'package:provider/provider.dart';
 
@@ -15,8 +16,8 @@ class _UserAccountDrawerState extends State<UserAccountDrawer> {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
-      value: Global.profileHolder,
-      child: Consumer<ProfileHolder>(
+      value: ProfileNotifier(),
+      child: Consumer<ProfileNotifier>(
         builder: (context, notifier, child) {
           return _buildDrawerContent(notifier.profile);
         },
@@ -61,8 +62,8 @@ class _UserAccountDrawerState extends State<UserAccountDrawer> {
 
     if (profile != null) {
       final notice = ChangeNotifierProvider.value(
-          value: Global.noticeHolder,
-          child: Consumer<NoticeHolder>(
+          value: NoticeNotifier(),
+          child: Consumer<NoticeNotifier>(
             builder: (context, notifier, child) {
               final notice = notifier.notice;
               late Widget leading;
@@ -93,7 +94,9 @@ class _UserAccountDrawerState extends State<UserAccountDrawer> {
         if (profile == null) {
           Navigator.of(context).pushNamed("/login");
         } else {
-          Global.logout();
+          NoticeNotifier().clear();
+          ProfileNotifier().clear();
+          KeylolClient().clearCookies();
         }
       },
     );
@@ -111,8 +114,8 @@ class _UserAccountDrawerState extends State<UserAccountDrawer> {
 
 Widget buildAppBarLeading() {
   return ChangeNotifierProvider.value(
-    value: Global.noticeHolder,
-    child: Consumer<NoticeHolder>(
+    value: NoticeNotifier(),
+    child: Consumer<NoticeNotifier>(
       builder: (context, notifier, child) {
         final notice = notifier.notice;
         if (notice.count() > 0) {

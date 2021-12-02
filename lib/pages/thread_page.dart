@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/constants.dart';
-import 'package:keylol_flutter/common/global.dart';
+import 'package:keylol_flutter/common/keylol_client.dart';
+import 'package:keylol_flutter/common/notifiers.dart';
 import 'package:keylol_flutter/common/settings.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:keylol_flutter/pages/avatar.dart';
@@ -27,7 +28,7 @@ class _ThreadPageState extends State<ThreadPage> {
   @override
   void initState() {
     super.initState();
-    _future = Global.keylolClient.fetchThread(widget.tid, _page);
+    _future = KeylolClient().fetchThread(widget.tid, _page);
   }
 
   @override
@@ -64,7 +65,7 @@ class _ThreadPageState extends State<ThreadPage> {
                       duration: Duration(milliseconds: 500),
                       curve: Curves.decelerate);
                   _page = 1;
-                  _future = Global.keylolClient.fetchThread(widget.tid, _page);
+                  _future = KeylolClient().fetchThread(widget.tid, _page);
                 });
               },
             );
@@ -120,7 +121,7 @@ class _PostListState extends State<_PostList> {
   }
 
   Future<void> _onRefresh() async {
-    final viewThread = await Global.keylolClient.fetchThread(widget.tid, 1);
+    final viewThread = await KeylolClient().fetchThread(widget.tid, 1);
     setState(() {
       _page = 1;
       _total = (viewThread.replies ?? 0) + 1;
@@ -130,7 +131,7 @@ class _PostListState extends State<_PostList> {
 
   void _loadMore() async {
     final page = _page + 1;
-    final viewThread = await Global.keylolClient.fetchThread(widget.tid, page);
+    final viewThread = await KeylolClient().fetchThread(widget.tid, page);
     final posts = viewThread.posts;
     setState(() {
       _total = (viewThread.replies ?? 0) + 1;
@@ -234,7 +235,7 @@ class _ReplyState extends State<_Reply> {
 
   @override
   Widget build(BuildContext context) {
-    final profile = Global.profileHolder.profile;
+    final profile = ProfileNotifier().profile;
     if (profile != null) {
       final formHash = profile.formHash!;
       return Row(
@@ -261,7 +262,7 @@ class _ReplyState extends State<_Reply> {
               onPressed: () {
                 final message = _controller.text;
                 if (message.isNotEmpty) {
-                  final replyFuture = Global.keylolClient
+                  final replyFuture = KeylolClient()
                       .sendReply(widget.fid, widget.tid, formHash, message);
                   replyFuture.then((_) {
                     _controller.clear();

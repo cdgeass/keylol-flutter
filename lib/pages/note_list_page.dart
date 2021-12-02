@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:html/parser.dart';
-import 'package:keylol_flutter/common/global.dart';
+import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/models/notice.dart';
 import 'package:keylol_flutter/pages/user_account_drawer.dart';
 
@@ -35,7 +35,7 @@ class _NoteListPageState extends State<NoteListPage> {
   }
 
   Future<void> _onRefresh() async {
-    final noteList = await Global.keylolClient.fetchNoteList(1);
+    final noteList = await KeylolClient().fetchNoteList(1);
     setState(() {
       _page = 1;
       _total = noteList.count;
@@ -44,7 +44,7 @@ class _NoteListPageState extends State<NoteListPage> {
   }
 
   void _loadMore() async {
-    final noteList = await Global.keylolClient.fetchNoteList(_page + 1);
+    final noteList = await KeylolClient().fetchNoteList(_page + 1);
     setState(() {
       _page = noteList.page;
       _total = noteList.count;
