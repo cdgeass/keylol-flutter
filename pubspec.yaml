@@ -46,6 +46,7 @@ dependencies:
   video_player: ^2.1.12
   dotted_border: ^2.0.0+1
   badges: ^2.0.2
+  url_launcher: ^6.0.17
 
 dev_dependencies:
   flutter_test:

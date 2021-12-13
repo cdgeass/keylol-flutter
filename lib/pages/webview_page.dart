@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_cookie_manager/webview_cookie_manager.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -39,6 +40,15 @@ class WebViewPage extends StatelessWidget {
         body: WebView(
           javascriptMode: JavascriptMode.unrestricted,
           initialUrl: initialUrl,
+          navigationDelegate: (request) async {
+            final url = request.url;
+
+            if (await canLaunch((url))) {
+              await launch(url);
+              return NavigationDecision.prevent;
+            }
+            return NavigationDecision.navigate;
+          },
         ),
       );
     }
