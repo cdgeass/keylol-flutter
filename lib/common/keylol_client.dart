@@ -365,8 +365,7 @@ class KeylolClient {
 
   // 首页
   Future<Index> fetchIndex() async {
-    var res =
-        await _dio.get("", options: buildCacheOptions(Duration(minutes: 1)));
+    var res = await _dio.get("");
 
     var document = parser.parse(res.data);
 
@@ -376,8 +375,7 @@ class KeylolClient {
   // 版块列表
   Future<List<Cat>> fetchForumIndex() async {
     var res = await _dio.get("/api/mobile/index.php",
-        queryParameters: {'module': 'forumindex'},
-        options: buildCacheOptions(Duration(days: 7)));
+        queryParameters: {'module': 'forumindex'});
 
     var variables = res.data['Variables'];
 
