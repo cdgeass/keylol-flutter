@@ -1,3 +1,5 @@
+import 'package:html_unescape/html_unescape.dart';
+
 class ViewThread {
   String? fid;
   String? subject;
@@ -7,6 +9,9 @@ class ViewThread {
   ViewThread.fromJson(Map<String, dynamic> json) {
     fid = json['fid'];
     subject = json['thread']['subject'];
+    if (subject != null) {
+      subject = HtmlUnescape().convert(subject!);
+    }
     var repliesStr = json['thread']['replies'];
     if (repliesStr != null) {
       replies = int.parse(repliesStr);

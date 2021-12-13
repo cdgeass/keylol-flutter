@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/constants.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/common/notifiers.dart';
-import 'package:keylol_flutter/common/settings.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:keylol_flutter/pages/avatar.dart';
 import 'package:keylol_flutter/pages/rich_text.dart';
@@ -77,7 +76,7 @@ class _ThreadPageState extends State<ThreadPage> {
           }
 
           return Scaffold(
-            backgroundColor: LightColorSettings.backgroundColor,
+            backgroundColor: Theme.of(context).backgroundColor,
             appBar: appBar,
             body: body,
             bottomNavigationBar: bottomNavigationBar,
@@ -181,39 +180,41 @@ class _PostItemState extends State<_PostItem> {
   @override
   Widget build(BuildContext context) {
     return Card(
+        color: Theme.of(context).cardColor,
         child: Column(
-      children: [
-        ListTile(
-          visualDensity: VisualDensity(horizontal: 0, vertical: -4),
-          leading: Avatar(
-            avatarUrl: avatarUrl + widget.post.authorId!,
-            size: Size(32.0, 32.0),
-          ),
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ThreadAuthor(
+          children: [
+            ListTile(
+              visualDensity: VisualDensity(horizontal: 0, vertical: -4),
+              leading: Avatar(
                 uid: widget.post.authorId!,
-                username: widget.post.author!,
-                size: Size(0.8, 0.8),
-                needAvatar: false,
-                fontSize: 14.0,
+                avatarUrl: avatarUrl + widget.post.authorId!,
+                size: Size(32.0, 32.0),
               ),
-              Text(
-                widget.post.number.toString() + '楼',
-                style: TextStyle(fontSize: 14.0),
-              )
-            ],
-          ),
-          subtitle: Text(widget.post.dateline!.replaceAll('&nbsp;', '')),
-        ),
-        Divider(),
-        _PostContent(
-          post: widget.post,
-        ),
-      ],
-    ));
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ThreadAuthor(
+                    uid: widget.post.authorId!,
+                    username: widget.post.author!,
+                    size: Size(0.8, 0.8),
+                    needAvatar: false,
+                    fontSize: 14.0,
+                  ),
+                  Text(
+                    widget.post.number.toString() + '楼',
+                    style: TextStyle(fontSize: 14.0),
+                  )
+                ],
+              ),
+              subtitle: Text(widget.post.dateline!.replaceAll('&nbsp;', '')),
+            ),
+            Divider(),
+            _PostContent(
+              post: widget.post,
+            ),
+          ],
+        ));
   }
 }
 

@@ -5,6 +5,7 @@ import 'package:keylol_flutter/pages/forum_page.dart';
 import 'package:keylol_flutter/pages/index_page.dart';
 import 'package:keylol_flutter/pages/login_page.dart';
 import 'package:keylol_flutter/pages/note_list_page.dart';
+import 'package:keylol_flutter/pages/profile_page.dart';
 import 'package:keylol_flutter/pages/thread_page.dart';
 import 'package:keylol_flutter/pages/webview_page.dart';
 
@@ -24,6 +25,7 @@ class KeylolApp extends StatelessWidget {
     return MaterialApp(
       title: 'Keylol',
       theme: ThemeData.light(),
+      darkTheme: ThemeData.dark(),
       initialRoute: "/index",
       routes: {
         "/login": (context) => LoginPage(),
@@ -37,6 +39,10 @@ class KeylolApp extends StatelessWidget {
         "/thread": (context) {
           final tid = ModalRoute.of(context)?.settings.arguments as String;
           return ThreadPage(tid: tid);
+        },
+        "/profile": (context) {
+          final uid = ModalRoute.of(context)?.settings.arguments as String;
+          return ProfilePage(uid: uid);
         },
         "/webview": (context) {
           var initialUrl = ModalRoute.of(context)?.settings.arguments as String;

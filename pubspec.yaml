@@ -47,6 +47,7 @@ dependencies:
   dotted_border: ^2.0.0+1
   badges: ^2.0.2
   url_launcher: ^6.0.17
+  html_unescape: ^2.0.0
 
 dev_dependencies:
   flutter_test:

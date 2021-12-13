@@ -15,7 +15,7 @@ class Index {
       slideViewItems =
           slideShow.getElementsByTagName('li').map((slideShowItem) {
         final title =
-            slideShowItem.getElementsByClassName('title')[0].innerHtml;
+            slideShowItem.getElementsByClassName('title')[0].text;
         final content = slideShowItem.getElementsByTagName('a')[0];
         final tid =
             content.attributes['href']?.split('-')[0].replaceFirst('t', '');
@@ -57,9 +57,9 @@ class Index {
           if (tInfo.innerHtml.contains('data-yjshash')) {
             title = calculateProtectedEmail(tInfo);
           } else if (fonts.isEmpty) {
-            title = tInfo.innerHtml;
+            title = tInfo.text;
           } else {
-            title = fonts[0].innerHtml;
+            title = fonts[0].text;
           }
           final titleInfo =
               tInfo.attributes['title']!.split('\n')[1].split(' ');
@@ -74,7 +74,7 @@ class Index {
         var name = (tabTitle as Element)
             .getElementsByClassName('blocktitle')[0]
             .getElementsByTagName('a')[0]
-            .innerHtml;
+            .text;
         var tabTitleItem = IndexTabTitleItem(fid, name);
 
         tabThreadsMap[tabTitleItem] = tabThreads;

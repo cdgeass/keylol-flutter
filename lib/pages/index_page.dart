@@ -5,7 +5,6 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
-import 'package:keylol_flutter/common/settings.dart';
 import 'package:keylol_flutter/models/index.dart';
 import 'package:keylol_flutter/pages/thread_author.dart';
 import 'package:keylol_flutter/pages/user_account_drawer.dart';
@@ -58,7 +57,7 @@ class _IndexPageState extends State<IndexPage> {
               );
             }
             return Scaffold(
-                backgroundColor: LightColorSettings.backgroundColor,
+                backgroundColor: Theme.of(context).backgroundColor,
                 drawer: UserAccountDrawer(),
                 body: body
             );
@@ -114,12 +113,12 @@ class _IndexPageState extends State<IndexPage> {
               ),
               SliverPersistentHeader(
                   delegate: _SliverTabBarDelegate(TabBar(
-                      tabs: tabs,
-                      indicatorColor: LightColorSettings.tabBarIndicateColor,
-                      labelColor: LightColorSettings.tabBarLabelColor,
-                      unselectedLabelColor:
-                          LightColorSettings.tarBarUnselectedLabelColor,
-                      isScrollable: true)))
+                tabs: tabs,
+                isScrollable: true,
+                labelColor: Theme.of(context).tabBarTheme.labelColor,
+                unselectedLabelColor:
+                    Theme.of(context).tabBarTheme.unselectedLabelColor,
+              )))
             ];
           },
           body: TabBarView(
@@ -193,10 +192,13 @@ class _ThreadItem extends StatelessWidget {
         Navigator.of(context).pushNamed("/thread", arguments: thread.tid);
       },
       child: ListTile(
-          title: Text(
-            (thread.fname ?? '') + thread.title,
-            style: TextStyle(fontSize: 14.0),
-          ),
+          title: Container(
+              alignment: Alignment.centerLeft,
+              constraints: BoxConstraints(minHeight: 48.0),
+              child: Text(
+                (thread.fname ?? '') + thread.title,
+                style: TextStyle(fontSize: 14.0),
+              )),
           subtitle: Padding(
             padding: const EdgeInsets.only(top: 8.0),
             child: Row(

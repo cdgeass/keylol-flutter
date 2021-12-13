@@ -14,6 +14,7 @@ import 'package:keylol_flutter/models/index.dart';
 import 'package:keylol_flutter/models/notice.dart';
 import 'package:keylol_flutter/models/profile.dart';
 import 'package:keylol_flutter/models/sec_code.dart';
+import 'package:keylol_flutter/models/space.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -349,18 +350,18 @@ class KeylolClient {
   }
 
   // 用户信息
-  Future<Profile> fetchProfile({String? uid}) async {
+  Future<Space> fetchProfile({String? uid, bool cached = true}) async {
     final queryParameters = {'module': 'profile'};
     if (uid != null) {
       queryParameters['uid'] = uid;
     }
     final res = await _dio.get("/api/mobile/index.php",
         queryParameters: queryParameters,
-        options: uid != null ? buildCacheOptions(Duration(days: 1)) : null);
+        options: uid != null && cached ? buildCacheOptions(Duration(days: 1)) : null);
     if (res.data['Message'] != null) {
       return Future.error(res.data['Message']!['messagestr']);
     }
-    return Profile.fromJson(res.data['Variables']);
+    return Space.fromJson(res.data['Variables']?['space']);
   }
 
   // 首页

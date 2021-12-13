@@ -11,7 +11,6 @@ class Profile {
   String? formHash;
   String? isModerator;
   int? readAccess;
-  Space? space;
   Notice? notice;
 
   Profile(
@@ -44,10 +43,6 @@ class Profile {
     if (readAccessStr != null) {
       readAccess = int.parse(readAccessStr);
     }
-    var spaceJson = json['space'];
-    if (spaceJson != null) {
-      space = Space.forJson(spaceJson);
-    }
     var noticeJson = json['notice'];
     if (noticeJson != null) {
       notice = Notice.fromJson(noticeJson);
@@ -66,46 +61,7 @@ class Profile {
     data['formhash'] = this.formHash;
     data['ismoderator'] = this.isModerator;
     data['readaccess'] = this.readAccess?.toString();
-    data['space'] = this.space?.toJson();
     data['notice'] = this.notice?.toJson();
-    return data;
-  }
-}
-
-class Space {
-  String? uid;
-  String? username;
-  int? status;
-  int? groupId;
-  String? sigHtml;
-  Group? group;
-
-  Space.forJson(Map<String, dynamic> json) {
-    uid = json['uid'];
-    username = json['username'];
-    var statusStr = json['status'];
-    if (statusStr != null) {
-      status = int.parse(statusStr);
-    }
-    var groupIdStr = json['groupid'];
-    if (groupIdStr != null) {
-      groupId = int.parse(groupIdStr);
-    }
-    sigHtml = json['sightml'];
-    var groupJson = json['group'];
-    if (groupJson != null) {
-      group = Group.fromJson(groupJson);
-    }
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['uid'] = this.uid;
-    data['username'] = this.username;
-    data['status'] = this.status?.toString();
-    data['groupid'] = this.groupId?.toString();
-    data['sightml'] = this.sigHtml;
-    data['group'] = this.group?.toJson();
     return data;
   }
 }

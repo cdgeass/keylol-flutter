@@ -30,14 +30,13 @@ class NoteList {
   final int count;
   final List<Note> list;
 
-  NoteList(this.page, this.perPage, this.count, this.list);
-
   NoteList.fromJson(Map<String, dynamic> json)
-  : page = int.parse(json['page'] ?? '0'),
-    perPage = int.parse(json['perpage'] ?? '0'),
-    count = int.parse(json['count'] ?? '0'),
-    list = json['list'] == null ? [] : (json['list'] as List<dynamic>)
-      .map((e) => Note.fromJson(e)).toList();
+      : page = int.parse(json['page'] ?? '0'),
+        perPage = int.parse(json['perpage'] ?? '0'),
+        count = int.parse(json['count'] ?? '0'),
+        list = ((json['list'] ?? []) as List<dynamic>)
+            .map((e) => Note.fromJson(e))
+            .toList();
 }
 
 class Note {
@@ -54,9 +53,6 @@ class Note {
   final String? fromIdType;
   final int fromNum;
   final NoteVar? noteVar;
-
-  Note(this.id, this.uid, this.type, this.authorId, this.note, this.dateline,
-      this.fromId, this.fromIdType, this.fromNum, this.noteVar);
 
   Note.fromJson(Map<String, dynamic> json)
       : id = json['id'],
@@ -78,8 +74,6 @@ class NoteVar {
   final String subject;
   final String actorUid;
   final String actorUsername;
-
-  NoteVar(this.tid, this.pid, this.subject, this.actorUid, this.actorUsername);
 
   NoteVar.fromJson(Map<String, dynamic> json)
       : tid = json['tid'],

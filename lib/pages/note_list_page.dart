@@ -55,15 +55,15 @@ class _NoteListPageState extends State<NoteListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: buildAppBarLeading(),
-        title: Text('提醒'),
-        centerTitle: true,
-      ),
-      drawer: UserAccountDrawer(),
-      body: RefreshIndicator(
-        onRefresh: _onRefresh,
-        child: ListView.separated(
+        appBar: AppBar(
+          leading: buildAppBarLeading(),
+          title: Text('提醒'),
+          centerTitle: true,
+        ),
+        drawer: UserAccountDrawer(),
+        body: RefreshIndicator(
+          onRefresh: _onRefresh,
+          child: ListView.builder(
             controller: controller,
             itemCount: _noteList.length + 1,
             itemBuilder: (context, index) {
@@ -86,16 +86,16 @@ class _NoteListPageState extends State<NoteListPage> {
                             .pushNamed('/thread', arguments: tid);
                       }
                     },
-                    child: Padding(
+                    child: Card(
+                        child: Container(
                       padding: EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 4.0),
+                      alignment: Alignment.centerLeft,
+                      constraints: BoxConstraints(minHeight: 48.0),
                       child: Text(text),
-                    ));
+                    )));
               }
             },
-            separatorBuilder: (context, index) {
-              return Divider();
-            }),
-      ),
-    );
+          ),
+        ));
   }
 }
