@@ -1,14 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:keylol_flutter/common/constants.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
+import 'package:keylol_flutter/components/avatar.dart';
 import 'package:keylol_flutter/models/space.dart';
-import 'package:keylol_flutter/pages/avatar.dart';
 
 class ThreadAuthor extends StatefulWidget {
   final String uid;
   final String username;
-  final Size size;
+  final AvatarSize size;
   final bool needAvatar;
   final double? fontSize;
 
@@ -40,10 +39,7 @@ class _ThreadAuthorState extends State<ThreadAuthor> {
     return FutureBuilder(
       future: _future,
       builder: (BuildContext context, AsyncSnapshot<Space> snapshot) {
-        final avatar = Avatar(
-            uid: widget.uid,
-            avatarUrl: avatarUrl + widget.uid,
-            size: widget.size);
+        final avatar = Avatar(uid: widget.uid, size: widget.size);
         final username = Text(
           widget.username,
           style: TextStyle(fontSize: widget.fontSize),
@@ -57,21 +53,14 @@ class _ThreadAuthorState extends State<ThreadAuthor> {
             ),
           username
         ];
+
         if (snapshot.hasData) {
-          final space = snapshot.data!;
-          final group = space.group;
+          final group = snapshot.data!.group;
           children.add(SizedBox(
             width: 8.0,
           ));
           children.add(Text(group.groupTitle!,
-              style: TextStyle(
-                  fontSize: widget.fontSize,
-                  color: group.color?.isNotEmpty == true
-                      ? Color(int.parse(group.color!, radix: 16))
-                      : null)));
-
-          return Row(
-              crossAxisAlignment: CrossAxisAlignment.end, children: children);
+              style: TextStyle(fontSize: widget.fontSize, color: group.color)));
         }
 
         return Row(

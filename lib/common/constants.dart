@@ -1,7 +1,10 @@
-const String avatarUrl =
+const String AVATAR_URL_SMALL =
     'https://keylol.com/uc_server/avatar.php?size=small&uid=';
 
-const String avatarUrlLarge =
+const String AVATAR_URL_MIDDLE =
+    'https://keylol.com/uc_server/avatar.php?size=middle&uid=';
+
+const String AVATAR_URL_LARGE =
     'https://keylol.com/uc_server/avatar.php?size=large&uid=';
 
 const EMOJI_MAP = {

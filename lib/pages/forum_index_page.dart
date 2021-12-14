@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/models/cat.dart';
-import 'package:keylol_flutter/pages/user_account_drawer.dart';
+import 'package:keylol_flutter/components/user_account_drawer.dart';
 
 class ForumIndexPage extends StatefulWidget {
   @override

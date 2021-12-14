@@ -2,8 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:html/parser.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
+import 'package:keylol_flutter/components/user_account_drawer.dart';
 import 'package:keylol_flutter/models/notice.dart';
-import 'package:keylol_flutter/pages/user_account_drawer.dart';
 
 class NoteListPage extends StatefulWidget {
   @override
@@ -87,12 +87,13 @@ class _NoteListPageState extends State<NoteListPage> {
                       }
                     },
                     child: Card(
+                        color: Theme.of(context).cardColor,
                         child: Container(
-                      padding: EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 4.0),
-                      alignment: Alignment.centerLeft,
-                      constraints: BoxConstraints(minHeight: 48.0),
-                      child: Text(text),
-                    )));
+                          padding: EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 4.0),
+                          alignment: Alignment.centerLeft,
+                          constraints: BoxConstraints(minHeight: 48.0),
+                          child: Text(text),
+                        )));
               }
             },
           ),

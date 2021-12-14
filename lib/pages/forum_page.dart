@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/models/forum_display.dart';
+import 'package:keylol_flutter/components/avatar.dart';
 import 'package:keylol_flutter/pages/thread_author.dart';
 
 class ForumPage extends StatefulWidget {
@@ -302,7 +303,7 @@ class _ForumThreadItem extends StatelessWidget {
                 ThreadAuthor(
                   uid: forumThread.authorId!,
                   username: forumThread.author!,
-                  size: Size(24.0, 24.0),
+                  size: AvatarSize.middle,
                 ),
                 Text(forumThread.dateline!.replaceFirst('&nbsp;', ' '))
               ],

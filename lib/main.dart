@@ -24,31 +24,38 @@ class KeylolApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Keylol',
-      theme: ThemeData.light(),
+      theme: ThemeData(
+        primaryColor: Colors.lightBlue,
+        backgroundColor: Color(0xFFFAFAFA)
+      ),
       darkTheme: ThemeData.dark(),
       initialRoute: "/index",
-      routes: {
-        "/login": (context) => LoginPage(),
-        "/index": (context) => IndexPage(),
-        "/forumIndex": (context) => ForumIndexPage(),
-        "/forum": (context) {
-          final fid = ModalRoute.of(context)?.settings.arguments as String;
-          return ForumPage(fid: fid);
-        },
-        "/noteList": (context) => NoteListPage(),
-        "/thread": (context) {
-          final tid = ModalRoute.of(context)?.settings.arguments as String;
-          return ThreadPage(tid: tid);
-        },
-        "/profile": (context) {
-          final uid = ModalRoute.of(context)?.settings.arguments as String;
-          return ProfilePage(uid: uid);
-        },
-        "/webview": (context) {
-          var initialUrl = ModalRoute.of(context)?.settings.arguments as String;
-          return WebViewPage(initialUrl: initialUrl);
-        }
-      },
+      routes: _routes(),
     );
   }
+}
+
+Map<String, WidgetBuilder> _routes() {
+  return {
+    "/login": (context) => LoginPage(),
+    "/index": (context) => IndexPage(),
+    "/forumIndex": (context) => ForumIndexPage(),
+    "/forum": (context) {
+      final fid = ModalRoute.of(context)?.settings.arguments as String;
+      return ForumPage(fid: fid);
+    },
+    "/noteList": (context) => NoteListPage(),
+    "/thread": (context) {
+      final tid = ModalRoute.of(context)?.settings.arguments as String;
+      return ThreadPage(tid: tid);
+    },
+    "/profile": (context) {
+      final uid = ModalRoute.of(context)?.settings.arguments as String;
+      return ProfilePage(uid: uid);
+    },
+    "/webview": (context) {
+      var initialUrl = ModalRoute.of(context)?.settings.arguments as String;
+      return WebViewPage(initialUrl: initialUrl);
+    }
+  };
 }

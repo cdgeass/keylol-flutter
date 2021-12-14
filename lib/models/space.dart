@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:html_unescape/html_unescape.dart';
 
 class Space {
@@ -60,6 +62,13 @@ class Space {
   final String blockPosition;
   final String recentNote;
   final String spaceNote;
+
+  final List<Medal> medals;
+
+  final String lastVisit;
+  final String lastActivity;
+  final String lastPost;
+
   final Group adminGroup;
   final Group group;
 
@@ -125,11 +134,23 @@ class Space {
         blockPosition = json['blockposition'],
         recentNote = json['recentnote'],
         spaceNote = json['spacenote'],
+        medals = _parseMedals(json['medals']),
+        lastVisit = json['lastvisit'],
+        lastActivity = json['lastactivity'],
+        lastPost = json['lastpost'],
         adminGroup = Group.fromJson(json['admingroup'] ?? {}),
         group = Group.fromJson(json['group'] ?? {}),
         sigHtml = json['sightml'] != null
             ? HtmlUnescape().convert(json['sightml'])
             : null;
+
+  static List<Medal> _parseMedals(dynamic medals) {
+    if (medals == null || medals == '') {
+      return [];
+    }
+
+    return (medals as List).map((e) => Medal.fromJson(e)).toList();
+  }
 }
 
 class Privacy {}
@@ -150,12 +171,12 @@ class Medal {
 class Group {
   static final _htmlReg = RegExp(r'<\/?.+?\/?>');
   static final _colorReg = RegExp(r'#([a-z0-9]{6})');
-  static final _iconReg = RegExp(r'icon="(.*)"');
+  static final _iconReg = RegExp(r'src="([^"]*)"');
 
   final String? type;
   final String? groupTitle;
   final int stars;
-  final String? color;
+  final Color? color;
   final String? icon;
   final int readAccess;
   final String? allowGetAttach;
@@ -187,14 +208,14 @@ class Group {
     return html.replaceAll(_htmlReg, '');
   }
 
-  static String? _parseColor(String? color) {
+  static Color? _parseColor(String? color) {
     if (color == null) {
       return null;
     }
 
     final colorMatch = _colorReg.firstMatch(color);
     if (colorMatch != null) {
-      return 'ff${colorMatch.group(1)}';
+      return Color(int.parse('ff${colorMatch.group(1)}', radix: 16));
     }
     return null;
   }
@@ -204,7 +225,7 @@ class Group {
       return null;
     }
 
-    final iconMatch = _iconReg.firstMatch(icon);
+    final iconMatch = _iconReg.firstMatch(HtmlUnescape().convert(icon));
     if (iconMatch != null) {
       return iconMatch.group(1);
     }

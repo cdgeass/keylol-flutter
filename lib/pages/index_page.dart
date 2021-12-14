@@ -5,9 +5,11 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
+import 'package:keylol_flutter/components/avatar.dart';
+import 'package:keylol_flutter/components/sliver_tab_bar_delegate.dart';
+import 'package:keylol_flutter/components/user_account_drawer.dart';
 import 'package:keylol_flutter/models/index.dart';
 import 'package:keylol_flutter/pages/thread_author.dart';
-import 'package:keylol_flutter/pages/user_account_drawer.dart';
 
 // 聚焦
 class IndexPage extends StatefulWidget {
@@ -59,8 +61,7 @@ class _IndexPageState extends State<IndexPage> {
             return Scaffold(
                 backgroundColor: Theme.of(context).backgroundColor,
                 drawer: UserAccountDrawer(),
-                body: body
-            );
+                body: body);
           },
         ));
   }
@@ -112,7 +113,7 @@ class _IndexPageState extends State<IndexPage> {
                 flexibleSpace: slideView,
               ),
               SliverPersistentHeader(
-                  delegate: _SliverTabBarDelegate(TabBar(
+                  delegate: SliverTabBarDelegate(TabBar(
                 tabs: tabs,
                 isScrollable: true,
                 labelColor: Theme.of(context).tabBarTheme.labelColor,
@@ -187,57 +188,32 @@ class _ThreadItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+        color: Theme.of(context).cardColor,
         child: InkWell(
-      onTap: () {
-        Navigator.of(context).pushNamed("/thread", arguments: thread.tid);
-      },
-      child: ListTile(
-          title: Container(
-              alignment: Alignment.centerLeft,
-              constraints: BoxConstraints(minHeight: 48.0),
-              child: Text(
-                (thread.fname ?? '') + thread.title,
-                style: TextStyle(fontSize: 14.0),
+          onTap: () {
+            Navigator.of(context).pushNamed("/thread", arguments: thread.tid);
+          },
+          child: ListTile(
+              title: Container(
+                  alignment: Alignment.centerLeft,
+                  constraints: BoxConstraints(minHeight: 48.0),
+                  child: Text(
+                    (thread.fname ?? '') + thread.title,
+                    style: TextStyle(fontSize: 14.0),
+                  )),
+              subtitle: Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      ThreadAuthor(
+                          uid: thread.memberUid,
+                          username: thread.memberUsername,
+                          size: AvatarSize.small),
+                      Text(thread.dateLine)
+                    ]),
               )),
-          subtitle: Padding(
-            padding: const EdgeInsets.only(top: 8.0),
-            child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  ThreadAuthor(
-                      uid: thread.memberUid,
-                      username: thread.memberUsername,
-                      size: Size(24.0, 24.0)),
-                  Text(thread.dateLine)
-                ]),
-          )),
-    ));
-  }
-}
-
-// sliver tabBar
-class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
-  _SliverTabBarDelegate(this.tabBar);
-
-  final TabBar tabBar;
-
-  @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      child: tabBar,
-    );
-  }
-
-  @override
-  double get maxExtent => tabBar.preferredSize.height;
-
-  @override
-  double get minExtent => tabBar.preferredSize.height;
-
-  @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
-    return false;
+        ));
   }
 }

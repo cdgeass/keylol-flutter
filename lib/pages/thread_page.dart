@@ -6,8 +6,8 @@ import 'package:keylol_flutter/common/constants.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/common/notifiers.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
-import 'package:keylol_flutter/pages/avatar.dart';
-import 'package:keylol_flutter/pages/rich_text.dart';
+import 'package:keylol_flutter/components/avatar.dart';
+import 'package:keylol_flutter/components/rich_text.dart';
 import 'package:keylol_flutter/pages/thread_author.dart';
 
 class ThreadPage extends StatefulWidget {
@@ -187,8 +187,7 @@ class _PostItemState extends State<_PostItem> {
               visualDensity: VisualDensity(horizontal: 0, vertical: -4),
               leading: Avatar(
                 uid: widget.post.authorId!,
-                avatarUrl: avatarUrl + widget.post.authorId!,
-                size: Size(32.0, 32.0),
+                size: AvatarSize.middle,
               ),
               title: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -197,7 +196,7 @@ class _PostItemState extends State<_PostItem> {
                   ThreadAuthor(
                     uid: widget.post.authorId!,
                     username: widget.post.author!,
-                    size: Size(0.8, 0.8),
+                    size: AvatarSize.middle,
                     needAvatar: false,
                     fontSize: 14.0,
                   ),

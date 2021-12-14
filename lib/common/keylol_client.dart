@@ -357,7 +357,9 @@ class KeylolClient {
     }
     final res = await _dio.get("/api/mobile/index.php",
         queryParameters: queryParameters,
-        options: uid != null && cached ? buildCacheOptions(Duration(days: 1)) : null);
+        options: uid != null && cached
+            ? buildCacheOptions(Duration(days: 1))
+            : null);
     if (res.data['Message'] != null) {
       return Future.error(res.data['Message']!['messagestr']);
     }
@@ -453,5 +455,13 @@ class KeylolClient {
         queryParameters: {'module': 'mynotelist', 'page': page ?? 1});
 
     return NoteList.fromJson(res.data['Variables']);
+  }
+
+  // 表情
+  Future<List<dynamic>> fetchSmiley() async {
+    final res = await _dio
+        .post('/api/mobile/index.php', queryParameters: {'module': 'smiley'});
+
+    return res.data['Variables'];
   }
 }
