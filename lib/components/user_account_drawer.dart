@@ -42,7 +42,7 @@ class _UserAccountDrawerState extends State<UserAccountDrawer> {
           onTap: () {
             if (profile != null) {
               Navigator.of(context)
-                  .pushNamed('/profile', arguments: profile!.memberUid!);
+                  .pushNamed('/profile', arguments: profile.memberUid!);
             }
           },
           child: CircleAvatar(
