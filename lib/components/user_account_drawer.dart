@@ -38,9 +38,16 @@ class _UserAccountDrawerState extends State<UserAccountDrawer> {
     final drawerHeader = UserAccountsDrawerHeader(
       accountName: Text(profile?.memberUsername ?? '匿名用户'),
       accountEmail: Text(profile?.memberUid ?? ''),
-      currentAccountPicture: CircleAvatar(
-        backgroundImage: avatarProvider,
-      ),
+      currentAccountPicture: InkWell(
+          onTap: () {
+            if (profile != null) {
+              Navigator.of(context)
+                  .pushNamed('/profile', arguments: profile!.memberUid!);
+            }
+          },
+          child: CircleAvatar(
+            backgroundImage: avatarProvider,
+          )),
     );
     items.add(drawerHeader);
 
