@@ -5,10 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/constants.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/common/notifiers.dart';
-import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:keylol_flutter/components/avatar.dart';
 import 'package:keylol_flutter/components/rich_text.dart';
+import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:keylol_flutter/pages/thread_author.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ThreadPage extends StatefulWidget {
   final String tid;
@@ -50,6 +51,21 @@ class _ThreadPageState extends State<ThreadPage> {
 
             appBar = AppBar(
               title: Text(viewThread.subject!),
+              actions: [
+                PopupMenuButton(
+                  icon: Icon(Icons.more_vert),
+                  itemBuilder: (BuildContext context) {
+                    return [
+                      PopupMenuItem(
+                        child: Text('在浏览器中打开'),
+                        onTap: () {
+                          launch('https://keylol.com/t${widget.tid}-1-1');
+                        },
+                      )
+                    ];
+                  },
+                )
+              ],
             );
             body = _PostList(
               tid: widget.tid,
