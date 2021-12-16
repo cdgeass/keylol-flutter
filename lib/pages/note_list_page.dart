@@ -35,7 +35,7 @@ class _NoteListPageState extends State<NoteListPage> {
   }
 
   Future<void> _onRefresh() async {
-    final noteList = await KeylolClient().fetchNoteList(1);
+    final noteList = await KeylolClient().fetchNoteList();
     setState(() {
       _page = 1;
       _total = noteList.count;
@@ -44,7 +44,7 @@ class _NoteListPageState extends State<NoteListPage> {
   }
 
   void _loadMore() async {
-    final noteList = await KeylolClient().fetchNoteList(_page + 1);
+    final noteList = await KeylolClient().fetchNoteList(page: _page + 1);
     setState(() {
       _page = noteList.page;
       _total = noteList.count;

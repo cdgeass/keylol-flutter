@@ -30,7 +30,16 @@ abstract class _KeylolMobileInterceptor extends Interceptor {
 
   bool isSupported(Response response) {
     final uri = response.realUri;
-    return uri.path.contains('/api/mobile/index.php');
+    if (!uri.path.contains('/api/mobile/index.php')) {
+      return false;
+    }
+
+    final queryParameters = response.requestOptions.queryParameters;
+    if (queryParameters['module'] == 'profile' &&
+        queryParameters['uid'] != null) {
+      return false;
+    }
+    return true;
   }
 
   void doIntercept(Response response);
@@ -53,19 +62,6 @@ class _ProfileInterceptor extends _KeylolMobileInterceptor {
         }
       }
     }
-  }
-
-  bool isSupported(Response response) {
-    if (!super.isSupported(response)) {
-      return false;
-    }
-
-    final queryParameters = response.requestOptions.queryParameters;
-    if (queryParameters['module'] == 'profile' &&
-        queryParameters['uid'] != null) {
-      return false;
-    }
-    return true;
   }
 }
 
@@ -450,9 +446,9 @@ class KeylolClient {
   }
 
   // 提醒列表
-  Future<NoteList> fetchNoteList(int? page) async {
+  Future<NoteList> fetchNoteList({int page = 1}) async {
     final res = await _dio.post('/api/mobile/index.php',
-        queryParameters: {'module': 'mynotelist', 'page': page ?? 1});
+        queryParameters: {'module': 'mynotelist', 'page': page});
 
     return NoteList.fromJson(res.data['Variables']);
   }
