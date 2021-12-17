@@ -28,7 +28,7 @@ jobs:
       # Setup java environment
       - uses: actions/setup-java@v2
         with:
-          distripution: 'openjdk'
+          distribution: 'openjdk'
           java-version: '11'
 
       # Setup flutter environment
