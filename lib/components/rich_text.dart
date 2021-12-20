@@ -5,10 +5,10 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:html_unescape/html_unescape.dart';
+import 'package:keylol_flutter/components/auto_resize_webview.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:video_player/video_player.dart';
-import 'package:webview_flutter/webview_flutter.dart' as webview;
 
 class KRichText extends StatefulWidget {
   final String message;
@@ -164,32 +164,7 @@ class _KRichTextState extends State<KRichText> {
             }
 
             if (src.startsWith('http')) {
-              late final webview.WebViewController webViewController;
-              return SizedBox(
-                  height: _iframeHeights[src] ?? 72.0,
-                  child: webview.WebView(
-                    initialUrl: src,
-                    javascriptMode: webview.JavascriptMode.unrestricted,
-                    onWebViewCreated: (controller) {
-                      webViewController = controller;
-                    },
-                    onPageFinished: (url) async {
-                      if (_iframeHeights.containsKey(url)) {
-                        return;
-                      }
-                      final pxHeight = double.parse(
-                          await webViewController.runJavascriptReturningResult(
-                              'document.body.scrollHeight;'));
-                      final height = (pxHeight / (mediaQuery.devicePixelRatio))
-                          .ceilToDouble();
-                      setState(() {
-                        _iframeHeights[url] = height;
-                      });
-                    },
-                    navigationDelegate: (request) {
-                      return webview.NavigationDecision.prevent;
-                    },
-                  ));
+              return AutoResizeWebView(url: src);
             }
             return Container();
           }
