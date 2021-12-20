@@ -1,13 +1,14 @@
+import 'dart:collection';
+
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:chewie/chewie.dart';
 import 'package:dotted_border/dotted_border.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:html_unescape/html_unescape.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:video_player/video_player.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter/webview_flutter.dart' as webview;
 
 class KRichText extends StatefulWidget {
   final String message;
@@ -20,16 +21,13 @@ class KRichText extends StatefulWidget {
 
 class _KRichTextState extends State<KRichText> {
   List<VideoPlayerController> _videoPlayerControllers = [];
-  List<ChewieController> _chewieControllers = [];
+  LinkedHashMap<String, double> _iframeHeights = LinkedHashMap();
 
   @override
   void dispose() {
     super.dispose();
 
     _videoPlayerControllers.forEach((controller) {
-      controller.dispose();
-    });
-    _chewieControllers.forEach((controller) {
       controller.dispose();
     });
   }
@@ -73,16 +71,32 @@ class _KRichTextState extends State<KRichText> {
       message = message.replaceAll('[/spoil]', '</spoil>');
     }
 
+    message = HtmlUnescape().convert(message);
+
+    var index = 0;
+    _iframeHeights.forEach((key, value) {
+      message = message.replaceAll(
+          'src="$key"', 'id="iframe-$index" src="$key" height="$value"');
+    });
+
     return message
         .replaceAll('[media]', '<video src="')
-        .replaceAll('[/media]', '"></video>')
-        // TODO iframe 的 style 当前版本不生效
-        .replaceAll('<iframe',
-            '<iframe width="${MediaQuery.of(context).size.width}" height="150"');
+        .replaceAll('[/media]', '"></video>');
   }
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+
+    final style = {
+      '.reply_wrap': Style(padding: EdgeInsets.all(16.0)),
+      'iframe': Style(height: 72.0)
+    };
+    var index = 0;
+    _iframeHeights.forEach((key, value) {
+      style['#iframe-$index'] = Style(height: value);
+    });
+
     return Html(
         data: _formatMessage(context, widget.message),
         onLinkTap: (url, _, attributes, element) {
@@ -136,28 +150,51 @@ class _KRichTextState extends State<KRichText> {
               src = src.replaceFirst('http://', 'https://');
               var videoPlayerController = VideoPlayerController.network(src);
               _videoPlayerControllers.add(videoPlayerController);
-              var chewieController = ChewieController(
-                  videoPlayerController: videoPlayerController,
-                  autoInitialize: true,
-                  autoPlay: false,
-                  looping: false);
-              _chewieControllers.add(chewieController);
               return Container(
                   padding: EdgeInsets.only(bottom: 8.0),
                   height: 320.0,
-                  child: Chewie(controller: chewieController));
+                  child: VideoPlayer(videoPlayerController));
+            }
+            return Container();
+          },
+          'iframe': (context, child) {
+            final src = context.tree.element!.attributes['src'];
+            if (src == null) {
+              return Container();
+            }
+
+            if (src.startsWith('http')) {
+              late final webview.WebViewController webViewController;
+              return SizedBox(
+                  height: _iframeHeights[src] ?? 72.0,
+                  child: webview.WebView(
+                    initialUrl: src,
+                    javascriptMode: webview.JavascriptMode.unrestricted,
+                    onWebViewCreated: (controller) {
+                      webViewController = controller;
+                    },
+                    onPageFinished: (url) async {
+                      if (_iframeHeights.containsKey(url)) {
+                        return;
+                      }
+                      final pxHeight = double.parse(
+                          await webViewController.runJavascriptReturningResult(
+                              'document.body.scrollHeight;'));
+                      final height = (pxHeight / (mediaQuery.devicePixelRatio))
+                          .ceilToDouble();
+                      setState(() {
+                        _iframeHeights[url] = height;
+                      });
+                    },
+                    navigationDelegate: (request) {
+                      return webview.NavigationDecision.prevent;
+                    },
+                  ));
             }
             return Container();
           }
         },
-        style: {
-          '.reply_wrap': Style(
-              backgroundColor: Colors.white,
-              padding: EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 12.0))
-        },
-        navigationDelegateForIframe: (request) {
-          return NavigationDecision.prevent;
-        });
+        style: style);
   }
 }
 
