@@ -51,5 +51,5 @@ jobs:
           tag_name: nightly
           name: "KeylolF Nightly Release"
           prerelease: true
-          file: |
+          files: |
             ./build/app/outputs/flutter-apk/app-release.apk
