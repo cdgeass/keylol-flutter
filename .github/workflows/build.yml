@@ -41,3 +41,15 @@ jobs:
         run: |
           flutter pub get
           flutter build apk
+          
+      # Nightly Release
+      - name: Update Nightly Release
+        uses: andelf/nightly-release@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: nightly
+          name: "KeylolF Nightly Release"
+          prerelease: true
+          file: |
+            ./build/app/outputs/flutter-apk/app-release.apk
