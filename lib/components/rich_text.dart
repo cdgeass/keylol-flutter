@@ -1,4 +1,4 @@
-import 'dart:collection';
+import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dotted_border/dotted_border.dart';
@@ -21,7 +21,6 @@ class KRichText extends StatefulWidget {
 
 class _KRichTextState extends State<KRichText> {
   List<VideoPlayerController> _videoPlayerControllers = [];
-  LinkedHashMap<String, double> _iframeHeights = LinkedHashMap();
 
   @override
   void dispose() {
@@ -36,67 +35,43 @@ class _KRichTextState extends State<KRichText> {
     if (message.isEmpty) {
       return message;
     }
-
-    // 折叠内容
-    final collapseReg = RegExp(r'\[collapse(=?)([^\]]*)]');
-    if (collapseReg.hasMatch(message)) {
-      final collapseMatches = collapseReg.allMatches(message);
-      for (var collapseMatch in collapseMatches) {
-        final title = collapseMatch.group(2) ?? "";
-        if (title != "") {
-          message = message.replaceFirst(
-              '[collapse=' + title + ']', '<collapse title="' + title + '">');
-        } else {
-          message = message.replaceFirst(
-              '[collapse]', '<collapse title="' + title + '">');
-        }
-      }
-      message = message.replaceAll('[/collapse]', '</collapse>');
-    }
-
-    // 折叠内容
-    final spoilReg = RegExp(r'\[spoil(=?)([^\]]*)]');
-    if (spoilReg.hasMatch(message)) {
-      final spoilMatches = spoilReg.allMatches(message);
-      for (var spoilMatch in spoilMatches) {
-        final title = spoilMatch.group(2) ?? "";
-        if (title != "") {
-          message = message.replaceFirst(
-              '[spoil=' + title + ']', '<spoil title="' + title + '">');
-        } else {
-          message =
-              message.replaceFirst('[spoil]', '<spoil title="' + title + '">');
-        }
-      }
-      message = message.replaceAll('[/spoil]', '</spoil>');
-    }
-
+    // 转义
     message = HtmlUnescape().convert(message);
 
-    var index = 0;
-    _iframeHeights.forEach((key, value) {
-      message = message.replaceAll(
-          'src="$key"', 'id="iframe-$index" src="$key" height="$value"');
+    // 折叠内容
+    message = message.replaceAllMapped(RegExp(r'(?:\[collapse)(?:=?)([^\]]*)]'),
+        (match) {
+      return '<collapse title="${match[1]}">';
+    }).replaceAll('[/collapse]', '</collapse>');
+
+    // 隐藏内容
+    message = message.replaceAllMapped(RegExp(r'(?:\[spoil)(?:=?)([^\]]*)]'),
+        (match) {
+      return '<spoil title="${match[1]}">';
+    }).replaceAll('[/spoil]', '</spoil>');
+
+    // 去除iframe样式
+    message = message.replaceAllMapped(RegExp(r'(style=")([^"]*)("></iframe>)'),
+        (match) {
+      return '${match[1]}${match[3]}';
     });
 
-    return message
+    // 视频
+    message = message
         .replaceAll('[media]', '<video src="')
         .replaceAll('[/media]', '"></video>');
+
+    // 倒计时
+    message = message.replaceAllMapped(
+        RegExp(r'(?:\[micxp_countdown)(?:=?)([^\[]*)]'), (match) {
+      return '<micxp_countdown title="${match[1]}">';
+    }).replaceAll('[/micxp_countdown]', '</micxp_countdown>');
+
+    return message;
   }
 
   @override
   Widget build(BuildContext context) {
-    final mediaQuery = MediaQuery.of(context);
-
-    final style = {
-      '.reply_wrap': Style(padding: EdgeInsets.all(16.0)),
-      'iframe': Style(height: 72.0)
-    };
-    var index = 0;
-    _iframeHeights.forEach((key, value) {
-      style['#iframe-$index'] = Style(height: value);
-    });
-
     return Html(
         data: _formatMessage(context, widget.message),
         onLinkTap: (url, _, attributes, element) {
@@ -117,7 +92,7 @@ class _KRichTextState extends State<KRichText> {
             Navigator.of(context).pushNamed('/webview', arguments: url);
           }
         },
-        tagsList: Html.tags..addAll(['collapse', 'spoil']),
+        tagsList: Html.tags..addAll(['collapse', 'spoil', 'micxp_countdown']),
         customRender: {
           'collapse': (RenderContext context, child) {
             final title = context.tree.element!.attributes['title'] ?? '';
@@ -167,9 +142,16 @@ class _KRichTextState extends State<KRichText> {
               return AutoResizeWebView(url: src);
             }
             return Container();
+          },
+          'micxp_countdown': (context, child) {
+            final date = context.tree.element!.text;
+
+            return _CountDown(date: date);
           }
         },
-        style: style);
+        style: {
+          '.reply_wrap': Style(padding: EdgeInsets.all(16.0))
+        });
   }
 }
 
@@ -229,7 +211,7 @@ class _CollapseState extends State<_Collapse> with RestorationMixin {
               ),
               if (_expanded.value)
                 Material(
-                  color: Colors.white,
+                  color: Theme.of(context).backgroundColor,
                   shape: RoundedRectangleBorder(
                       side: BorderSide(color: Colors.blue),
                       borderRadius:
@@ -312,6 +294,61 @@ class _SpoilState extends State<_Spoil> with RestorationMixin {
                 ],
               ),
             )));
+  }
+}
+
+// 倒计时
+class _CountDown extends StatefulWidget {
+  final String date;
+
+  const _CountDown({Key? key, required this.date}) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => _CountDownState();
+}
+
+class _CountDownState extends State<_CountDown> {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+        padding: EdgeInsets.all(8.0),
+        child: Center(
+          child: StreamBuilder(
+            stream: _countDown(),
+            builder: (context, AsyncSnapshot<String> snapshot) {
+              if (snapshot.hasData) {
+                final duration = snapshot.data ?? '';
+
+                return Text(duration);
+              }
+              return Container();
+            },
+          ),
+        ));
+  }
+
+  Stream<String> _countDown() {
+    return Stream.periodic(Duration(seconds: 1), (i) {
+      final startDate = DateTime.now();
+      var endDate = DateTime.parse(widget.date);
+
+      var difference = endDate.difference(startDate);
+      final days = difference.inDays;
+      endDate = endDate.subtract(Duration(days: days));
+
+      difference = endDate.difference(startDate);
+      final hours = difference.inHours;
+      endDate = endDate.subtract(Duration(hours: hours));
+
+      difference = endDate.difference(startDate);
+      final minutes = difference.inMinutes;
+      endDate = endDate.subtract(Duration(minutes: minutes));
+
+      difference = endDate.difference(startDate);
+      final seconds = difference.inSeconds;
+
+      return '$days天$hours小时$minutes分$seconds秒';
+    });
   }
 }
 

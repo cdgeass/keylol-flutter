@@ -24,11 +24,14 @@ class _AutoResizeWebViewState extends State<AutoResizeWebView> {
             crossPlatform: InAppWebViewOptions(
                 transparentBackground: true, javaScriptEnabled: false)),
         onLoadStop: (controller, uri) async {
-          final height =
-              (await controller.getContentHeight())?.toDouble() ?? 72.0;
-          setState(() {
-            _height = height;
-          });
+          final scrollHeight = await controller.evaluateJavascript(
+              source: 'document.body.scrollHeight');
+          if (scrollHeight != null) {
+            final height = double.parse(scrollHeight).ceilToDouble();
+            setState(() {
+              _height = height;
+            });
+          }
         },
         shouldOverrideUrlLoading: (controller, navigationAction) async {
           return NavigationActionPolicy.CANCEL;
