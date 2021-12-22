@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
-import 'package:keylol_flutter/models/forum_display.dart';
 import 'package:keylol_flutter/components/avatar.dart';
+import 'package:keylol_flutter/models/forum_display.dart';
+import 'package:keylol_flutter/models/thread.dart';
 import 'package:keylol_flutter/pages/thread_author.dart';
 
 class ForumPage extends StatefulWidget {
@@ -91,7 +91,7 @@ class _ForumThreadListState extends State<_ForumThreadList> {
   String? _filter;
   Map<String, String>? _param;
   bool _hasMore = true;
-  List<ForumDisplayThread> _threads = [];
+  List<Thread> _threads = [];
 
   final ScrollController _scrollController = ScrollController();
 
@@ -152,7 +152,7 @@ class _ForumThreadListState extends State<_ForumThreadList> {
     });
   }
 
-  Future<List<ForumDisplayThread>> _fetchThreads() async {
+  Future<List<Thread>> _fetchThreads() async {
     final forumDisplay =
         await KeylolClient().fetchForum(widget.fid, _page, _filter!, _param!);
     return forumDisplay.threads ?? [];
@@ -285,7 +285,7 @@ class _ForumThreadListState extends State<_ForumThreadList> {
 }
 
 class _ForumThreadItem extends StatelessWidget {
-  final ForumDisplayThread forumThread;
+  final Thread forumThread;
 
   const _ForumThreadItem({Key? key, required this.forumThread})
       : super(key: key);
@@ -296,16 +296,16 @@ class _ForumThreadItem extends StatelessWidget {
       child: Column(
         children: [
           ListTile(
-            title: Text(forumThread.subject!),
+            title: Text(forumThread.subject),
             subtitle: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 ThreadAuthor(
-                  uid: forumThread.authorId!,
-                  username: forumThread.author!,
+                  uid: forumThread.authorId,
+                  username: forumThread.author,
                   size: AvatarSize.middle,
                 ),
-                Text(forumThread.dateline!.replaceFirst('&nbsp;', ' '))
+                Text(forumThread.dateLine)
               ],
             ),
           ),

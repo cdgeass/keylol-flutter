@@ -15,6 +15,7 @@ import 'package:keylol_flutter/models/notice.dart';
 import 'package:keylol_flutter/models/profile.dart';
 import 'package:keylol_flutter/models/sec_code.dart';
 import 'package:keylol_flutter/models/space.dart';
+import 'package:keylol_flutter/models/thread.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -459,5 +460,15 @@ class KeylolClient {
         .post('/api/mobile/index.php', queryParameters: {'module': 'smiley'});
 
     return res.data['Variables'];
+  }
+
+  // 热帖
+  Future<List<Thread>> fetchHotThread({int page = 1}) async {
+    final res = await _dio.post('/api/mobile/index.php',
+        queryParameters: {'module': 'hotthread', 'page': page});
+
+    return (res.data['Variables']['data'] as List)
+        .map((e) => Thread.fromJson(e))
+        .toList();
   }
 }

@@ -1,7 +1,9 @@
+import 'package:keylol_flutter/models/thread.dart';
+
 class ForumDisplay {
   ForumDisplayForum? forum;
   ForumDisplayGroup? group;
-  List<ForumDisplayThread>? threads;
+  List<Thread>? threads;
   List<ForumDisplayThreadType>? threadTypes;
 
   ForumDisplay.fromJson(Map<String, dynamic> json) {
@@ -16,7 +18,7 @@ class ForumDisplay {
     List<dynamic>? threadJsons = json['forum_threadlist'];
     if (threadJsons != null) {
       threads = threadJsons
-          .map((threadJson) => ForumDisplayThread.fromJson(threadJson))
+          .map((threadJson) => Thread.fromJson(threadJson))
           .toList();
     }
     Map<String, dynamic>? threadTypesMap = json['threadtypes']?['types'];
