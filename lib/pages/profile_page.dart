@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/components/avatar.dart';
+import 'package:keylol_flutter/components/throwable_future_builder.dart';
 import 'package:keylol_flutter/models/space.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -39,13 +40,10 @@ class _ProfilePageState extends State<ProfilePage>
         child: Scaffold(
           backgroundColor: Theme.of(context).backgroundColor,
           appBar: AppBar(),
-          body: FutureBuilder(
+          body: ThrowableFutureBuilder(
             future: _future,
             builder: (context, AsyncSnapshot<Space> snapshot) {
               late Widget body;
-              if (snapshot.hasError) {
-                print(snapshot.error);
-              }
               if (snapshot.hasData) {
                 final space = snapshot.data!;
                 return Column(children: [

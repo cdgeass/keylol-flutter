@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
+import 'package:keylol_flutter/components/throwable_future_builder.dart';
 import 'package:keylol_flutter/models/sec_code.dart';
 
 class LoginPage extends StatefulWidget {
@@ -473,7 +474,7 @@ class _SecCodeInputState extends State<_SecCodeInput> {
           },
         )),
         InkWell(
-          child: FutureBuilder(
+          child: ThrowableFutureBuilder(
               future: future,
               builder: (context, snapshot) {
                 if (snapshot.hasData) {

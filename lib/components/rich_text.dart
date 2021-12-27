@@ -5,6 +5,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:html_unescape/html_unescape.dart';
+import 'package:keylol_flutter/common/styling.dart';
 import 'package:keylol_flutter/components/auto_resize_webview.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
@@ -92,7 +93,8 @@ class _KRichTextState extends State<KRichText> {
             Navigator.of(context).pushNamed('/webview', arguments: url);
           }
         },
-        tagsList: Html.tags..addAll(['collapse', 'spoil', 'micxp_countdown']),
+        tagsList: Html.tags
+          ..addAll(['collapse', 'spoil', 'micxp_countdown', 'blockquote']),
         customRender: {
           'collapse': (RenderContext context, child) {
             final title = context.tree.element!.attributes['title'] ?? '';
@@ -150,7 +152,10 @@ class _KRichTextState extends State<KRichText> {
           }
         },
         style: {
-          '.reply_wrap': Style(padding: EdgeInsets.all(16.0))
+          '.reply_wrap': Style(
+              padding: EdgeInsets.all(8.0),
+              margin: EdgeInsets.all(8.0),
+              border: Border.all(color: AppTheme.lightText))
         });
   }
 }

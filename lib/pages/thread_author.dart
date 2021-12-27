@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/components/avatar.dart';
+import 'package:keylol_flutter/components/throwable_future_builder.dart';
 import 'package:keylol_flutter/models/space.dart';
 
 class ThreadAuthor extends StatefulWidget {
@@ -36,7 +37,7 @@ class _ThreadAuthorState extends State<ThreadAuthor> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
+    return ThrowableFutureBuilder(
       future: _future,
       builder: (BuildContext context, AsyncSnapshot<Space> snapshot) {
         final avatar = Avatar(

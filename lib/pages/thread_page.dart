@@ -7,6 +7,7 @@ import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/common/notifiers.dart';
 import 'package:keylol_flutter/components/post_card.dart';
 import 'package:keylol_flutter/components/rich_text.dart';
+import 'package:keylol_flutter/components/throwable_future_builder.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -32,20 +33,14 @@ class _ThreadPageState extends State<ThreadPage> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
+    return ThrowableFutureBuilder(
         future: _future,
         builder: (context, AsyncSnapshot<ViewThread> snapshot) {
           late AppBar appBar;
           late Widget body;
           Widget? bottomNavigationBar;
 
-          if (snapshot.hasError) {
-            final error = snapshot.error!;
-            appBar = AppBar();
-            body = Center(
-              child: Text(error as String),
-            );
-          } else if (snapshot.hasData) {
+          if (snapshot.hasData) {
             final viewThread = snapshot.data!;
 
             appBar = AppBar(
@@ -195,13 +190,16 @@ class _PostItemState extends State<_PostItem> {
   @override
   Widget build(BuildContext context) {
     return PostCard(
-        authorId: widget.post.authorId!,
-        author: widget.post.author!,
-        dateline: widget.post.dateline!,
-        pid: widget.post.pid!,
-        content: _PostContent(
-          post: widget.post,
-        ));
+      authorId: widget.post.authorId!,
+      author: widget.post.author!,
+      dateline: widget.post.dateline!,
+      pid: widget.post.pid!,
+      content: _PostContent(
+        post: widget.post,
+      ),
+      first: widget.post.first == '1',
+      tid: widget.post.tid!,
+    );
   }
 }
 

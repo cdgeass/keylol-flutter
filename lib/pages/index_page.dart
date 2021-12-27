@@ -2,15 +2,14 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
-import 'package:keylol_flutter/components/avatar.dart';
+import 'package:keylol_flutter/common/styling.dart';
 import 'package:keylol_flutter/components/sliver_tab_bar_delegate.dart';
 import 'package:keylol_flutter/components/thread_card.dart';
+import 'package:keylol_flutter/components/throwable_future_builder.dart';
 import 'package:keylol_flutter/components/user_account_drawer.dart';
 import 'package:keylol_flutter/models/index.dart';
-import 'package:keylol_flutter/pages/thread_author.dart';
 
 // 聚焦
 class IndexPage extends StatefulWidget {
@@ -47,7 +46,7 @@ class _IndexPageState extends State<IndexPage> {
           return notification.depth == 0;
         },
         onRefresh: _onRefresh,
-        child: FutureBuilder(
+        child: ThrowableFutureBuilder(
           future: _future,
           builder: (context, AsyncSnapshot<Index> snapshot) {
             late Widget body;
@@ -88,8 +87,13 @@ class _IndexPageState extends State<IndexPage> {
     final slideView = _buildSlidView(index);
 
     // tabBar
-    final tabs =
-        index.tabThreadsMap.keys.map((key) => Tab(text: key.name)).toList();
+    final tabs = index.tabThreadsMap.keys
+        .map((key) => Tab(
+                child: Text(
+              key.name,
+              style: AppTheme.subtitle.copyWith(fontWeight: FontWeight.bold),
+            )))
+        .toList();
     final tabChildren = index.tabThreadsMap.keys.map((key) {
       final threads = index.tabThreadsMap[key]!;
       return ListView.builder(
@@ -160,6 +164,7 @@ class _SlideViewItem extends StatelessWidget {
           slideViewItem.title,
           softWrap: true,
           overflow: TextOverflow.ellipsis,
+          style: AppTheme.title.copyWith(color: AppTheme.spacer),
         ),
       ),
     );

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
+import 'package:keylol_flutter/components/throwable_future_builder.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_cookie_manager/webview_cookie_manager.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -19,7 +20,7 @@ class WebViewPage extends StatelessWidget {
       final future = _loadCookies();
       return Scaffold(
           appBar: AppBar(),
-          body: FutureBuilder(
+          body: ThrowableFutureBuilder(
             future: future,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.done) {

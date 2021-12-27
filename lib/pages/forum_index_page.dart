@@ -2,8 +2,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
-import 'package:keylol_flutter/models/cat.dart';
+import 'package:keylol_flutter/components/throwable_future_builder.dart';
 import 'package:keylol_flutter/components/user_account_drawer.dart';
+import 'package:keylol_flutter/models/cat.dart';
 
 class ForumIndexPage extends StatefulWidget {
   @override
@@ -30,7 +31,7 @@ class ForumIndexPageState extends State<ForumIndexPage> {
         centerTitle: true,
       ),
       drawer: UserAccountDrawer(),
-      body: FutureBuilder(
+      body: ThrowableFutureBuilder(
         future: _future,
         builder: (BuildContext context, AsyncSnapshot<List<Cat>> snapshot) {
           if (snapshot.hasData) {
@@ -89,10 +90,6 @@ class ForumIndexPageState extends State<ForumIndexPage> {
                       )),
                 ))
               ],
-            );
-          } else if (snapshot.hasError) {
-            return Center(
-              child: CircularProgressIndicator(),
             );
           }
 

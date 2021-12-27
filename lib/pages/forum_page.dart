@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/components/thread_card.dart';
+import 'package:keylol_flutter/components/throwable_future_builder.dart';
 import 'package:keylol_flutter/models/forum_display.dart';
 
 class ForumPage extends StatefulWidget {
@@ -28,7 +29,7 @@ class _ForumPageState extends State<ForumPage>
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
+    return ThrowableFutureBuilder(
       future: _future,
       builder: (BuildContext context, AsyncSnapshot<ForumDisplay> snapshot) {
         if (snapshot.hasData) {
@@ -60,9 +61,6 @@ class _ForumPageState extends State<ForumPage>
                     _ForumThreadList(fid: forum.fid!, typeId: threadType.id)
                 ],
               ));
-        }
-        if (snapshot.hasError) {
-          print(snapshot.error);
         }
 
         return Scaffold(

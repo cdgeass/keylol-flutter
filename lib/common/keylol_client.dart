@@ -153,7 +153,7 @@ class KeylolClient {
       return fetchSecCodeParam(auth, formHash);
     } else {
       // 登录失败
-      return Future.error(res.data['Message']?['messagestr'] ?? '登录失败');
+      return Future.error(res.data['Message']?['messagestr']);
     }
   }
 
@@ -385,6 +385,9 @@ class KeylolClient {
       forumMap[forum.fid] = forum;
     }
 
+    if (res.data['Message'] != null) {
+      return Future.error(res.data['Message']!['messagestr']);
+    }
     return (variables['catlist'] as List<dynamic>).map((catJson) {
       final cat = Cat.fromJson(catJson);
       List<CatForum> forums = (catJson['forums'] as List<dynamic>)
@@ -408,6 +411,9 @@ class KeylolClient {
     var res = await _dio.get("/api/mobile/index.php",
         queryParameters: queryParameters);
 
+    if (res.data['Message'] != null) {
+      return Future.error(res.data['Message']!['messagestr']);
+    }
     return ForumDisplay.fromJson(res.data['Variables']);
   }
 
@@ -417,7 +423,7 @@ class KeylolClient {
         queryParameters: {'module': 'viewthread', 'tid': tid, 'page': page});
 
     if (res.data['Message'] != null) {
-      return Future.error(res.data['Message']!['messagestr']!);
+      return Future.error(res.data['Message']!['messagestr']);
     }
     return ViewThread.fromJson(res.data['Variables']);
   }
@@ -451,6 +457,9 @@ class KeylolClient {
     final res = await _dio.post('/api/mobile/index.php',
         queryParameters: {'module': 'mynotelist', 'page': page});
 
+    if (res.data['Message'] != null) {
+      return Future.error(res.data['Message']!['messagestr']);
+    }
     return NoteList.fromJson(res.data['Variables']);
   }
 
@@ -459,6 +468,9 @@ class KeylolClient {
     final res = await _dio
         .post('/api/mobile/index.php', queryParameters: {'module': 'smiley'});
 
+    if (res.data['Message'] != null) {
+      return Future.error(res.data['Message']!['messagestr']);
+    }
     return res.data['Variables'];
   }
 
@@ -467,8 +479,27 @@ class KeylolClient {
     final res = await _dio.post('/api/mobile/index.php',
         queryParameters: {'module': 'hotthread', 'page': page});
 
+    if (res.data['Message'] != null) {
+      return Future.error(res.data['Message']!['messagestr']);
+    }
     return (res.data['Variables']['data'] as List)
         .map((e) => Thread.fromJson(e))
         .toList();
+  }
+
+  // 收藏帖子
+  Future<void> favoriteThread(String tid, String description) async {
+    final res = await _dio.post('/api/mobile/index.php',
+        queryParameters: {
+          'module': 'favthread',
+          'type': 'thread',
+          'formhash': ProfileNotifier().profile?.formHash,
+          'id': tid,
+        },
+        data: FormData.fromMap({'description': description}));
+
+    if (res.data['Message'] != null) {
+      return Future.error(res.data['Message']!['messagestr']);
+    }
   }
 }
