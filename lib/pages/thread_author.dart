@@ -39,7 +39,11 @@ class _ThreadAuthorState extends State<ThreadAuthor> {
     return FutureBuilder(
       future: _future,
       builder: (BuildContext context, AsyncSnapshot<Space> snapshot) {
-        final avatar = Avatar(uid: widget.uid, size: widget.size);
+        final avatar = Avatar(
+          uid: widget.uid,
+          size: widget.size,
+          width: 36.0,
+        );
         final username = Text(
           widget.username,
           style: TextStyle(fontSize: widget.fontSize),

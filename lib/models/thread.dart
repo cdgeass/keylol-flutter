@@ -11,7 +11,7 @@ class Thread {
   final String author;
   final String authorId;
   final String subject;
-  final String dateLine;
+  final String dateline;
   final String lastPost;
   final String lastPoster;
   final int views;
@@ -74,7 +74,7 @@ class Thread {
         author = json['author'],
         authorId = json['authorId'],
         subject = json['subject'],
-        dateLine = HtmlUnescape().convert(json['dateline'] ?? ''),
+        dateline = HtmlUnescape().convert(json['dateline'] ?? ''),
         lastPost = json['lastpost'],
         lastPoster = json['lastposter'],
         views = int.parse(json['views'] ?? '0'),

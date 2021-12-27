@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/components/avatar.dart';
 import 'package:keylol_flutter/components/sliver_tab_bar_delegate.dart';
+import 'package:keylol_flutter/components/thread_card.dart';
 import 'package:keylol_flutter/components/user_account_drawer.dart';
 import 'package:keylol_flutter/models/index.dart';
 import 'package:keylol_flutter/pages/thread_author.dart';
@@ -187,33 +188,11 @@ class _ThreadItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-        color: Theme.of(context).cardColor,
-        child: InkWell(
-          onTap: () {
-            Navigator.of(context).pushNamed("/thread", arguments: thread.tid);
-          },
-          child: ListTile(
-              title: Container(
-                  alignment: Alignment.centerLeft,
-                  constraints: BoxConstraints(minHeight: 48.0),
-                  child: Text(
-                    (thread.fname ?? '') + thread.title,
-                    style: TextStyle(fontSize: 14.0),
-                  )),
-              subtitle: Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      ThreadAuthor(
-                          uid: thread.memberUid,
-                          username: thread.memberUsername,
-                          size: AvatarSize.small),
-                      Text(thread.dateLine)
-                    ]),
-              )),
-        ));
+    return IndexThreadCard(
+        tid: thread.tid,
+        title: thread.title,
+        dateline: thread.dateline,
+        authorId: thread.memberUid,
+        author: thread.memberUsername);
   }
 }

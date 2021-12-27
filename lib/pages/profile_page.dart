@@ -87,6 +87,7 @@ class _ProfilePageState extends State<ProfilePage>
               Avatar(
                 uid: space.uid,
                 size: AvatarSize.large,
+                width: 42.0,
                 clip: false,
               ),
               Padding(

@@ -145,8 +145,8 @@ class IndexTabThreadItem {
   final String memberUid;
 
   // 日期
-  final String dateLine;
+  final String dateline;
 
   IndexTabThreadItem(this.tid, this.fid, this.fname, this.title,
-      this.memberUsername, this.memberUid, this.dateLine);
+      this.memberUsername, this.memberUid, this.dateline);
 }

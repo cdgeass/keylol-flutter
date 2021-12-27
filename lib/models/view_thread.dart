@@ -64,7 +64,7 @@ class ViewThreadPost {
     first = json['first'];
     author = json['author'];
     authorId = json['authorid'];
-    dateline = json['dateline'];
+    dateline = HtmlUnescape().convert(json['dateline'] ?? '');
     message = json['message'];
     anonymous = json['anonymous'];
     var attachmentStr = json['attachment'];

@@ -19,37 +19,29 @@ extension AvatarSizeExtension on AvatarSize {
         return AVATAR_URL_LARGE;
     }
   }
-
-  double get width {
-    switch (this) {
-      case AvatarSize.small:
-        return 24.0;
-      case AvatarSize.middle:
-        return 32.0;
-      case AvatarSize.large:
-        return 64.0;
-    }
-  }
-
-  double get height => width;
 }
 
 class Avatar extends StatelessWidget {
   final String uid;
   final AvatarSize size;
+  final double width;
   final bool clip;
 
-  const Avatar(
-      {Key? key, required this.uid, required this.size, this.clip = true})
-      : super(key: key);
+  const Avatar({
+    Key? key,
+    required this.uid,
+    required this.size,
+    required this.width,
+    this.clip = true,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final avatarUrl = size.avatarUrl + uid;
 
     final avatar = CachedNetworkImage(
-      width: size.width,
-      height: size.height,
+      width: width,
+      height: width,
       imageUrl: avatarUrl,
       placeholder: (context, url) => Image.asset('images/unknown_avatar.jpg'),
       errorWidget: (context, url, error) =>

@@ -1,9 +1,9 @@
-import 'package:keylol_flutter/models/thread.dart';
+import 'package:html_unescape/html_unescape.dart';
 
 class ForumDisplay {
   ForumDisplayForum? forum;
   ForumDisplayGroup? group;
-  List<Thread>? threads;
+  List<ForumDisplayThread>? threads;
   List<ForumDisplayThreadType>? threadTypes;
 
   ForumDisplay.fromJson(Map<String, dynamic> json) {
@@ -18,7 +18,7 @@ class ForumDisplay {
     List<dynamic>? threadJsons = json['forum_threadlist'];
     if (threadJsons != null) {
       threads = threadJsons
-          .map((threadJson) => Thread.fromJson(threadJson))
+          .map((threadJson) => ForumDisplayThread.fromJson(threadJson))
           .toList();
     }
     Map<String, dynamic>? threadTypesMap = json['threadtypes']?['types'];
@@ -161,8 +161,8 @@ class ForumDisplayThread {
     }
     author = json['author'];
     authorId = json['authorid'];
-    subject = json['subject'];
-    dateline = json['dateline'];
+    subject = HtmlUnescape().convert(json['subject'] ?? '');
+    dateline = HtmlUnescape().convert(json['dateline'] ?? '');
     lastPost = json['lastpost'];
     lastPoster = json['lastposter'];
     var viewStr = json['view'];

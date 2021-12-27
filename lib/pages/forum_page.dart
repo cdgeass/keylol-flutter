@@ -2,10 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
-import 'package:keylol_flutter/components/avatar.dart';
+import 'package:keylol_flutter/components/thread_card.dart';
 import 'package:keylol_flutter/models/forum_display.dart';
-import 'package:keylol_flutter/models/thread.dart';
-import 'package:keylol_flutter/pages/thread_author.dart';
 
 class ForumPage extends StatefulWidget {
   final String fid;
@@ -63,6 +61,9 @@ class _ForumPageState extends State<ForumPage>
                 ],
               ));
         }
+        if (snapshot.hasError) {
+          print(snapshot.error);
+        }
 
         return Scaffold(
           appBar: AppBar(),
@@ -91,7 +92,7 @@ class _ForumThreadListState extends State<_ForumThreadList> {
   String? _filter;
   Map<String, String>? _param;
   bool _hasMore = true;
-  List<Thread> _threads = [];
+  List<ForumDisplayThread> _threads = [];
 
   final ScrollController _scrollController = ScrollController();
 
@@ -152,7 +153,7 @@ class _ForumThreadListState extends State<_ForumThreadList> {
     });
   }
 
-  Future<List<Thread>> _fetchThreads() async {
+  Future<List<ForumDisplayThread>> _fetchThreads() async {
     final forumDisplay =
         await KeylolClient().fetchForum(widget.fid, _page, _filter!, _param!);
     return forumDisplay.threads ?? [];
@@ -285,60 +286,38 @@ class _ForumThreadListState extends State<_ForumThreadList> {
 }
 
 class _ForumThreadItem extends StatelessWidget {
-  final Thread forumThread;
+  final ForumDisplayThread forumThread;
 
   const _ForumThreadItem({Key? key, required this.forumThread})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final threadWidget = InkWell(
-      child: Column(
-        children: [
-          ListTile(
-            title: Text(forumThread.subject),
-            subtitle: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                ThreadAuthor(
-                  uid: forumThread.authorId,
-                  username: forumThread.author,
-                  size: AvatarSize.middle,
-                ),
-                Text(forumThread.dateLine)
-              ],
-            ),
-          ),
-          Divider(
-            thickness: 1.0,
-            height: 1.0,
-          )
-        ],
-      ),
-      onTap: () {
-        Navigator.of(context).pushNamed('/thread', arguments: forumThread.tid);
-      },
+    final card = ThreadCard(
+      tid: forumThread.tid!,
+      subject: forumThread.subject!,
+      authorId: forumThread.authorId!,
+      author: forumThread.author!,
+      dateline: forumThread.dateline!,
     );
 
     late final widget;
     if (forumThread.displayOrder == 1) {
-      widget = ClipRect(
+      return ClipRect(
           child: Banner(
               location: BannerLocation.topStart,
               message: '置顶',
               color: Color(0xFF81C784),
-              child: threadWidget));
+              child: card));
     } else if (forumThread.displayOrder == 3) {
-      widget = ClipRect(
+      return ClipRect(
           child: Banner(
               location: BannerLocation.topStart,
               message: '置顶',
               color: Color(0xFFFFD54F),
-              child: threadWidget));
+              child: card));
     } else {
-      widget = threadWidget;
+      return card;
     }
-
-    return Card(child: widget);
   }
 }

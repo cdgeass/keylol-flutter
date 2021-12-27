@@ -9,6 +9,8 @@ import 'package:keylol_flutter/pages/profile_page.dart';
 import 'package:keylol_flutter/pages/thread_page.dart';
 import 'package:keylol_flutter/pages/webview_page.dart';
 
+import 'common/styling.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -25,9 +27,9 @@ class KeylolApp extends StatelessWidget {
     return MaterialApp(
       title: 'Keylol',
       theme: ThemeData(
-        primaryColor: Colors.lightBlue,
-        backgroundColor: Color(0xFFFAFAFA)
-      ),
+          primaryColor: Colors.lightBlue,
+          backgroundColor: Color(0xFFFAFAFA),
+          textTheme: AppTheme.textTheme),
       darkTheme: ThemeData.dark(),
       initialRoute: "/index",
       routes: _routes(),

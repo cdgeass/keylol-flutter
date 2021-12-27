@@ -5,10 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/constants.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/common/notifiers.dart';
-import 'package:keylol_flutter/components/avatar.dart';
+import 'package:keylol_flutter/components/post_card.dart';
 import 'package:keylol_flutter/components/rich_text.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
-import 'package:keylol_flutter/pages/thread_author.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ThreadPage extends StatefulWidget {
@@ -195,40 +194,13 @@ class _PostItem extends StatefulWidget {
 class _PostItemState extends State<_PostItem> {
   @override
   Widget build(BuildContext context) {
-    return Card(
-        color: Theme.of(context).cardColor,
-        child: Column(
-          children: [
-            ListTile(
-              visualDensity: VisualDensity(horizontal: 0, vertical: -4),
-              leading: Avatar(
-                uid: widget.post.authorId!,
-                size: AvatarSize.middle,
-              ),
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ThreadAuthor(
-                    uid: widget.post.authorId!,
-                    username: widget.post.author!,
-                    size: AvatarSize.middle,
-                    needAvatar: false,
-                    fontSize: 14.0,
-                  ),
-                  Text(
-                    widget.post.number.toString() + '楼',
-                    style: TextStyle(fontSize: 14.0),
-                  )
-                ],
-              ),
-              subtitle: Text(widget.post.dateline!.replaceAll('&nbsp;', '')),
-            ),
-            Divider(),
-            _PostContent(
-              post: widget.post,
-            ),
-          ],
+    return PostCard(
+        authorId: widget.post.authorId!,
+        author: widget.post.author!,
+        dateline: widget.post.dateline!,
+        pid: widget.post.pid!,
+        content: _PostContent(
+          post: widget.post,
         ));
   }
 }
