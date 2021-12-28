@@ -299,7 +299,6 @@ class _ForumThreadItem extends StatelessWidget {
       dateline: forumThread.dateline!,
     );
 
-    late final widget;
     if (forumThread.displayOrder == 1) {
       return ClipRect(
           child: Banner(

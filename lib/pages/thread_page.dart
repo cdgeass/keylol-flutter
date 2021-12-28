@@ -6,6 +6,7 @@ import 'package:keylol_flutter/common/constants.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/common/notifiers.dart';
 import 'package:keylol_flutter/components/post_card.dart';
+import 'package:keylol_flutter/components/refreshable_list_view.dart';
 import 'package:keylol_flutter/components/rich_text.dart';
 import 'package:keylol_flutter/components/throwable_future_builder.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
@@ -117,16 +118,6 @@ class _PostListState extends State<_PostList> {
     super.initState();
 
     _onRefresh();
-
-    widget.scrollController.addListener(() {
-      final maxScroll = widget.scrollController.position.maxScrollExtent;
-      final pixels = widget.scrollController.position.pixels;
-      if (maxScroll == pixels) {
-        setState(() {
-          _loadMore();
-        });
-      }
-    });
   }
 
   Future<void> _onRefresh() async {
@@ -138,7 +129,7 @@ class _PostListState extends State<_PostList> {
     });
   }
 
-  void _loadMore() async {
+  Future<void> _loadMore() async {
     final page = _page + 1;
     final viewThread = await KeylolClient().fetchThread(widget.tid, page);
     final posts = viewThread.posts;
@@ -157,23 +148,15 @@ class _PostListState extends State<_PostList> {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: _onRefresh,
-      child: ListView.builder(
-          controller: widget.scrollController,
-          itemCount: _posts.length + 1,
-          itemBuilder: (context, index) {
-            if (index == _posts.length) {
-              return Center(
-                  child: Opacity(
-                opacity: _total > _posts.length ? 1.0 : 0.0,
-                child: CircularProgressIndicator(),
-              ));
-            } else {
-              return _PostItem(post: _posts[index]);
-            }
-          }),
-    );
+    return RefreshableListView(
+        onRefresh: _onRefresh,
+        loadMore: _loadMore,
+        controller: widget.scrollController,
+        list: _posts,
+        total: _total,
+        itemBuilder: (item) {
+          return _PostItem(post: item);
+        });
   }
 }
 
