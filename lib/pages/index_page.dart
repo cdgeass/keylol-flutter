@@ -48,8 +48,7 @@ class _IndexPageState extends State<IndexPage> {
         onRefresh: _onRefresh,
         child: ThrowableFutureBuilder(
           future: _future,
-          builder: (context, AsyncSnapshot<Index> snapshot) {
-            final index = snapshot.data!;
+          builder: (context, Index index) {
             final body = _buildTabPage(index);
 
             return Scaffold(

@@ -31,44 +31,34 @@ class _ForumPageState extends State<ForumPage>
   Widget build(BuildContext context) {
     return ThrowableFutureBuilder(
       future: _future,
-      builder: (BuildContext context, AsyncSnapshot<ForumDisplay> snapshot) {
-        if (snapshot.hasData) {
-          final forumDisplay = snapshot.data!;
-          final forum = forumDisplay.forum!;
-          var threadTypes = forumDisplay.threadTypes ?? [];
-          _tabController =
-              TabController(length: threadTypes.length + 1, vsync: this);
-
-          return Scaffold(
-              appBar: AppBar(
-                title: Text(forum.name!),
-                centerTitle: true,
-                bottom: TabBar(
-                  controller: _tabController,
-                  isScrollable: true,
-                  tabs: [
-                    Tab(text: '全部'),
-                    for (final threadType in threadTypes)
-                      Tab(text: threadType.name)
-                  ],
-                ),
-              ),
-              body: TabBarView(
-                controller: _tabController,
-                children: [
-                  _ForumThreadList(fid: forum.fid!),
-                  for (final threadType in threadTypes)
-                    _ForumThreadList(fid: forum.fid!, typeId: threadType.id)
-                ],
-              ));
-        }
+      builder: (context, ForumDisplay forumDisplay) {
+        final forum = forumDisplay.forum!;
+        var threadTypes = forumDisplay.threadTypes ?? [];
+        _tabController =
+            TabController(length: threadTypes.length + 1, vsync: this);
 
         return Scaffold(
-          appBar: AppBar(),
-          body: Center(
-            child: CircularProgressIndicator(),
-          ),
-        );
+            appBar: AppBar(
+              title: Text(forum.name!),
+              centerTitle: true,
+              bottom: TabBar(
+                controller: _tabController,
+                isScrollable: true,
+                tabs: [
+                  Tab(text: '全部'),
+                  for (final threadType in threadTypes)
+                    Tab(text: threadType.name)
+                ],
+              ),
+            ),
+            body: TabBarView(
+              controller: _tabController,
+              children: [
+                _ForumThreadList(fid: forum.fid!),
+                for (final threadType in threadTypes)
+                  _ForumThreadList(fid: forum.fid!, typeId: threadType.id)
+              ],
+            ));
       },
     );
   }

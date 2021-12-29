@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+typedef WidgetBuilder<T> = Function(BuildContext context, T t);
+
 class ThrowableFutureBuilder<T> extends StatelessWidget {
   final Future<T> future;
-  final AsyncWidgetBuilder<T> builder;
+  final WidgetBuilder<T> builder;
 
   const ThrowableFutureBuilder(
       {Key? key, required this.future, required this.builder})
@@ -34,7 +36,7 @@ class ThrowableFutureBuilder<T> extends StatelessWidget {
             );
           }
           if (snapshot.hasData) {
-            return builder.call(context, snapshot);
+            return builder.call(context, snapshot.data!);
           }
           return Center(
             child: CircularProgressIndicator(),

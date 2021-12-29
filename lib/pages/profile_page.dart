@@ -1,5 +1,4 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
@@ -42,31 +41,21 @@ class _ProfilePageState extends State<ProfilePage>
           appBar: AppBar(),
           body: ThrowableFutureBuilder(
             future: _future,
-            builder: (context, AsyncSnapshot<Space> snapshot) {
-              late Widget body;
-              if (snapshot.hasData) {
-                final space = snapshot.data!;
-                return Column(children: [
-                  _buildProfileCard(space),
-                  Container(
-                      padding: EdgeInsets.only(left: 32.0, right: 32.0),
-                      child: TabBar(
-                        controller: _controller,
-                        tabs: [
-                          Tab(text: '勋章'),
-                          Tab(text: '活跃概况'),
-                          Tab(text: '统计信息')
-                        ],
-                      )),
-                  _buildTabBarView(space)
-                ]);
-              } else {
-                body = Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
-
-              return body;
+            builder: (context, Space space) {
+              return Column(children: [
+                _buildProfileCard(space),
+                Container(
+                    padding: EdgeInsets.only(left: 32.0, right: 32.0),
+                    child: TabBar(
+                      controller: _controller,
+                      tabs: [
+                        Tab(text: '勋章'),
+                        Tab(text: '活跃概况'),
+                        Tab(text: '统计信息')
+                      ],
+                    )),
+                _buildTabBarView(space)
+              ]);
             },
           ),
         ));

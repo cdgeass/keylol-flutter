@@ -476,15 +476,11 @@ class _SecCodeInputState extends State<_SecCodeInput> {
         InkWell(
           child: ThrowableFutureBuilder(
               future: future,
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  final data = snapshot.data as Uint8List;
-                  return Image.memory(
-                    data,
-                    height: 40.0,
-                  );
-                }
-                return CircularProgressIndicator();
+              builder: (context, Uint8List data) {
+                return Image.memory(
+                  data,
+                  height: 40.0,
+                );
               }),
           onTap: () {
             setState(() {

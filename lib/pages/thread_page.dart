@@ -38,8 +38,7 @@ class _ThreadPageState extends State<ThreadPage> {
   Widget build(BuildContext context) {
     return ThrowableFutureBuilder(
         future: _future,
-        builder: (context, AsyncSnapshot<ViewThread> snapshot) {
-          final viewThread = snapshot.data!;
+        builder: (context, ViewThread viewThread) {
           final appBar = AppBar(
             title: Text(viewThread.subject!),
             actions: [

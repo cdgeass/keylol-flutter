@@ -39,7 +39,7 @@ class _ThreadAuthorState extends State<ThreadAuthor> {
   Widget build(BuildContext context) {
     return ThrowableFutureBuilder(
       future: _future,
-      builder: (BuildContext context, AsyncSnapshot<Space> snapshot) {
+      builder: (context, Space space) {
         final avatar = Avatar(
           uid: widget.uid,
           size: widget.size,
@@ -59,14 +59,12 @@ class _ThreadAuthorState extends State<ThreadAuthor> {
           username
         ];
 
-        if (snapshot.hasData) {
-          final group = snapshot.data!.group;
-          children.add(SizedBox(
-            width: 8.0,
-          ));
-          children.add(Text(group.groupTitle!,
-              style: TextStyle(fontSize: widget.fontSize, color: group.color)));
-        }
+        final group = space.group;
+        children.add(SizedBox(
+          width: 8.0,
+        ));
+        children.add(Text(group.groupTitle!,
+            style: TextStyle(fontSize: widget.fontSize, color: group.color)));
 
         return Row(
             crossAxisAlignment: CrossAxisAlignment.end, children: children);
