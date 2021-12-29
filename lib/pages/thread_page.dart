@@ -113,7 +113,7 @@ class _ThreadPageState extends State<ThreadPage> {
                   forceElevated: true,
                   // expandedHeight: textSize.height,
                   actions: _buildActions(),
-                  title: Text(title),
+                  // title: Text(title),
                   // flexibleSpace: FlexibleSpaceBar(
                   //   titlePadding: EdgeInsetsDirectional.only(
                   //       start: 72, bottom: 16.0, end: 88.0),
@@ -126,7 +126,8 @@ class _ThreadPageState extends State<ThreadPage> {
                 ),
                 SliverList(
                     delegate: SliverChildBuilderDelegate((context, index) {
-                  if (index == _posts.length) {
+                  final i = index - 1;
+                  if (i == _posts.length) {
                     if (error != null) {
                       return Center(child: Text(error!));
                     }
@@ -136,8 +137,15 @@ class _ThreadPageState extends State<ThreadPage> {
                       child: CircularProgressIndicator(),
                     ));
                   }
+                  if (i == -1) {
+                    return Padding(
+                      padding: EdgeInsets.all(8.0),
+                        child: Material(
+                      child: Text(title, style: AppTheme.title),
+                    ));
+                  }
 
-                  final post = _posts[index];
+                  final post = _posts[i];
                   return PostCard(
                       authorId: post.authorId!,
                       author: post.author!,
@@ -148,7 +156,7 @@ class _ThreadPageState extends State<ThreadPage> {
                         attachments: post.attachments ?? {},
                       ),
                       tid: post.tid!);
-                }, childCount: _posts.length + 1))
+                }, childCount: _posts.length + 2))
               ],
             ),
             Positioned(
