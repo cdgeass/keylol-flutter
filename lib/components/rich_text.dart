@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dotted_border/dotted_border.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:html_unescape/html_unescape.dart';
@@ -67,9 +66,16 @@ class _KRichTextState extends State<KRichText> {
         .replaceAll('[/media]', '"></video>');
 
     // 附件
-    message = message
-        .replaceAll('[attachimg]', '<attachimg>')
-        .replaceAll('[/attachimg]', '</attachimg>');
+    if (!message.contains('attachimg') && widget.attachments.isNotEmpty) {
+      for (var attachment in widget.attachments.values) {
+        message +=
+            '<br /><img src="${attachment.url! + attachment.attachment!}" />';
+      }
+    } else {
+      message = message
+          .replaceAll('[attachimg]', '<attachimg>')
+          .replaceAll('[/attachimg]', '</attachimg>');
+    }
 
     // 倒计时
     message = message.replaceAllMapped(
@@ -150,7 +156,7 @@ class _KRichTextState extends State<KRichText> {
                     placeholder: (context, url) => CircularProgressIndicator(),
                     errorWidget: (context, url, error) =>
                         CircularProgressIndicator(),
-                    imageUrl: attachment.url!));
+                    imageUrl: attachment.url! + attachment.attachment!));
           },
           'video': (context, child) {
             var src = context.tree.element!.attributes['src'];
