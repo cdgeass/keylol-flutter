@@ -10,6 +10,7 @@ import 'package:keylol_flutter/components/post_card.dart';
 import 'package:keylol_flutter/components/rich_text.dart';
 import 'package:keylol_flutter/components/sliver_tab_bar_delegate.dart';
 import 'package:keylol_flutter/components/throwable_future_builder.dart';
+import 'package:keylol_flutter/models/favorite_thread.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -23,7 +24,7 @@ class ThreadPage extends StatefulWidget {
 }
 
 class _ThreadPageState extends State<ThreadPage> {
-  late Future<ViewThread> _future;
+  late Future<List<Object>> _future;
 
   var _page = 1;
   var _total = 0;
@@ -49,7 +50,10 @@ class _ThreadPageState extends State<ThreadPage> {
   }
 
   Future<void> _onRefresh() async {
-    final future = KeylolClient().fetchThread(widget.tid, 1);
+    final future = Future.wait([
+      KeylolClient().fetchThread(widget.tid, 1),
+      KeylolClient().fetchAllFavoriteThreads()
+    ]);
     setState(() {
       _future = future;
       _page = 1;
@@ -88,7 +92,10 @@ class _ThreadPageState extends State<ThreadPage> {
       onRefresh: _onRefresh,
       child: ThrowableFutureBuilder(
         future: _future,
-        builder: (context, ViewThread viewThread) {
+        builder: (context, List<Object> results) {
+          final viewThread = (results[0] as ViewThread);
+          final favoriteThreads = (results[1] as List<FavoriteThread>);
+
           if (_posts.isEmpty) {
             _page = 1;
             _total = (viewThread.replies ?? 0) + 1;
@@ -112,7 +119,7 @@ class _ThreadPageState extends State<ThreadPage> {
                 SliverAppBar(
                   forceElevated: true,
                   // expandedHeight: textSize.height,
-                  actions: _buildActions(),
+                  actions: _buildActions(context, viewThread, favoriteThreads),
                   // title: Text(title),
                   // flexibleSpace: FlexibleSpaceBar(
                   //   titlePadding: EdgeInsetsDirectional.only(
@@ -139,10 +146,10 @@ class _ThreadPageState extends State<ThreadPage> {
                   }
                   if (i == -1) {
                     return Padding(
-                      padding: EdgeInsets.all(8.0),
+                        padding: EdgeInsets.all(8.0),
                         child: Material(
-                      child: Text(title, style: AppTheme.title),
-                    ));
+                          child: Text(title, style: AppTheme.title),
+                        ));
                   }
 
                   final post = _posts[i];
@@ -167,13 +174,7 @@ class _ThreadPageState extends State<ThreadPage> {
                   fid: viewThread.fid!,
                   tid: widget.tid,
                   onSuccess: () {
-                    setState(() {
-                      _controller.animateTo(0.0,
-                          duration: Duration(milliseconds: 500),
-                          curve: Curves.decelerate);
-                      _page = 1;
-                      _future = KeylolClient().fetchThread(widget.tid, _page);
-                    });
+                    _onRefresh();
                   },
                 ))
           ]));
@@ -182,9 +183,24 @@ class _ThreadPageState extends State<ThreadPage> {
     );
   }
 
-  List<Widget> _buildActions() {
+  List<Widget> _buildActions(BuildContext context, ViewThread viewThread,
+      List<FavoriteThread> favoriteThreads) {
+    // TODO 优化
+    final isFavored = favoriteThreads.any((favoriteThread) =>
+        favoriteThread.idType == 'tid' && favoriteThread.id == widget.tid);
     return [
-      IconButton(onPressed: () {}, icon: Icon(Icons.favorite_outline)),
+      if (!isFavored)
+        IconButton(
+            onPressed: () {
+              _favoriteThread(context);
+            },
+            icon: Icon(Icons.favorite_outline)),
+      if (isFavored)
+        IconButton(
+            onPressed: () {
+              // 取消收藏
+            },
+            icon: Icon(Icons.favorite)),
       PopupMenuButton(
         icon: Icon(Icons.more_vert),
         itemBuilder: (BuildContext context) {
@@ -199,6 +215,31 @@ class _ThreadPageState extends State<ThreadPage> {
         },
       )
     ];
+  }
+
+  void _favoriteThread(BuildContext context) {
+    final controller = TextEditingController();
+    final dialog = AlertDialog(
+      title: Text('收藏备注'),
+      content: TextField(
+        controller: controller,
+      ),
+      actions: [
+        ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Text('取消')),
+        ElevatedButton(
+            onPressed: () async {
+              await KeylolClient().favoriteThread(widget.tid, '1');
+              Navigator.pop(context);
+            },
+            child: Text('确认'))
+      ],
+    );
+
+    showDialog(context: context, builder: (context) => dialog);
   }
 }
 

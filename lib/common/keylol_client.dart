@@ -9,6 +9,7 @@ import 'package:dio_http_cache/dio_http_cache.dart';
 import 'package:html/parser.dart' as parser;
 import 'package:keylol_flutter/common/notifiers.dart';
 import 'package:keylol_flutter/models/cat.dart';
+import 'package:keylol_flutter/models/favorite_thread.dart';
 import 'package:keylol_flutter/models/forum_display.dart';
 import 'package:keylol_flutter/models/index.dart';
 import 'package:keylol_flutter/models/notice.dart';
@@ -498,8 +499,38 @@ class KeylolClient {
         },
         data: FormData.fromMap({'description': description}));
 
+    // if (res.data['Message'] != null) {
+    //   return Future.error(res.data['Message']!['messagestr']);
+    // }
+  }
+
+  // 一次性获取所有收藏帖子
+  Future<List<FavoriteThread>> fetchAllFavoriteThreads() async {
+    List<FavoriteThread> favoriteThreads = [];
+
+    var page = 1;
+    while (true) {
+      final list = await fetchFavoriteThreads(page++);
+      if (list.isEmpty) {
+        break;
+      }
+      favoriteThreads.addAll(list);
+    }
+
+    return favoriteThreads;
+  }
+
+  // 收藏的帖子
+  Future<List<FavoriteThread>> fetchFavoriteThreads(int page) async {
+    final res = await _dio.post('/api/mobile/index.php',
+        queryParameters: {'module': 'myfavthread', 'page': page});
+
     if (res.data['Message'] != null) {
       return Future.error(res.data['Message']!['messagestr']);
     }
+
+    return (res.data['Variables']['list'] as List)
+        .map((e) => FavoriteThread.fromJson(e))
+        .toList();
   }
 }

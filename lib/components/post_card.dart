@@ -54,18 +54,6 @@ class _PostCardState extends State<PostCard> {
           ButtonBar(
             alignment: MainAxisAlignment.start,
             children: [
-              if (widget.first && !widget.favored)
-                IconButton(
-                    onPressed: () {
-                      _favoriteThread(context);
-                    },
-                    icon: Icon(Icons.favorite_border_outlined)),
-              if (widget.first && widget.favored)
-                IconButton(
-                    onPressed: () {
-                      // TODO 取消收藏
-                    },
-                    icon: Icon(Icons.favorite)),
               if (widget.first)
                 IconButton(
                     onPressed: () {
@@ -97,28 +85,4 @@ class _PostCardState extends State<PostCard> {
     );
   }
 
-  void _favoriteThread(BuildContext context) {
-    final controller = TextEditingController();
-    final dialog = AlertDialog(
-      title: Text('收藏备注'),
-      content: TextField(
-        controller: controller,
-      ),
-      actions: [
-        ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: Text('取消')),
-        ElevatedButton(
-            onPressed: () async {
-              await KeylolClient().favoriteThread(widget.tid, '1');
-              Navigator.pop(context);
-            },
-            child: Text('确认'))
-      ],
-    );
-
-    showDialog(context: context, builder: (context) => dialog);
-  }
 }
