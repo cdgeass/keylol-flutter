@@ -37,61 +37,50 @@ class _ThreadPageState extends State<ThreadPage> {
     return ThrowableFutureBuilder(
         future: _future,
         builder: (context, AsyncSnapshot<ViewThread> snapshot) {
-          late AppBar appBar;
-          late Widget body;
-          Widget? bottomNavigationBar;
-
-          if (snapshot.hasData) {
-            final viewThread = snapshot.data!;
-
-            appBar = AppBar(
-              title: Text(viewThread.subject!),
-              actions: [
-                PopupMenuButton(
-                  icon: Icon(Icons.more_vert),
-                  itemBuilder: (BuildContext context) {
-                    return [
-                      PopupMenuItem(
-                        child: Text('在浏览器中打开'),
-                        onTap: () {
-                          launch('https://keylol.com/t${widget.tid}-1-1');
-                        },
-                      )
-                    ];
-                  },
-                )
-              ],
-            );
-            body = _PostList(
+          final viewThread = snapshot.data!;
+          final appBar = AppBar(
+            title: Text(viewThread.subject!),
+            actions: [
+              PopupMenuButton(
+                icon: Icon(Icons.more_vert),
+                itemBuilder: (BuildContext context) {
+                  return [
+                    PopupMenuItem(
+                      child: Text('在浏览器中打开'),
+                      onTap: () {
+                        launch('https://keylol.com/t${widget.tid}-1-1');
+                      },
+                    )
+                  ];
+                },
+              )
+            ],
+          );
+          final reply = _Reply(
+            fid: viewThread.fid!,
+            tid: widget.tid,
+            onSuccess: () {
+              setState(() {
+                _scrollController.animateTo(0.0,
+                    duration: Duration(milliseconds: 500),
+                    curve: Curves.decelerate);
+                _page = 1;
+                _future = KeylolClient().fetchThread(widget.tid, _page);
+              });
+            },
+          );
+          final body = Stack(children: [
+            _PostList(
               tid: widget.tid,
               scrollController: _scrollController,
-            );
-            bottomNavigationBar = _Reply(
-              fid: viewThread.fid!,
-              tid: widget.tid,
-              onSuccess: () {
-                setState(() {
-                  _scrollController.animateTo(0.0,
-                      duration: Duration(milliseconds: 500),
-                      curve: Curves.decelerate);
-                  _page = 1;
-                  _future = KeylolClient().fetchThread(widget.tid, _page);
-                });
-              },
-            );
-          } else {
-            appBar = AppBar();
-            body = Center(
-              child: CircularProgressIndicator(),
-            );
-          }
+            ),
+            Positioned(bottom: 0.0, left: 0.0, right: 0.0, child: reply)
+          ]);
 
           return Scaffold(
-            backgroundColor: Theme.of(context).backgroundColor,
-            appBar: appBar,
-            body: body,
-            bottomNavigationBar: bottomNavigationBar,
-          );
+              backgroundColor: Theme.of(context).backgroundColor,
+              appBar: appBar,
+              body: body);
         });
   }
 }
@@ -207,7 +196,8 @@ class _ReplyState extends State<_Reply> {
     final profile = ProfileNotifier().profile;
     if (profile != null) {
       final formHash = profile.formHash!;
-      return Row(
+      return Material(
+          child: Row(
         children: [
           IconButton(
             icon: Icon(Icons.emoji_emotions_outlined),
@@ -266,7 +256,7 @@ class _ReplyState extends State<_Reply> {
                 }
               })
         ],
-      );
+      ));
     } else {
       return Container(
         height: 0.0,
