@@ -7,7 +7,6 @@ import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/common/notifiers.dart';
 import 'package:keylol_flutter/common/styling.dart';
 import 'package:keylol_flutter/components/post_card.dart';
-import 'package:keylol_flutter/components/refreshable_list_view.dart';
 import 'package:keylol_flutter/components/rich_text.dart';
 import 'package:keylol_flutter/components/sliver_tab_bar_delegate.dart';
 import 'package:keylol_flutter/components/throwable_future_builder.dart';
@@ -24,155 +23,174 @@ class ThreadPage extends StatefulWidget {
 }
 
 class _ThreadPageState extends State<ThreadPage> {
-  var _page = 1;
   late Future<ViewThread> _future;
-  final ScrollController _scrollController = ScrollController();
 
-  @override
-  void initState() {
-    super.initState();
-    _future = KeylolClient().fetchThread(widget.tid, _page);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ThrowableFutureBuilder(
-        future: _future,
-        builder: (context, ViewThread viewThread) {
-          final appBar = AppBar(
-            title: Text(viewThread.subject!),
-            actions: [
-              PopupMenuButton(
-                icon: Icon(Icons.more_vert),
-                itemBuilder: (BuildContext context) {
-                  return [
-                    PopupMenuItem(
-                      child: Text('在浏览器中打开'),
-                      onTap: () {
-                        launch('https://keylol.com/t${widget.tid}-1-1');
-                      },
-                    )
-                  ];
-                },
-              )
-            ],
-          );
-          final reply = _Reply(
-            fid: viewThread.fid!,
-            tid: widget.tid,
-            onSuccess: () {
-              setState(() {
-                _scrollController.animateTo(0.0,
-                    duration: Duration(milliseconds: 500),
-                    curve: Curves.decelerate);
-                _page = 1;
-                _future = KeylolClient().fetchThread(widget.tid, _page);
-              });
-            },
-          );
-          final body = Stack(children: [
-            _PostList(
-              tid: widget.tid,
-              scrollController: _scrollController,
-            ),
-            Positioned(bottom: 0.0, left: 0.0, right: 0.0, child: reply)
-          ]);
-
-          return Scaffold(
-              backgroundColor: Theme.of(context).backgroundColor,
-              appBar: appBar,
-              body: body);
-        });
-  }
-}
-
-// 帖子内回复列表
-class _PostList extends StatefulWidget {
-  final String tid;
-  final ScrollController scrollController;
-
-  const _PostList({Key? key, required this.tid, required this.scrollController})
-      : super(key: key);
-
-  @override
-  State<StatefulWidget> createState() => _PostListState();
-}
-
-class _PostListState extends State<_PostList> {
-  int _page = 1;
-  int _total = 0;
+  var _page = 1;
+  var _total = 0;
   List<ViewThreadPost> _posts = [];
+  final _controller = ScrollController();
+
+  String? error;
 
   @override
   void initState() {
     super.initState();
-
     _onRefresh();
-  }
 
-  Future<void> _onRefresh() async {
-    final viewThread = await KeylolClient().fetchThread(widget.tid, 1);
-    setState(() {
-      _page = 1;
-      _total = (viewThread.replies ?? 0) + 1;
-      _posts = viewThread.posts ?? [];
-    });
-  }
-
-  Future<void> _loadMore() async {
-    final page = _page + 1;
-    final viewThread = await KeylolClient().fetchThread(widget.tid, page);
-    final posts = viewThread.posts;
-    setState(() {
-      _total = (viewThread.replies ?? 0) + 1;
-      if (posts != null && posts.isNotEmpty) {
-        for (final post in posts) {
-          if (post.position! > _posts[_posts.length - 1].position!) {
-            _posts.add(post);
-            _page = page;
-          }
-        }
+    _controller.addListener(() {
+      final maxScroll = _controller.position.maxScrollExtent;
+      final pixels = _controller.position.pixels;
+      if (maxScroll == pixels) {
+        setState(() {
+          _loadMore();
+        });
       }
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return RefreshableListView(
-        onRefresh: _onRefresh,
-        loadMore: _loadMore,
-        controller: widget.scrollController,
-        list: _posts,
-        total: _total,
-        itemBuilder: (item) {
-          return _PostItem(post: item);
-        });
+  Future<void> _onRefresh() async {
+    final future = KeylolClient().fetchThread(widget.tid, 1);
+    setState(() {
+      _future = future;
+      _page = 1;
+      _total = 0;
+      _posts = [];
+    });
   }
-}
 
-class _PostItem extends StatefulWidget {
-  final ViewThreadPost post;
+  Future<void> _loadMore() async {
+    try {
+      final page = _page + 1;
+      final viewThread = await KeylolClient().fetchThread(widget.tid, page);
+      final posts = viewThread.posts ?? [];
+      setState(() {
+        error = null;
+        _total = (viewThread.replies ?? 0) + 1;
+        if (posts.isNotEmpty) {
+          for (final post in posts) {
+            if (post.position! > _posts[_posts.length - 1].position!) {
+              _posts.add(post);
+              _page = page;
+            }
+          }
+        }
+      });
+    } catch (e) {
+      setState(() {
+        error = e.toString();
+      });
+    }
+  }
 
-  const _PostItem({Key? key, required this.post}) : super(key: key);
-
-  @override
-  State<StatefulWidget> createState() => _PostItemState();
-}
-
-class _PostItemState extends State<_PostItem> {
   @override
   Widget build(BuildContext context) {
-    return PostCard(
-      authorId: widget.post.authorId!,
-      author: widget.post.author!,
-      dateline: widget.post.dateline!,
-      pid: widget.post.pid!,
-      content: _PostContent(
-        post: widget.post,
+    return RefreshIndicator(
+      onRefresh: _onRefresh,
+      child: ThrowableFutureBuilder(
+        future: _future,
+        builder: (context, ViewThread viewThread) {
+          if (_posts.isEmpty) {
+            _page = 1;
+            _total = (viewThread.replies ?? 0) + 1;
+            _posts = viewThread.posts ?? [];
+          }
+
+          final title = viewThread.subject ?? '';
+
+          // TODO material 长标题需展开，官方没有实现, FlexibleSpaceBar 效果不行
+          // final mediaQuery = MediaQuery.of(context);
+          // final availableWidth = mediaQuery.size.width - 72.0 - 88.0;
+          // final textSize = calTextSize(context, title,
+          //     style: Theme.of(context).textTheme.headline6,
+          //     maxWidth: availableWidth);
+
+          return Scaffold(
+              body: Stack(children: [
+            CustomScrollView(
+              controller: _controller,
+              slivers: [
+                SliverAppBar(
+                  forceElevated: true,
+                  // expandedHeight: textSize.height,
+                  actions: _buildActions(),
+                  title: Text(title),
+                  // flexibleSpace: FlexibleSpaceBar(
+                  //   titlePadding: EdgeInsetsDirectional.only(
+                  //       start: 72, bottom: 16.0, end: 88.0),
+                  //   title: RichText(
+                  //     text: TextSpan(
+                  //         text: title,
+                  //         style: Theme.of(context).textTheme.headline6),
+                  //   ),
+                  // ),
+                ),
+                SliverList(
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                  if (index == _posts.length) {
+                    if (error != null) {
+                      return Center(child: Text(error!));
+                    }
+                    return Center(
+                        child: Opacity(
+                      opacity: _total > _posts.length ? 1.0 : 0.0,
+                      child: CircularProgressIndicator(),
+                    ));
+                  }
+
+                  final post = _posts[index];
+                  return PostCard(
+                      authorId: post.authorId!,
+                      author: post.author!,
+                      dateline: post.dateline!,
+                      pid: post.pid!,
+                      content: KRichText(
+                        message: post.message!,
+                        attachments: post.attachments ?? {},
+                      ),
+                      tid: post.tid!);
+                }, childCount: _posts.length + 1))
+              ],
+            ),
+            Positioned(
+                bottom: 0.0,
+                left: 0.0,
+                right: 0.0,
+                child: _Reply(
+                  fid: viewThread.fid!,
+                  tid: widget.tid,
+                  onSuccess: () {
+                    setState(() {
+                      _controller.animateTo(0.0,
+                          duration: Duration(milliseconds: 500),
+                          curve: Curves.decelerate);
+                      _page = 1;
+                      _future = KeylolClient().fetchThread(widget.tid, _page);
+                    });
+                  },
+                ))
+          ]));
+        },
       ),
-      first: widget.post.first == '1',
-      tid: widget.post.tid!,
     );
+  }
+
+  List<Widget> _buildActions() {
+    return [
+      IconButton(onPressed: () {}, icon: Icon(Icons.favorite_outline)),
+      PopupMenuButton(
+        icon: Icon(Icons.more_vert),
+        itemBuilder: (BuildContext context) {
+          return [
+            PopupMenuItem(
+              child: Text('在浏览器中打开'),
+              onTap: () {
+                launch('https://keylol.com/t${widget.tid}-1-1');
+              },
+            )
+          ];
+        },
+      )
+    ];
   }
 }
 
@@ -304,34 +322,5 @@ class _ReplyState extends State<_Reply> {
             );
           }).toList())),
     );
-  }
-}
-
-class _PostContent extends StatelessWidget {
-  final ViewThreadPost post;
-
-  const _PostContent({Key? key, required this.post}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    List<Widget> children = [];
-    children.add(KRichText(message: post.message ?? ""));
-    if (post.imageList != null && post.attachments != null) {
-      post.imageList!.forEach((imageId) {
-        var attachment = post.attachments![imageId];
-        children.add(Container(
-            padding: EdgeInsets.fromLTRB(8.0, 0.0, 8.0, 8.0),
-            child: CachedNetworkImage(
-                placeholder: (context, url) => CircularProgressIndicator(),
-                errorWidget: (context, url, error) =>
-                    CircularProgressIndicator(),
-                imageUrl: attachment!.url! + attachment.attachment!)));
-      });
-    }
-    if (post.specialPoll != null) {
-      children.add(Poll(specialPoll: post.specialPoll!));
-    }
-
-    return Column(children: children);
   }
 }

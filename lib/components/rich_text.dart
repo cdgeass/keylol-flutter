@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:html_unescape/html_unescape.dart';
@@ -13,8 +14,11 @@ import 'package:video_player/video_player.dart';
 
 class KRichText extends StatefulWidget {
   final String message;
+  final Map<String, Attachment> attachments;
 
-  const KRichText({Key? key, required this.message}) : super(key: key);
+  const KRichText(
+      {Key? key, required this.message, this.attachments = const {}})
+      : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _KRichTextState();
@@ -62,6 +66,11 @@ class _KRichTextState extends State<KRichText> {
         .replaceAll('[media]', '<video src="')
         .replaceAll('[/media]', '"></video>');
 
+    // 附件
+    message = message
+        .replaceAll('[attachimg]', '<attachimg>')
+        .replaceAll('[/attachimg]', '</attachimg>');
+
     // 倒计时
     message = message.replaceAllMapped(
         RegExp(r'(?:\[micxp_countdown)(?:=?)([^\[]*)]'), (match) {
@@ -94,7 +103,13 @@ class _KRichTextState extends State<KRichText> {
           }
         },
         tagsList: Html.tags
-          ..addAll(['collapse', 'spoil', 'micxp_countdown', 'blockquote']),
+          ..addAll([
+            'collapse',
+            'spoil',
+            'micxp_countdown',
+            'blockquote',
+            'attachimg'
+          ]),
         customRender: {
           'collapse': (RenderContext context, child) {
             final title = context.tree.element!.attributes['title'] ?? '';
@@ -120,6 +135,22 @@ class _KRichTextState extends State<KRichText> {
                       imageUrl: src));
             }
             return null;
+          },
+          'attachimg': (context, child) {
+            final attachmentId = context.tree.element!.innerHtml;
+
+            final attachment = widget.attachments[attachmentId];
+            if (attachment == null) {
+              return Container();
+            }
+
+            return Container(
+                padding: EdgeInsets.only(bottom: 8.0),
+                child: CachedNetworkImage(
+                    placeholder: (context, url) => CircularProgressIndicator(),
+                    errorWidget: (context, url, error) =>
+                        CircularProgressIndicator(),
+                    imageUrl: attachment.url!));
           },
           'video': (context, child) {
             var src = context.tree.element!.attributes['src'];
