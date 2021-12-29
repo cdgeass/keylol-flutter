@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:keylol_flutter/models/favorite_thread.dart';
 import 'package:keylol_flutter/models/notice.dart';
 import 'package:keylol_flutter/models/profile.dart';
 
@@ -42,5 +43,19 @@ class NoticeNotifier extends ChangeNotifier {
 
   void clear() {
     update(_empty);
+  }
+}
+
+class FavoriteThreadsNotifier extends ChangeNotifier {
+  List<FavoriteThread> favoriteThreads = [];
+
+  FavoriteThreadsNotifier._internal();
+
+  static late final _instance = FavoriteThreadsNotifier._internal();
+
+  factory FavoriteThreadsNotifier() => _instance;
+
+  void update(List<FavoriteThread> favoriteThreads) {
+    this.favoriteThreads = favoriteThreads;
   }
 }

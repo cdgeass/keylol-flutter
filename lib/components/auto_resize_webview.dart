@@ -24,6 +24,9 @@ class _AutoResizeWebViewState extends State<AutoResizeWebView> {
             crossPlatform: InAppWebViewOptions(
                 transparentBackground: true, javaScriptEnabled: false)),
         onLoadStop: (controller, uri) async {
+          if (uri.toString().startsWith('https://steampowerd.com/widget')) {
+            return;
+          }
           final scrollHeight = await controller.evaluateJavascript(
               source: 'document.body.scrollHeight');
           if (scrollHeight != null) {

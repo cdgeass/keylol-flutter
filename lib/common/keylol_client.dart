@@ -499,9 +499,16 @@ class KeylolClient {
         },
         data: FormData.fromMap({'description': description}));
 
-    // if (res.data['Message'] != null) {
-    //   return Future.error(res.data['Message']!['messagestr']);
-    // }
+    final messageStr = res.data['Message']?['messagestr'];
+    if (messageStr != null) {
+      if (messageStr.contains('成功')) {
+        await fetchAllFavoriteThreads();
+      } else {
+        return Future.error(messageStr);
+      }
+    } else {
+      return Future.error('出错啦');
+    }
   }
 
   // 一次性获取所有收藏帖子
@@ -517,6 +524,7 @@ class KeylolClient {
       favoriteThreads.addAll(list);
     }
 
+    FavoriteThreadsNotifier().update(favoriteThreads);
     return favoriteThreads;
   }
 

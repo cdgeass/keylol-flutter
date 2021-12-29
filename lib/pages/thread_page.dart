@@ -6,11 +6,12 @@ import 'package:keylol_flutter/common/constants.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/common/notifiers.dart';
 import 'package:keylol_flutter/common/styling.dart';
+import 'package:keylol_flutter/common/utils.dart';
+import 'package:keylol_flutter/components/avatar.dart';
 import 'package:keylol_flutter/components/post_card.dart';
 import 'package:keylol_flutter/components/rich_text.dart';
 import 'package:keylol_flutter/components/sliver_tab_bar_delegate.dart';
 import 'package:keylol_flutter/components/throwable_future_builder.dart';
-import 'package:keylol_flutter/models/favorite_thread.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -94,7 +95,6 @@ class _ThreadPageState extends State<ThreadPage> {
         future: _future,
         builder: (context, List<Object> results) {
           final viewThread = (results[0] as ViewThread);
-          final favoriteThreads = (results[1] as List<FavoriteThread>);
 
           if (_posts.isEmpty) {
             _page = 1;
@@ -103,91 +103,103 @@ class _ThreadPageState extends State<ThreadPage> {
           }
 
           final title = viewThread.subject ?? '';
-
-          // TODO material 长标题需展开，官方没有实现, FlexibleSpaceBar 效果不行
-          // final mediaQuery = MediaQuery.of(context);
-          // final availableWidth = mediaQuery.size.width - 72.0 - 88.0;
-          // final textSize = calTextSize(context, title,
-          //     style: Theme.of(context).textTheme.headline6,
-          //     maxWidth: availableWidth);
+          // 拆分 html 延迟加载 iframe
+          final widgets = htmlHandler(context, _posts[0].message!);
+          final itemCount = 3 + widgets.length + _posts.length - 1;
 
           return Scaffold(
+              appBar: AppBar(
+                actions: _buildActions(context, viewThread),
+              ),
               body: Stack(children: [
-            CustomScrollView(
-              controller: _controller,
-              slivers: [
-                SliverAppBar(
-                  forceElevated: true,
-                  // expandedHeight: textSize.height,
-                  actions: _buildActions(context, viewThread, favoriteThreads),
-                  // title: Text(title),
-                  // flexibleSpace: FlexibleSpaceBar(
-                  //   titlePadding: EdgeInsetsDirectional.only(
-                  //       start: 72, bottom: 16.0, end: 88.0),
-                  //   title: RichText(
-                  //     text: TextSpan(
-                  //         text: title,
-                  //         style: Theme.of(context).textTheme.headline6),
-                  //   ),
-                  // ),
-                ),
-                SliverList(
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                  final i = index - 1;
-                  if (i == _posts.length) {
-                    if (error != null) {
-                      return Center(child: Text(error!));
-                    }
-                    return Center(
-                        child: Opacity(
-                      opacity: _total > _posts.length ? 1.0 : 0.0,
-                      child: CircularProgressIndicator(),
-                    ));
-                  }
-                  if (i == -1) {
-                    return Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Material(
-                          child: Text(title, style: AppTheme.title),
+                ListView.builder(
+                    controller: _controller,
+                    itemCount: itemCount,
+                    itemBuilder: (context, index) {
+                      if (index == 0) {
+                        return Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Text(title,
+                              style: AppTheme.title
+                                  .copyWith(color: AppTheme.darkText)),
+                        );
+                      } else if (index == 1) {
+                        return _buildFirstHeader(_posts[0]);
+                      } else if (index == widgets.length + 2) {
+                        return _buildFirstBottom(_posts[0]);
+                      } else if (index < widgets.length + 2) {
+                        return widgets[index - 2];
+                      } else if (index == itemCount) {
+                        if (error != null) {
+                          return Center(child: Text(error!));
+                        }
+                        return Center(
+                            child: Opacity(
+                          opacity: _total > _posts.length ? 1.0 : 0.0,
+                          child: CircularProgressIndicator(),
                         ));
-                  }
-
-                  final post = _posts[i];
-                  return PostCard(
-                      authorId: post.authorId!,
-                      author: post.author!,
-                      dateline: post.dateline!,
-                      pid: post.pid!,
-                      content: KRichText(
-                        message: post.message!,
-                        attachments: post.attachments ?? {},
-                      ),
-                      tid: post.tid!);
-                }, childCount: _posts.length + 2))
-              ],
-            ),
-            Positioned(
-                bottom: 0.0,
-                left: 0.0,
-                right: 0.0,
-                child: _Reply(
-                  fid: viewThread.fid!,
-                  tid: widget.tid,
-                  onSuccess: () {
-                    _onRefresh();
-                  },
-                ))
-          ]));
+                      } else {
+                        final post = _posts[index - 3 - widgets.length + 1];
+                        return PostCard(
+                            authorId: post.authorId!,
+                            author: post.author!,
+                            dateline: post.dateline!,
+                            pid: post.pid!,
+                            content: KRichText(message: post.message!),
+                            tid: post.tid!);
+                      }
+                    }),
+                Positioned(
+                    bottom: 0.0,
+                    left: 0.0,
+                    right: 0.0,
+                    child: _Reply(
+                      fid: viewThread.fid!,
+                      tid: widget.tid,
+                      onSuccess: () {
+                        _onRefresh();
+                      },
+                    ))
+              ]));
         },
       ),
     );
   }
 
-  List<Widget> _buildActions(BuildContext context, ViewThread viewThread,
-      List<FavoriteThread> favoriteThreads) {
-    // TODO 优化
-    final isFavored = favoriteThreads.any((favoriteThread) =>
-        favoriteThread.idType == 'tid' && favoriteThread.id == widget.tid);
+  Widget _buildFirstHeader(ViewThreadPost post) {
+    return ListTile(
+      leading: Avatar(
+        uid: post.authorId!,
+        size: AvatarSize.middle,
+        width: 40.0,
+      ),
+      title: Text(post.author!),
+      subtitle: Text(post.dateline!),
+    );
+  }
+
+  Widget _buildFirstBottom(ViewThreadPost post) {
+    return ButtonBar(
+      alignment: MainAxisAlignment.start,
+      children: [
+        IconButton(
+            onPressed: () {
+              // TODO 评分
+            },
+            icon: Icon(Icons.thumb_up_outlined)),
+        IconButton(
+            onPressed: () {
+              // TODO 支持
+            },
+            icon: Icon(Icons.plus_one_outlined)),
+      ],
+    );
+  }
+
+  List<Widget> _buildActions(BuildContext context, ViewThread viewThread) {
+    final isFavored = FavoriteThreadsNotifier().favoriteThreads.any(
+        (favoriteThread) =>
+            favoriteThread.idType == 'tid' && favoriteThread.id == widget.tid);
     return [
       if (!isFavored)
         IconButton(

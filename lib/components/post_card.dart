@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/common/notifiers.dart';
 import 'package:keylol_flutter/components/avatar.dart';
 
@@ -84,5 +83,4 @@ class _PostCardState extends State<PostCard> {
       ),
     );
   }
-
 }

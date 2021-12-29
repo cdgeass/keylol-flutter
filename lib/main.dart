@@ -14,9 +14,9 @@ import 'common/styling.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await KeylolClient().init();
-
-  KeylolClient().fetchProfile();
+  await KeylolClient().init()
+  .then((_) => KeylolClient().fetchProfile())
+  .then((_) => KeylolClient().fetchAllFavoriteThreads());
 
   runApp(KeylolApp());
 }
