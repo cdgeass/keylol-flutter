@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 
 class SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
   final TabBar tabBar;
+  final Color? background;
 
-  SliverTabBarDelegate(this.tabBar);
+  const SliverTabBarDelegate({Key? key, required this.tabBar, this.background});
 
   @override
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
+    return Material(
+      color: Theme.of(context).backgroundColor,
       child: tabBar,
     );
   }

@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/constants.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/common/notifiers.dart';
+import 'package:keylol_flutter/common/styling.dart';
 import 'package:keylol_flutter/components/post_card.dart';
 import 'package:keylol_flutter/components/refreshable_list_view.dart';
 import 'package:keylol_flutter/components/rich_text.dart';
+import 'package:keylol_flutter/components/sliver_tab_bar_delegate.dart';
 import 'package:keylol_flutter/components/throwable_future_builder.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -268,18 +270,18 @@ class _ReplyState extends State<_Reply> {
     return DefaultTabController(
       length: EMOJI_MAP.keys.length,
       child: NestedScrollView(
-          headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+          headerSliverBuilder: (context, innerBoxIsScrolled) {
             return [
               SliverPersistentHeader(
                   pinned: true,
-                  delegate: _SliverTabBarDelegate(TabBar(
-                      indicatorColor: Colors.blueAccent,
-                      labelColor: Colors.blueAccent,
-                      unselectedLabelColor: Colors.black,
-                      isScrollable: true,
-                      tabs: EMOJI_MAP.keys
-                          .map((key) => Tab(text: key))
-                          .toList()))),
+                  floating: true,
+                  delegate: SliverTabBarDelegate(
+                      tabBar: TabBar(
+                          isScrollable: true,
+                          tabs: EMOJI_MAP.keys
+                              .map((key) => Tab(
+                                  child: Text(key, style: AppTheme.subtitle)))
+                              .toList()))),
             ];
           },
           body: TabBarView(
@@ -303,31 +305,6 @@ class _ReplyState extends State<_Reply> {
             );
           }).toList())),
     );
-  }
-}
-
-class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
-  _SliverTabBarDelegate(this.tabBar);
-
-  final TabBar tabBar;
-
-  @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      child: tabBar,
-    );
-  }
-
-  @override
-  double get maxExtent => tabBar.preferredSize.height;
-
-  @override
-  double get minExtent => tabBar.preferredSize.height;
-
-  @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
-    return false;
   }
 }
 

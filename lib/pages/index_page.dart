@@ -49,15 +49,9 @@ class _IndexPageState extends State<IndexPage> {
         child: ThrowableFutureBuilder(
           future: _future,
           builder: (context, AsyncSnapshot<Index> snapshot) {
-            late Widget body;
-            if (snapshot.hasData) {
-              var index = snapshot.data!;
-              body = _buildTabPage(index);
-            } else {
-              body = Center(
-                child: CircularProgressIndicator(),
-              );
-            }
+            final index = snapshot.data!;
+            final body = _buildTabPage(index);
+
             return Scaffold(
                 backgroundColor: Theme.of(context).backgroundColor,
                 drawer: UserAccountDrawer(),
@@ -118,7 +112,8 @@ class _IndexPageState extends State<IndexPage> {
                 flexibleSpace: slideView,
               ),
               SliverPersistentHeader(
-                  delegate: SliverTabBarDelegate(TabBar(
+                  delegate: SliverTabBarDelegate(
+                      tabBar: TabBar(
                 tabs: tabs,
                 isScrollable: true,
                 labelColor: Theme.of(context).tabBarTheme.labelColor,

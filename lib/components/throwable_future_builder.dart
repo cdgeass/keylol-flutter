@@ -33,7 +33,12 @@ class ThrowableFutureBuilder<T> extends StatelessWidget {
               child: CircularProgressIndicator(),
             );
           }
-          return builder.call(context, snapshot);
+          if (snapshot.hasData) {
+            return builder.call(context, snapshot);
+          }
+          return Center(
+            child: CircularProgressIndicator(),
+          );
         });
   }
 }
