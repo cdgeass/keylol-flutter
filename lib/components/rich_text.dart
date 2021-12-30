@@ -189,6 +189,7 @@ class _KRichTextState extends State<KRichText> {
           }
         },
         style: {
+          'p': Style(padding: EdgeInsets.only(left: 8.0, right: 8.0)),
           '.reply_wrap': Style(
               padding: EdgeInsets.all(8.0),
               margin: EdgeInsets.all(8.0),

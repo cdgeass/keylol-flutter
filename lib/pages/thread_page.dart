@@ -129,7 +129,7 @@ class _ThreadPageState extends State<ThreadPage> {
                         return _buildFirstBottom(_posts[0]);
                       } else if (index < widgets.length + 2) {
                         return widgets[index - 2];
-                      } else if (index == itemCount) {
+                      } else if (index == itemCount - 1) {
                         if (error != null) {
                           return Center(child: Text(error!));
                         }
