@@ -114,7 +114,7 @@ class _ThreadPageState extends State<ThreadPage> {
                     itemBuilder: (context, index) {
                       if (index == 0) {
                         return Padding(
-                          padding: EdgeInsets.all(8.0),
+                          padding: EdgeInsets.all(16.0),
                           child: Text(title,
                               style: AppTheme.title
                                   .copyWith(color: AppTheme.darkText)),

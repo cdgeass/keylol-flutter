@@ -20,7 +20,7 @@ class _AutoResizeWebViewState extends State<AutoResizeWebView> {
     return Container(
       padding: widget.padding,
       color: Theme.of(context).backgroundColor,
-      height: _height ?? 72.0,
+      height: _height ?? 73.0,
       child: InAppWebView(
         initialUrlRequest: URLRequest(url: Uri.parse(widget.url)),
         initialOptions: InAppWebViewGroupOptions(

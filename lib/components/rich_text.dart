@@ -295,7 +295,8 @@ class _KRichTextState extends State<KRichText> {
                 left: BorderSide(
                     width: 8.0,
                     color: Theme.of(context).primaryColor.withOpacity(0.5)),
-              ))
+              )),
+          'iframe': Style(height: 73.0)
         });
   }
 }
@@ -349,6 +350,7 @@ class _CollapseState extends State<_Collapse> with RestorationMixin {
                       Text(
                         widget.title,
                         style: TextStyle(color: Colors.white),
+                        overflow: TextOverflow.ellipsis,
                       )
                     ],
                   ),
