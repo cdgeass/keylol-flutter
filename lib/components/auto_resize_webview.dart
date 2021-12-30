@@ -3,8 +3,10 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 class AutoResizeWebView extends StatefulWidget {
   final String url;
+  final EdgeInsets? padding;
 
-  const AutoResizeWebView({Key? key, required this.url}) : super(key: key);
+  const AutoResizeWebView({Key? key, required this.url, this.padding})
+      : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _AutoResizeWebViewState();
@@ -16,6 +18,7 @@ class _AutoResizeWebViewState extends State<AutoResizeWebView> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      padding: widget.padding,
       color: Theme.of(context).backgroundColor,
       height: _height ?? 72.0,
       child: InAppWebView(
@@ -24,13 +27,15 @@ class _AutoResizeWebViewState extends State<AutoResizeWebView> {
             crossPlatform: InAppWebViewOptions(
                 transparentBackground: true, javaScriptEnabled: false)),
         onLoadStop: (controller, uri) async {
-          if (uri.toString().startsWith('https://steampowerd.com/widget')) {
+          if (uri
+              .toString()
+              .startsWith('https://store.steampowered.com/widget')) {
             return;
           }
           final scrollHeight = await controller.evaluateJavascript(
               source: 'document.body.scrollHeight');
           if (scrollHeight != null) {
-            final height = double.parse(scrollHeight).ceilToDouble();
+            final height = scrollHeight.ceilToDouble();
             setState(() {
               _height = height;
             });

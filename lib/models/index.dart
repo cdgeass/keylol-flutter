@@ -14,11 +14,12 @@ class Index {
       var slideShow = portalContent.getElementsByClassName('slideshow')[0];
       slideViewItems =
           slideShow.getElementsByTagName('li').map((slideShowItem) {
-        final title =
-            slideShowItem.getElementsByClassName('title')[0].text;
+        final title = slideShowItem.getElementsByClassName('title')[0].text;
         final content = slideShowItem.getElementsByTagName('a')[0];
-        final tid =
-            content.attributes['href']?.split('-')[0].replaceFirst('t', '');
+        final tid = content.attributes['href']
+            ?.replaceAll('https://keylol.com/', '')
+            .split('-')[0]
+            .replaceFirst('t', '');
         final img = content.getElementsByTagName('img')[0].attributes['src'];
         return IndexSlideViewItem(tid!, title, img!);
       }).toList();
@@ -90,8 +91,8 @@ class Index {
     final r = int.parse('0x' + a.substring(0, 2)) | 0;
     var e = '';
     for (var n = 2; a.length - n > 0; n += 2) {
-      final temp =
-          ('0' + (int.parse('0x' + a.substring(n, n + 2)) ^ r).toRadixString(16));
+      final temp = ('0' +
+          (int.parse('0x' + a.substring(n, n + 2)) ^ r).toRadixString(16));
       e += '%' + temp.substring(temp.length - 2);
     }
 

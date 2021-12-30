@@ -4,43 +4,30 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:html/dom.dart' as dom;
 import 'package:html_unescape/html_unescape.dart';
-import 'package:keylol_flutter/common/styling.dart';
 import 'package:keylol_flutter/components/auto_resize_webview.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:video_player/video_player.dart';
 
-class KRichText extends StatefulWidget {
+class KRichTextBuilder {
   final String message;
   final Map<String, Attachment> attachments;
 
-  const KRichText(
-      {Key? key, required this.message, this.attachments = const {}})
-      : super(key: key);
+  KRichTextBuilder(message, {this.attachments = const {}})
+      : message =
+            _formatMessage(HtmlUnescape().convert(message).trim(), attachments);
 
-  @override
-  State<StatefulWidget> createState() => _KRichTextState();
-}
-
-class _KRichTextState extends State<KRichText> {
-  List<VideoPlayerController> _videoPlayerControllers = [];
-
-  @override
-  void dispose() {
-    super.dispose();
-
-    _videoPlayerControllers.forEach((controller) {
-      controller.dispose();
-    });
-  }
-
-  String _formatMessage(BuildContext context, String message) {
+  static String _formatMessage(
+      String message, Map<String, Attachment> attachments) {
     if (message.isEmpty) {
       return message;
     }
     // 转义
     message = HtmlUnescape().convert(message);
+
+    message = message.replaceAll('<br>', '<br />');
 
     // 折叠内容
     message = message.replaceAllMapped(RegExp(r'(?:\[collapse)(?:=?)([^\]]*)]'),
@@ -66,8 +53,8 @@ class _KRichTextState extends State<KRichText> {
         .replaceAll('[/media]', '"></video>');
 
     // 附件
-    if (!message.contains('attachimg') && widget.attachments.isNotEmpty) {
-      for (var attachment in widget.attachments.values) {
+    if (!message.contains('attachimg') && attachments.isNotEmpty) {
+      for (var attachment in attachments.values) {
         message +=
             '<br /><img src="${attachment.url! + attachment.attachment!}" />';
       }
@@ -86,10 +73,100 @@ class _KRichTextState extends State<KRichText> {
     return message;
   }
 
+  List<Widget> build() {
+    final List<Widget> widgets = [];
+
+    final document = HtmlParser.parseHTML(message);
+    var html = '';
+    for (var element in document.body!.nodes) {
+      if (element is dom.Text) {
+        html += element.data;
+      } else if (element.text != '<br />') {
+        html += (element as dom.Element).outerHtml;
+      } else {
+        if (html.isNotEmpty) {
+          widgets.addAll(_splitByIframe(html));
+        }
+        html = '';
+      }
+    }
+    if (html.isNotEmpty) {
+      widgets.addAll(_splitByIframe(html));
+    }
+
+    // TODO 存在单个标签包裹整个文章
+
+    return widgets;
+  }
+
+  List<Widget> _splitByIframe(String message) {
+    final List<Widget> widgets = [];
+
+    if (message.startsWith('<spoil') || message.startsWith('<collapse')) {
+      // 如果在隐藏或折叠内容内则不切分
+      widgets.add(KRichText(message: message));
+    } else {
+      var lastIndex = 0;
+      var index = 0;
+
+      while (message.contains('iframe')) {
+        index = message.indexOf('<iframe');
+        final beforeIframe = message.substring(lastIndex, index);
+        if (beforeIframe != '\n') {
+          widgets.add(KRichText(message: beforeIframe));
+        }
+
+        lastIndex = index;
+
+        index = message.indexOf('</iframe>') + 9;
+        final iframe = message.substring(lastIndex, index);
+        final document = HtmlParser.parseHTML(iframe);
+        final element = document.body!.children[0];
+        widgets.add(AutoResizeWebView(
+            padding: EdgeInsets.only(left: 16.0, right: 16.0),
+            url: element.attributes['src']!));
+
+        message = message.substring(index);
+        lastIndex = 0;
+        index = 0;
+      }
+      if (message.isNotEmpty) {
+        widgets.add(KRichText(message: message));
+      }
+    }
+
+    return widgets;
+  }
+}
+
+class KRichText extends StatefulWidget {
+  final String message;
+  final Map<String, Attachment> attachments;
+
+  const KRichText(
+      {Key? key, required this.message, this.attachments = const {}})
+      : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => _KRichTextState();
+}
+
+class _KRichTextState extends State<KRichText> {
+  List<VideoPlayerController> _videoPlayerControllers = [];
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    _videoPlayerControllers.forEach((controller) {
+      controller.dispose();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Html(
-        data: _formatMessage(context, widget.message),
+        data: widget.message,
         onLinkTap: (url, _, attributes, element) {
           if (url != null && url.startsWith('https://keylol.com/')) {
             final subUrl = url.replaceFirst('https://keylol.com/', '');
@@ -189,11 +266,9 @@ class _KRichTextState extends State<KRichText> {
           }
         },
         style: {
-          'p': Style(padding: EdgeInsets.only(left: 8.0, right: 8.0)),
-          '.reply_wrap': Style(
-              padding: EdgeInsets.all(8.0),
-              margin: EdgeInsets.all(8.0),
-              border: Border.all(color: AppTheme.lightText))
+          'body': Style(
+              margin: EdgeInsets.only(left: 8.0, right: 8.0),
+              padding: EdgeInsets.only(left: 8.0, right: 8.0))
         });
   }
 }

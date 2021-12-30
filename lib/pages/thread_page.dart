@@ -6,7 +6,6 @@ import 'package:keylol_flutter/common/constants.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/common/notifiers.dart';
 import 'package:keylol_flutter/common/styling.dart';
-import 'package:keylol_flutter/common/utils.dart';
 import 'package:keylol_flutter/components/avatar.dart';
 import 'package:keylol_flutter/components/post_card.dart';
 import 'package:keylol_flutter/components/rich_text.dart';
@@ -25,7 +24,7 @@ class ThreadPage extends StatefulWidget {
 }
 
 class _ThreadPageState extends State<ThreadPage> {
-  late Future<List<Object>> _future;
+  late Future<ViewThread> _future;
 
   var _page = 1;
   var _total = 0;
@@ -51,10 +50,7 @@ class _ThreadPageState extends State<ThreadPage> {
   }
 
   Future<void> _onRefresh() async {
-    final future = Future.wait([
-      KeylolClient().fetchThread(widget.tid, 1),
-      KeylolClient().fetchAllFavoriteThreads()
-    ]);
+    final future = KeylolClient().fetchThread(widget.tid, 1);
     setState(() {
       _future = future;
       _page = 1;
@@ -93,9 +89,7 @@ class _ThreadPageState extends State<ThreadPage> {
       onRefresh: _onRefresh,
       child: ThrowableFutureBuilder(
         future: _future,
-        builder: (context, List<Object> results) {
-          final viewThread = (results[0] as ViewThread);
-
+        builder: (context, ViewThread viewThread) {
           if (_posts.isEmpty) {
             _page = 1;
             _total = (viewThread.replies ?? 0) + 1;
@@ -104,7 +98,7 @@ class _ThreadPageState extends State<ThreadPage> {
 
           final title = viewThread.subject ?? '';
           // 拆分 html 延迟加载 iframe
-          final widgets = htmlHandler(context, _posts[0].message!);
+          final widgets = KRichTextBuilder(_posts[0].message!).build();
           final itemCount = 3 + widgets.length + _posts.length - 1;
 
           return Scaffold(
