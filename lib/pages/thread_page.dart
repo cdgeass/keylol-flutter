@@ -98,7 +98,9 @@ class _ThreadPageState extends State<ThreadPage> {
 
           final title = viewThread.subject ?? '';
           // 拆分 html 延迟加载 iframe
-          final widgets = KRichTextBuilder(_posts[0].message!).build();
+          final widgets = KRichTextBuilder(_posts[0].message!,
+                  attachments: _posts[0].attachments ?? {})
+              .build();
           final itemCount = 3 + widgets.length + _posts.length - 1;
 
           return Scaffold(

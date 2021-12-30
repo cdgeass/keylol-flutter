@@ -53,22 +53,22 @@ class KRichTextBuilder {
         .replaceAll('[/media]', '"></video>');
 
     // 附件
-    if (!message.contains('attachimg') && attachments.isNotEmpty) {
+    if (!message.contains('attach') && attachments.isNotEmpty) {
       for (var attachment in attachments.values) {
         message +=
             '<br /><img src="${attachment.url! + attachment.attachment!}" />';
       }
     } else {
       message = message
-          .replaceAll('[attachimg]', '<attachimg>')
-          .replaceAll('[/attachimg]', '</attachimg>');
+          .replaceAll('[attach]', '<attach>')
+          .replaceAll('[/attach]', '</attach>');
     }
 
     // 倒计时
     message = message.replaceAllMapped(
         RegExp(r'(?:\[micxp_countdown)(?:=?)([^\[]*)]'), (match) {
-      return '<micxp_countdown title="${match[1]}">';
-    }).replaceAll('[/micxp_countdown]', '</micxp_countdown>');
+      return '<countdown title="${match[1]}">';
+    }).replaceAll('[/countdown]', '</countdown>');
 
     return message;
   }
@@ -104,7 +104,10 @@ class KRichTextBuilder {
 
     if (message.startsWith('<spoil') || message.startsWith('<collapse')) {
       // 如果在隐藏或折叠内容内则不切分
-      widgets.add(KRichText(message: message));
+      widgets.add(KRichText(
+        message: message,
+        attachments: attachments,
+      ));
     } else {
       var lastIndex = 0;
       var index = 0;
@@ -113,7 +116,10 @@ class KRichTextBuilder {
         index = message.indexOf('<iframe');
         final beforeIframe = message.substring(lastIndex, index);
         if (beforeIframe != '\n') {
-          widgets.add(KRichText(message: beforeIframe));
+          widgets.add(KRichText(
+            message: beforeIframe,
+            attachments: attachments,
+          ));
         }
 
         lastIndex = index;
@@ -131,7 +137,10 @@ class KRichTextBuilder {
         index = 0;
       }
       if (message.isNotEmpty) {
-        widgets.add(KRichText(message: message));
+        widgets.add(KRichText(
+          message: message,
+          attachments: attachments,
+        ));
       }
     }
 
@@ -169,8 +178,22 @@ class _KRichTextState extends State<KRichText> {
         data: widget.message,
         onLinkTap: (url, _, attributes, element) {
           if (url != null && url.startsWith('https://keylol.com/')) {
+            url = HtmlUnescape().convert(url);
             final subUrl = url.replaceFirst('https://keylol.com/', '');
-            if (subUrl.contains(".php")) {
+            if (subUrl.contains('findpost')) {
+              final params = url.split('?')[1].split('&');
+              late String pid;
+              late String ptid;
+              for (var param in params) {
+                if (param.startsWith('ptid=')) {
+                  ptid = param.replaceAll('ptid=', '');
+                }
+                if (param.startsWith('pid')) {
+                  pid = param.replaceAll('pid', '');
+                }
+              }
+              Navigator.of(context).pushNamed('/thread', arguments: ptid);
+            } else if (subUrl.contains(".php")) {
               Navigator.of(context).pushNamed('/webview', arguments: url);
             } else if (subUrl.startsWith('t')) {
               final tid = subUrl.split('-')[0].replaceFirst('t', '');
@@ -186,13 +209,7 @@ class _KRichTextState extends State<KRichText> {
           }
         },
         tagsList: Html.tags
-          ..addAll([
-            'collapse',
-            'spoil',
-            'micxp_countdown',
-            'blockquote',
-            'attachimg'
-          ]),
+          ..addAll(['collapse', 'spoil', 'countdown', 'attach']),
         customRender: {
           'collapse': (RenderContext context, child) {
             final title = context.tree.element!.attributes['title'] ?? '';
@@ -207,19 +224,23 @@ class _KRichTextState extends State<KRichText> {
           'img': (context, child) {
             var src = context.tree.element!.attributes['src'];
             if (src != null) {
-              src = src.replaceFirst('http://', 'https://');
+              if (src.startsWith('http')) {
+                src = src.replaceFirst('http://', 'https://');
+              } else {
+                src = 'https://keylol.com/$src';
+              }
               return Container(
                   padding: EdgeInsets.only(bottom: 8.0),
                   child: CachedNetworkImage(
                       placeholder: (context, url) =>
-                          CircularProgressIndicator(),
+                          Center(child: CircularProgressIndicator()),
                       errorWidget: (context, url, error) =>
-                          CircularProgressIndicator(),
+                          Center(child: CircularProgressIndicator()),
                       imageUrl: src));
             }
             return null;
           },
-          'attachimg': (context, child) {
+          'attach': (context, child) {
             final attachmentId = context.tree.element!.innerHtml;
 
             final attachment = widget.attachments[attachmentId];
@@ -259,16 +280,22 @@ class _KRichTextState extends State<KRichText> {
             }
             return Container();
           },
-          'micxp_countdown': (context, child) {
+          'countdown': (context, child) {
             final date = context.tree.element!.text;
 
             return _CountDown(date: date);
           }
         },
         style: {
-          'body': Style(
-              margin: EdgeInsets.only(left: 8.0, right: 8.0),
-              padding: EdgeInsets.only(left: 8.0, right: 8.0))
+          'body': Style(margin: EdgeInsets.only(left: 16.0, right: 16.0)),
+          '.reply_wrap': Style(
+              padding: EdgeInsets.all(8.0),
+              margin: EdgeInsets.only(bottom: 16.0),
+              border: Border(
+                left: BorderSide(
+                    width: 8.0,
+                    color: Theme.of(context).primaryColor.withOpacity(0.5)),
+              ))
         });
   }
 }
