@@ -65,12 +65,15 @@ class _IndexThreadCardState extends State<IndexThreadCard> {
   }
 }
 
+typedef ContentBuilder = Widget Function(Widget child);
+
 class ThreadCard extends StatefulWidget {
   final String tid;
   final String subject;
   final String authorId;
   final String author;
   final String dateline;
+  final ContentBuilder? contentBuilder;
 
   const ThreadCard(
       {Key? key,
@@ -78,7 +81,8 @@ class ThreadCard extends StatefulWidget {
       required this.subject,
       required this.authorId,
       required this.author,
-      required this.dateline})
+      required this.dateline,
+      this.contentBuilder})
       : super(key: key);
 
   @override
@@ -88,6 +92,15 @@ class ThreadCard extends StatefulWidget {
 class _ThreadCard extends State<ThreadCard> {
   @override
   Widget build(BuildContext context) {
+    final content = ListTile(
+      leading: Avatar(
+        uid: widget.authorId,
+        size: AvatarSize.middle,
+        width: 40.0,
+      ),
+      title: Text(widget.subject),
+      subtitle: Text('${widget.author} - ${widget.dateline}'),
+    );
     return Card(
       elevation: 1.0,
       clipBehavior: Clip.antiAlias,
@@ -95,15 +108,9 @@ class _ThreadCard extends State<ThreadCard> {
         onTap: () {
           Navigator.of(context).pushNamed('/thread', arguments: widget.tid);
         },
-        child: ListTile(
-          leading: Avatar(
-            uid: widget.authorId,
-            size: AvatarSize.middle,
-            width: 40.0,
-          ),
-          title: Text(widget.subject),
-          subtitle: Text('${widget.author} - ${widget.dateline}'),
-        ),
+        child: widget.contentBuilder == null
+            ? content
+            : widget.contentBuilder!.call(content),
       ),
     );
   }

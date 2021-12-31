@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
+import 'package:keylol_flutter/common/styling.dart';
 import 'package:keylol_flutter/components/thread_card.dart';
 import 'package:keylol_flutter/components/throwable_future_builder.dart';
 import 'package:keylol_flutter/models/forum_display.dart';
@@ -45,9 +46,19 @@ class _ForumPageState extends State<ForumPage>
                 controller: _tabController,
                 isScrollable: true,
                 tabs: [
-                  Tab(text: '全部'),
+                  Tab(
+                      child: Text(
+                    '全部',
+                    style: AppTheme.subtitle.copyWith(
+                        fontWeight: FontWeight.bold, color: Colors.white),
+                  )),
                   for (final threadType in threadTypes)
-                    Tab(text: threadType.name)
+                    Tab(
+                        child: Text(
+                      threadType.name,
+                      style: AppTheme.subtitle.copyWith(
+                          fontWeight: FontWeight.bold, color: Colors.white),
+                    )),
                 ],
               ),
             ),
@@ -241,13 +252,15 @@ class _ForumThreadListState extends State<_ForumThreadList> {
         controller: _scrollController,
         slivers: [
           SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsetsDirectional.only(start: 8.0, end: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: _filterButtons(),
-              ),
-            ),
+            child: Material(
+                color: Theme.of(context).cardColor,
+                child: Padding(
+                  padding: EdgeInsetsDirectional.only(start: 8.0, end: 8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: _filterButtons(),
+                  ),
+                )),
           ),
           SliverList(
             delegate: SliverChildBuilderDelegate((context, index) {
@@ -281,30 +294,34 @@ class _ForumThreadItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final card = ThreadCard(
+    ContentBuilder? contentBuilder;
+    if (forumThread.displayOrder == 1) {
+      contentBuilder = (child) {
+        return ClipRect(
+            child: Banner(
+                location: BannerLocation.topStart,
+                message: '置顶',
+                color: Color(0xFF81C784),
+                child: child));
+      };
+    } else if (forumThread.displayOrder == 3) {
+      contentBuilder = (child) {
+        return ClipRect(
+            child: Banner(
+                location: BannerLocation.topStart,
+                message: '置顶',
+                color: Color(0xFFFFD54F),
+                child: child));
+      };
+    }
+
+    return ThreadCard(
       tid: forumThread.tid!,
       subject: forumThread.subject!,
       authorId: forumThread.authorId!,
       author: forumThread.author!,
       dateline: forumThread.dateline!,
+      contentBuilder: contentBuilder,
     );
-
-    if (forumThread.displayOrder == 1) {
-      return ClipRect(
-          child: Banner(
-              location: BannerLocation.topStart,
-              message: '置顶',
-              color: Color(0xFF81C784),
-              child: card));
-    } else if (forumThread.displayOrder == 3) {
-      return ClipRect(
-          child: Banner(
-              location: BannerLocation.topStart,
-              message: '置顶',
-              color: Color(0xFFFFD54F),
-              child: card));
-    } else {
-      return card;
-    }
   }
 }

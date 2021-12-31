@@ -120,11 +120,20 @@ class _ThreadPageState extends State<ThreadPage> {
                                   .copyWith(color: AppTheme.darkText)),
                         );
                       } else if (index == 1) {
-                        return _buildFirstHeader(_posts[0]);
+                        return Material(
+                            color: Theme.of(context).cardColor,
+                            child: _buildFirstHeader(_posts[0]));
                       } else if (index == widgets.length + 2) {
-                        return _buildFirstBottom(_posts[0]);
+                        return Material(
+                            color: Theme.of(context).cardColor,
+                            elevation: 1.0,
+                            shadowColor:
+                                Theme.of(context).cardTheme.shadowColor,
+                            child: _buildFirstBottom(_posts[0]));
                       } else if (index < widgets.length + 2) {
-                        return widgets[index - 2];
+                        return Material(
+                            color: Theme.of(context).cardColor,
+                            child: widgets[index - 2]);
                       } else if (index == itemCount - 1) {
                         if (error != null) {
                           return Center(child: Text(error!));

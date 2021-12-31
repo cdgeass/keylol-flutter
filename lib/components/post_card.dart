@@ -32,8 +32,10 @@ class _PostCardState extends State<PostCard> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 1.0,
-      clipBehavior: Clip.antiAlias,
+      margin: EdgeInsets.only(top: 8.0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.zero,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
