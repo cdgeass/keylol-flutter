@@ -48,10 +48,7 @@ class _PostCardState extends State<PostCard> {
             title: Text(widget.author),
             subtitle: Text(widget.dateline),
           ),
-          Padding(
-            padding: EdgeInsets.all(8.0),
-            child: widget.content,
-          ),
+          widget.content,
           ButtonBar(
             alignment: MainAxisAlignment.start,
             children: [

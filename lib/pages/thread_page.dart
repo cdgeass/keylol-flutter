@@ -69,7 +69,7 @@ class _ThreadPageState extends State<ThreadPage> {
         _total = (viewThread.replies ?? 0) + 1;
         if (posts.isNotEmpty) {
           for (final post in posts) {
-            if (post.position! > _posts[_posts.length - 1].position!) {
+            if (post.number! > _posts[_posts.length - 1].number!) {
               _posts.add(post);
               _page = page;
             }
@@ -100,8 +100,12 @@ class _ThreadPageState extends State<ThreadPage> {
           // 拆分 html 延迟加载 iframe
           final widgets = KRichTextBuilder(_posts[0].message!,
                   attachments: _posts[0].attachments ?? {})
-              .build();
-          final itemCount = 3 + widgets.length + _posts.length - 1;
+              .splitBuild();
+          final itemCount = (3 + widgets.length) // 标题 作者 一楼 帖子尾
+              +
+              (_posts.length - 1) // 去除一楼
+              +
+              1; // loading
 
           return Scaffold(
               appBar: AppBar(
@@ -150,7 +154,9 @@ class _ThreadPageState extends State<ThreadPage> {
                             author: post.author!,
                             dateline: post.dateline!,
                             pid: post.pid!,
-                            content: KRichText(message: post.message!),
+                            content: KRichTextBuilder(post.message!,
+                                    attachments: post.attachments ?? {})
+                                .build(),
                             tid: post.tid!);
                       }
                     }),

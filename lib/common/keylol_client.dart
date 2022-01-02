@@ -420,8 +420,12 @@ class KeylolClient {
 
   // 帖子详情
   Future<ViewThread> fetchThread(String tid, int page) async {
-    var res = await _dio.get("/api/mobile/index.php",
-        queryParameters: {'module': 'viewthread', 'tid': tid, 'page': page});
+    var res = await _dio.get("/api/mobile/index.php", queryParameters: {
+      'version': null,
+      'module': 'viewthread',
+      'tid': tid,
+      'page': page
+    });
 
     if (res.data['Message'] != null) {
       return Future.error(res.data['Message']!['messagestr']);
