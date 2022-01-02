@@ -120,7 +120,7 @@ class KRichTextBuilder {
       while (message.contains('iframe')) {
         index = message.indexOf('<iframe');
         final beforeIframe = message.substring(lastIndex, index);
-        if (beforeIframe != '\n') {
+        if (beforeIframe != '\n' && beforeIframe.isNotEmpty) {
           widgets.add(_richText(
             message,
             attachments,
