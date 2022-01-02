@@ -470,8 +470,9 @@ class KeylolClient {
 
   // 表情
   Future<List<dynamic>> fetchSmiley() async {
-    final res = await _dio
-        .post('/api/mobile/index.php', queryParameters: {'module': 'smiley'});
+    final res = await _dio.post('/api/mobile/index.php',
+        queryParameters: {'module': 'smiley'},
+        options: buildCacheOptions(Duration(days: 7)));
 
     if (res.data['Message'] != null) {
       return Future.error(res.data['Message']!['messagestr']);
@@ -498,8 +499,8 @@ class KeylolClient {
         queryParameters: {
           'module': 'favthread',
           'type': 'thread',
-          'formhash': ProfileNotifier().profile?.formHash,
           'id': tid,
+          'formhash': ProfileNotifier().profile?.formHash,
         },
         data: FormData.fromMap({'description': description}));
 
@@ -544,5 +545,21 @@ class KeylolClient {
     return (res.data['Variables']['list'] as List)
         .map((e) => FavoriteThread.fromJson(e))
         .toList();
+  }
+
+  // 删除收藏的帖子
+  Future<void> deleteFavoriteThread(String favId) async {
+    final res = await _dio.post('/api/mobile/index.php', queryParameters: {
+      'module': 'favthread',
+      'op': 'delete',
+      'deletesubmit': 'true',
+      'favid': favId,
+      'formhash': ProfileNotifier().profile?.formHash
+    });
+
+    if (res.data['Message'] != null &&
+        res.data['Message']!['messageval'] != 'do_success') {
+      return Future.error(res.data['Message']!['messagestr']);
+    }
   }
 }

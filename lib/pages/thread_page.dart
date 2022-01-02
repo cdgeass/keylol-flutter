@@ -11,8 +11,10 @@ import 'package:keylol_flutter/components/post_card.dart';
 import 'package:keylol_flutter/components/rich_text.dart';
 import 'package:keylol_flutter/components/sliver_tab_bar_delegate.dart';
 import 'package:keylol_flutter/components/throwable_future_builder.dart';
+import 'package:keylol_flutter/models/favorite_thread.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:provider/provider.dart';
 
 class ThreadPage extends StatefulWidget {
   final String tid;
@@ -117,6 +119,7 @@ class _ThreadPageState extends State<ThreadPage> {
                     itemCount: itemCount,
                     itemBuilder: (context, index) {
                       if (index == 0) {
+                        // 标题
                         return Padding(
                           padding: EdgeInsets.all(16.0),
                           child: Text(title,
@@ -124,10 +127,12 @@ class _ThreadPageState extends State<ThreadPage> {
                                   .copyWith(color: AppTheme.darkText)),
                         );
                       } else if (index == 1) {
+                        // 帖子作者
                         return Material(
                             color: Theme.of(context).cardColor,
                             child: _buildFirstHeader(_posts[0]));
                       } else if (index == widgets.length + 2) {
+                        // 帖子操作
                         return Material(
                             color: Theme.of(context).cardColor,
                             elevation: 1.0,
@@ -135,10 +140,12 @@ class _ThreadPageState extends State<ThreadPage> {
                                 Theme.of(context).cardTheme.shadowColor,
                             child: _buildFirstBottom(_posts[0]));
                       } else if (index < widgets.length + 2) {
+                        // 帖子
                         return Material(
                             color: Theme.of(context).cardColor,
                             child: widgets[index - 2]);
                       } else if (index == itemCount - 1) {
+                        // 异常
                         if (error != null) {
                           return Center(child: Text(error!));
                         }
@@ -148,6 +155,7 @@ class _ThreadPageState extends State<ThreadPage> {
                           child: CircularProgressIndicator(),
                         ));
                       } else {
+                        // 回复
                         final post = _posts[index - 3 - widgets.length + 1];
                         return PostCard(
                             authorId: post.authorId!,
@@ -208,22 +216,34 @@ class _ThreadPageState extends State<ThreadPage> {
   }
 
   List<Widget> _buildActions(BuildContext context, ViewThread viewThread) {
-    final isFavored = FavoriteThreadsNotifier().favoriteThreads.any(
-        (favoriteThread) =>
-            favoriteThread.idType == 'tid' && favoriteThread.id == widget.tid);
     return [
-      if (!isFavored)
-        IconButton(
-            onPressed: () {
-              _favoriteThread(context);
-            },
-            icon: Icon(Icons.favorite_outline)),
-      if (isFavored)
-        IconButton(
-            onPressed: () {
-              // 取消收藏
-            },
-            icon: Icon(Icons.favorite)),
+      ChangeNotifierProvider.value(
+          value: FavoriteThreadsNotifier(),
+          child: Consumer<FavoriteThreadsNotifier>(
+              builder: (context, notifier, child) {
+            FavoriteThread? favoriteThread;
+            for (var value in FavoriteThreadsNotifier().favoriteThreads) {
+              if (value.idType == 'tid' && value.id == widget.tid) {
+                favoriteThread = value;
+                break;
+              }
+            }
+            if (favoriteThread == null) {
+              return IconButton(
+                  onPressed: () {
+                    _favoriteThread(context);
+                  },
+                  icon: Icon(Icons.favorite_outline));
+            } else {
+              return IconButton(
+                  onPressed: () {
+                    final favId = favoriteThread!.favId;
+                    KeylolClient().deleteFavoriteThread(favId).then(
+                        (value) => FavoriteThreadsNotifier().delete(favId));
+                  },
+                  icon: Icon(Icons.favorite));
+            }
+          })),
       PopupMenuButton(
         icon: Icon(Icons.more_vert),
         itemBuilder: (BuildContext context) {

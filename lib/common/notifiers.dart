@@ -57,5 +57,16 @@ class FavoriteThreadsNotifier extends ChangeNotifier {
 
   void update(List<FavoriteThread> favoriteThreads) {
     this.favoriteThreads = favoriteThreads;
+
+    notifyListeners();
+  }
+
+  void delete(String favId) {
+    this.favoriteThreads = this
+        .favoriteThreads
+        .where((element) => element.favId != favId)
+        .toList();
+
+    notifyListeners();
   }
 }
