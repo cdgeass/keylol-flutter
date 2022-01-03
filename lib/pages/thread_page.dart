@@ -93,9 +93,11 @@ class _ThreadPageState extends State<ThreadPage> {
       child: ThrowableFutureBuilder(
         future: _future,
         builder: (context, ViewThread viewThread) {
-          _page = 1;
-          _total = (viewThread.replies ?? 0) + 1;
-          _posts = viewThread.posts ?? [];
+          if (_posts.isEmpty) {
+            _page = 1;
+            _total = (viewThread.replies ?? 0) + 1;
+            _posts = viewThread.posts ?? [];
+          }
 
           _buildList(context, viewThread);
 
