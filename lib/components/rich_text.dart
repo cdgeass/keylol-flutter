@@ -16,9 +16,8 @@ typedef ScrollToFunction = void Function(String pid);
 class KRichTextBuilder {
   final String message;
   final Map<String, Attachment> attachments;
-  ScrollToFunction? scrollTo;
 
-  KRichTextBuilder(message, {this.attachments = const {}, this.scrollTo})
+  KRichTextBuilder(message, {this.attachments = const {}})
       : message =
             _formatMessage(HtmlUnescape().convert(message).trim(), attachments);
 
@@ -80,7 +79,6 @@ class KRichTextBuilder {
     return KRichText(
       message: message,
       attachments: attachments,
-      scrollTo: scrollTo,
     );
   }
 
@@ -105,8 +103,6 @@ class KRichTextBuilder {
     if (html.isNotEmpty) {
       widgets.addAll(_splitByIframe(html));
     }
-
-    // TODO 存在单个标签包裹整个文章
 
     return widgets;
   }
@@ -181,14 +177,12 @@ class KRichText extends StatefulWidget {
   final String message;
   final Map<String, Attachment> attachments;
   final bool firstFloor;
-  final ScrollToFunction? scrollTo;
 
   const KRichText(
       {Key? key,
       required this.message,
       this.attachments = const {},
-      this.firstFloor = false,
-      this.scrollTo})
+      this.firstFloor = false})
       : super(key: key);
 
   @override
@@ -224,7 +218,7 @@ class _KRichTextState extends State<KRichText> {
                   break;
                 }
               }
-              widget.scrollTo?.call(pid);
+              // TODO
             } else if (subUrl.startsWith('t') && subUrl.endsWith('-1')) {
               final tid = subUrl.split('-')[0].replaceFirst('t', '');
               Navigator.of(context).pushNamed('/thread', arguments: tid);

@@ -164,7 +164,7 @@ class _ThreadPageState extends State<ThreadPage> {
             dateline: post.dateline!,
             pid: post.pid!,
             content: KRichTextBuilder(post.message!,
-                    attachments: post.attachments ?? {}, scrollTo: _scrollTo)
+                    attachments: post.attachments ?? {})
                 .build(),
             tid: post.tid!),
       // 异常
@@ -277,10 +277,6 @@ class _ThreadPageState extends State<ThreadPage> {
     );
 
     showDialog(context: context, builder: (context) => dialog);
-  }
-
-  void _scrollTo(String pid) {
-
   }
 }
 
