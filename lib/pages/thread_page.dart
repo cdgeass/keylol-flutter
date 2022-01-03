@@ -27,6 +27,7 @@ class ThreadPage extends StatefulWidget {
 
 class _ThreadPageState extends State<ThreadPage> {
   late Future<ViewThread> _future;
+  List<Widget> _widgets = [];
 
   var _page = 1;
   var _total = 0;
@@ -92,22 +93,11 @@ class _ThreadPageState extends State<ThreadPage> {
       child: ThrowableFutureBuilder(
         future: _future,
         builder: (context, ViewThread viewThread) {
-          if (_posts.isEmpty) {
-            _page = 1;
-            _total = (viewThread.replies ?? 0) + 1;
-            _posts = viewThread.posts ?? [];
-          }
+          _page = 1;
+          _total = (viewThread.replies ?? 0) + 1;
+          _posts = viewThread.posts ?? [];
 
-          final title = viewThread.subject ?? '';
-          // 拆分 html 延迟加载 iframe
-          final widgets = KRichTextBuilder(_posts[0].message!,
-                  attachments: _posts[0].attachments ?? {})
-              .splitBuild();
-          final itemCount = (3 + widgets.length) // 标题 作者 一楼 帖子尾
-              +
-              (_posts.length - 1) // 去除一楼
-              +
-              1; // loading
+          _buildList(context, viewThread);
 
           return Scaffold(
               appBar: AppBar(
@@ -116,57 +106,9 @@ class _ThreadPageState extends State<ThreadPage> {
               body: Stack(children: [
                 ListView.builder(
                     controller: _controller,
-                    itemCount: itemCount,
+                    itemCount: _widgets.length,
                     itemBuilder: (context, index) {
-                      if (index == 0) {
-                        // 标题
-                        return Padding(
-                          padding: EdgeInsets.all(16.0),
-                          child: Text(title,
-                              style: AppTheme.title
-                                  .copyWith(color: AppTheme.darkText)),
-                        );
-                      } else if (index == 1) {
-                        // 帖子作者
-                        return Material(
-                            color: Theme.of(context).cardColor,
-                            child: _buildFirstHeader(_posts[0]));
-                      } else if (index == widgets.length + 2) {
-                        // 帖子操作
-                        return Material(
-                            color: Theme.of(context).cardColor,
-                            elevation: 1.0,
-                            shadowColor:
-                                Theme.of(context).cardTheme.shadowColor,
-                            child: _buildFirstBottom(_posts[0]));
-                      } else if (index < widgets.length + 2) {
-                        // 帖子
-                        return Material(
-                            color: Theme.of(context).cardColor,
-                            child: widgets[index - 2]);
-                      } else if (index == itemCount - 1) {
-                        // 异常
-                        if (error != null) {
-                          return Center(child: Text(error!));
-                        }
-                        return Center(
-                            child: Opacity(
-                          opacity: _total > _posts.length ? 1.0 : 0.0,
-                          child: CircularProgressIndicator(),
-                        ));
-                      } else {
-                        // 回复
-                        final post = _posts[index - 3 - widgets.length + 1];
-                        return PostCard(
-                            authorId: post.authorId!,
-                            author: post.author!,
-                            dateline: post.dateline!,
-                            pid: post.pid!,
-                            content: KRichTextBuilder(post.message!,
-                                    attachments: post.attachments ?? {})
-                                .build(),
-                            tid: post.tid!);
-                      }
+                      return _widgets[index];
                     }),
                 Positioned(
                     bottom: 0.0,
@@ -183,6 +125,58 @@ class _ThreadPageState extends State<ThreadPage> {
         },
       ),
     );
+  }
+
+  void _buildList(
+    BuildContext context,
+    ViewThread viewThread,
+  ) {
+    final title = viewThread.subject ?? '';
+    // 拆分 html 延迟加载 iframe
+    _widgets = KRichTextBuilder(_posts[0].message!,
+            attachments: _posts[0].attachments ?? {})
+        .splitBuild();
+    // merge thread and posts
+    _widgets = [
+      // 标题
+      Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Text(title,
+            style: AppTheme.title.copyWith(color: AppTheme.darkText)),
+      ),
+      // 帖子作者
+      Material(
+          color: Theme.of(context).cardColor,
+          child: _buildFirstHeader(_posts[0])),
+      // 帖子
+      for (var widget in _widgets) widget,
+      // 帖子操作
+      Material(
+          color: Theme.of(context).cardColor,
+          elevation: 1.0,
+          shadowColor: Theme.of(context).cardTheme.shadowColor,
+          child: _buildFirstBottom(_posts[0])),
+      // 回复
+      for (var post in _posts.sublist(1))
+        PostCard(
+            authorId: post.authorId!,
+            author: post.author!,
+            dateline: post.dateline!,
+            pid: post.pid!,
+            content: KRichTextBuilder(post.message!,
+                    attachments: post.attachments ?? {}, scrollTo: _scrollTo)
+                .build(),
+            tid: post.tid!),
+      // 异常
+      if (error != null) Center(child: Text(error!)),
+      // loading
+      if (error == null)
+        Center(
+            child: Opacity(
+          opacity: _total > _posts.length ? 1.0 : 0.0,
+          child: CircularProgressIndicator(),
+        ))
+    ];
   }
 
   Widget _buildFirstHeader(ViewThreadPost post) {
@@ -283,6 +277,10 @@ class _ThreadPageState extends State<ThreadPage> {
     );
 
     showDialog(context: context, builder: (context) => dialog);
+  }
+
+  void _scrollTo(String pid) {
+
   }
 }
 

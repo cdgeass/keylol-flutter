@@ -11,11 +11,14 @@ import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:video_player/video_player.dart';
 
+typedef ScrollToFunction = void Function(String pid);
+
 class KRichTextBuilder {
   final String message;
   final Map<String, Attachment> attachments;
+  ScrollToFunction? scrollTo;
 
-  KRichTextBuilder(message, {this.attachments = const {}})
+  KRichTextBuilder(message, {this.attachments = const {}, this.scrollTo})
       : message =
             _formatMessage(HtmlUnescape().convert(message).trim(), attachments);
 
@@ -74,7 +77,11 @@ class KRichTextBuilder {
   }
 
   Widget build() {
-    return KRichText(message: message, attachments: attachments);
+    return KRichText(
+      message: message,
+      attachments: attachments,
+      scrollTo: scrollTo,
+    );
   }
 
   List<Widget> splitBuild() {
@@ -174,12 +181,14 @@ class KRichText extends StatefulWidget {
   final String message;
   final Map<String, Attachment> attachments;
   final bool firstFloor;
+  final ScrollToFunction? scrollTo;
 
   const KRichText(
       {Key? key,
       required this.message,
       this.attachments = const {},
-      this.firstFloor = false})
+      this.firstFloor = false,
+      this.scrollTo})
       : super(key: key);
 
   @override
@@ -209,22 +218,17 @@ class _KRichTextState extends State<KRichText> {
             if (subUrl.contains('findpost')) {
               final params = url.split('?')[1].split('&');
               late String pid;
-              late String ptid;
               for (var param in params) {
-                if (param.startsWith('ptid=')) {
-                  ptid = param.replaceAll('ptid=', '');
-                }
-                if (param.startsWith('pid')) {
-                  pid = param.replaceAll('pid', '');
+                if (param.startsWith('pid=')) {
+                  pid = param.replaceAll('pid=', '');
+                  break;
                 }
               }
-              Navigator.of(context).pushNamed('/thread', arguments: ptid);
-            } else if (subUrl.contains(".php")) {
-              Navigator.of(context).pushNamed('/webview', arguments: url);
-            } else if (subUrl.startsWith('t')) {
+              widget.scrollTo?.call(pid);
+            } else if (subUrl.startsWith('t') && subUrl.endsWith('-1')) {
               final tid = subUrl.split('-')[0].replaceFirst('t', '');
               Navigator.of(context).pushNamed('/thread', arguments: tid);
-            } else if (subUrl.startsWith('f')) {
+            } else if (subUrl.startsWith('f') && subUrl.endsWith('-1')) {
               final fid = subUrl.split('-')[0].replaceFirst('f', '');
               Navigator.of(context).pushNamed('/forum', arguments: fid);
             } else {
