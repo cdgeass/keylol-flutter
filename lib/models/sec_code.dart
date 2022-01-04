@@ -8,7 +8,7 @@ class SecCode {
   late String formHash;
   late final String update;
   late final String loginHash;
-  late final String currentIdHash;
+  late String currentIdHash;
 
   SecCode(this.auth, this.formHash, this.update, this.loginHash,
       this.currentIdHash);

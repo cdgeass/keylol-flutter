@@ -47,6 +47,7 @@ dependencies:
   url_launcher: ^6.0.17
   html_unescape: ^2.0.0
   flutter_inappwebview: ^5.3.2
+  scrollable_positioned_list: ^0.2.3
 
 dev_dependencies:
   flutter_test:

@@ -13,8 +13,9 @@ import 'package:keylol_flutter/components/sliver_tab_bar_delegate.dart';
 import 'package:keylol_flutter/components/throwable_future_builder.dart';
 import 'package:keylol_flutter/models/favorite_thread.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ThreadPage extends StatefulWidget {
   final String tid;
@@ -32,7 +33,8 @@ class _ThreadPageState extends State<ThreadPage> {
   var _page = 1;
   var _total = 0;
   List<ViewThreadPost> _posts = [];
-  final _controller = ScrollController();
+  final _controller = ItemScrollController();
+  final _listener = ItemPositionsListener.create();
 
   String? error;
 
@@ -40,16 +42,6 @@ class _ThreadPageState extends State<ThreadPage> {
   void initState() {
     super.initState();
     _onRefresh();
-
-    _controller.addListener(() {
-      final maxScroll = _controller.position.maxScrollExtent;
-      final pixels = _controller.position.pixels;
-      if (maxScroll == pixels) {
-        setState(() {
-          _loadMore();
-        });
-      }
-    });
   }
 
   Future<void> _onRefresh() async {
@@ -106,8 +98,9 @@ class _ThreadPageState extends State<ThreadPage> {
                 actions: _buildActions(context, viewThread),
               ),
               body: Stack(children: [
-                ListView.builder(
-                    controller: _controller,
+                ScrollablePositionedList.builder(
+                    itemScrollController: _controller,
+                    itemPositionsListener: _listener,
                     itemCount: _widgets.length,
                     itemBuilder: (context, index) {
                       return _widgets[index];
@@ -166,18 +159,11 @@ class _ThreadPageState extends State<ThreadPage> {
             dateline: post.dateline!,
             pid: post.pid!,
             content: KRichTextBuilder(post.message!,
-                    attachments: post.attachments ?? {})
+                    attachments: post.attachments ?? {}, scrollTo: _scrollTo)
                 .build(),
             tid: post.tid!),
-      // 异常
-      if (error != null) Center(child: Text(error!)),
-      // loading
-      if (error == null)
-        Center(
-            child: Opacity(
-          opacity: _total > _posts.length ? 1.0 : 0.0,
-          child: CircularProgressIndicator(),
-        ))
+      // loading error
+      _buildLoading()
     ];
   }
 
@@ -209,6 +195,35 @@ class _ThreadPageState extends State<ThreadPage> {
             icon: Icon(Icons.plus_one_outlined)),
       ],
     );
+  }
+
+  Widget _buildLoading() {
+    return ValueListenableBuilder<Iterable<ItemPosition>>(
+        valueListenable: _listener.itemPositions,
+        builder: (context, positions, child) {
+          if (positions.isNotEmpty) {
+            final max = positions
+                .where((position) => position.itemLeadingEdge < 1)
+                .reduce((max, position) =>
+                    position.itemLeadingEdge > max.itemLeadingEdge
+                        ? position
+                        : max)
+                .index;
+            if (max == _widgets.length - 1) {
+              _loadMore();
+              // 异常
+              if (error != null) Center(child: Text(error!));
+              // loading
+              if (error == null)
+                Center(
+                    child: Opacity(
+                  opacity: _total > _posts.length ? 1.0 : 0.0,
+                  child: CircularProgressIndicator(),
+                ));
+            }
+          }
+          return Container();
+        });
   }
 
   List<Widget> _buildActions(BuildContext context, ViewThread viewThread) {
@@ -279,6 +294,18 @@ class _ThreadPageState extends State<ThreadPage> {
     );
 
     showDialog(context: context, builder: (context) => dialog);
+  }
+
+  void _scrollTo(String pid) {
+    var index = 0;
+    for (final widget in _widgets) {
+      if (widget is PostCard && widget.pid == pid) {
+        _controller.scrollTo(index: index, duration: Duration(seconds: 1));
+        return;
+      }
+      index++;
+    }
+    _loadMore().then((value) => _scrollTo(pid));
   }
 }
 
