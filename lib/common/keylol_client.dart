@@ -130,6 +130,70 @@ class KeylolClient {
     return _cj.loadForRequest(Uri.parse('https://keylol.com'));
   }
 
+  // 用户信息
+  Future<Space> fetchProfile({String? uid, bool cached = true}) async {
+    final queryParameters = {'module': 'profile'};
+    if (uid != null) {
+      queryParameters['uid'] = uid;
+    }
+    final res = await _dio.get("/api/mobile/index.php",
+        queryParameters: queryParameters,
+        options: uid != null && cached
+            ? buildCacheOptions(Duration(days: 1))
+            : null);
+    if (res.data['Message'] != null) {
+      return Future.error(res.data['Message']!['messagestr']);
+    }
+    return Space.fromJson(res.data['Variables']?['space']);
+  }
+
+  // 首页
+  Future<Index> fetchIndex() async {
+    var res = await _dio.get("");
+
+    var document = parser.parse(res.data);
+
+    return Index.fromDocument(document);
+  }
+
+  // 提醒列表
+  Future<NoteList> fetchNoteList({int page = 1}) async {
+    final res = await _dio.post('/api/mobile/index.php',
+        queryParameters: {'module': 'mynotelist', 'page': page});
+
+    if (res.data['Message'] != null) {
+      return Future.error(res.data['Message']!['messagestr']);
+    }
+    return NoteList.fromJson(res.data['Variables']);
+  }
+
+  // 表情
+  Future<List<dynamic>> fetchSmiley() async {
+    final res = await _dio.post('/api/mobile/index.php',
+        queryParameters: {'module': 'smiley'},
+        options: buildCacheOptions(Duration(days: 7)));
+
+    if (res.data['Message'] != null) {
+      return Future.error(res.data['Message']!['messagestr']);
+    }
+    return res.data['Variables'];
+  }
+
+  // 热帖
+  Future<List<Thread>> fetchHotThread({int page = 1}) async {
+    final res = await _dio.post('/api/mobile/index.php',
+        queryParameters: {'module': 'hotthread', 'page': page});
+
+    if (res.data['Message'] != null) {
+      return Future.error(res.data['Message']!['messagestr']);
+    }
+    return (res.data['Variables']['data'] as List)
+        .map((e) => Thread.fromJson(e))
+        .toList();
+  }
+}
+
+extension Login on KeylolClient {
   /// 登录
   Future login(String username, String password) async {
     final res = await _dio.post("/api/mobile/index.php",
@@ -346,33 +410,9 @@ class KeylolClient {
       return Future.error('登录出错');
     }
   }
+}
 
-  // 用户信息
-  Future<Space> fetchProfile({String? uid, bool cached = true}) async {
-    final queryParameters = {'module': 'profile'};
-    if (uid != null) {
-      queryParameters['uid'] = uid;
-    }
-    final res = await _dio.get("/api/mobile/index.php",
-        queryParameters: queryParameters,
-        options: uid != null && cached
-            ? buildCacheOptions(Duration(days: 1))
-            : null);
-    if (res.data['Message'] != null) {
-      return Future.error(res.data['Message']!['messagestr']);
-    }
-    return Space.fromJson(res.data['Variables']?['space']);
-  }
-
-  // 首页
-  Future<Index> fetchIndex() async {
-    var res = await _dio.get("");
-
-    var document = parser.parse(res.data);
-
-    return Index.fromDocument(document);
-  }
-
+extension Forum on KeylolClient {
   // 版块列表
   Future<List<Cat>> fetchForumIndex() async {
     var res = await _dio.get("/api/mobile/index.php",
@@ -417,7 +457,9 @@ class KeylolClient {
     }
     return ForumDisplay.fromJson(res.data['Variables']);
   }
+}
 
+extension Thead on KeylolClient {
   // 帖子详情
   Future<ViewThread> fetchThread(String tid, int page) async {
     var res = await _dio.get("/api/mobile/index.php", queryParameters: {
@@ -434,7 +476,7 @@ class KeylolClient {
   }
 
   // 回复
-  Future sendReply(
+  Future<void> sendReply(
       String fid, String tid, String formHash, String message) async {
     final res = await _dio.post("/api/mobile/index.php",
         queryParameters: {
@@ -450,49 +492,26 @@ class KeylolClient {
           'posttime': '${DateTime.now().millisecondsSinceEpoch}',
           'usesig': 1
         }));
-    if (res.data['Message']!['messageval'] == 'post_reply_succeed') {
-      return;
-    } else {
-      return Future.error(res.data['Message']!['messagestr']);
+    if (res.data['Message']['messageval'] != 'post_reply_succeed') {
+      return Future.error(res.data['Message']?['messagestr'] ?? '不知道怎么了。。。');
     }
   }
 
-  // 提醒列表
-  Future<NoteList> fetchNoteList({int page = 1}) async {
-    final res = await _dio.post('/api/mobile/index.php',
-        queryParameters: {'module': 'mynotelist', 'page': page});
-
-    if (res.data['Message'] != null) {
-      return Future.error(res.data['Message']!['messagestr']);
+  // +1
+  Future<void> recommend(String tid) async {
+    final res = await _dio.post('/api/mobile/index.php', queryParameters: {
+      'module': 'recommend',
+      'do': 'add',
+      'tid': tid,
+      'hash': ProfileNotifier().profile?.formHash
+    });
+    if (res.data['Message']['messageval'] != 'recommend_succeed') {
+      return Future.error(res.data['Message']['messagestr'] ?? '不知道怎么了。。。');
     }
-    return NoteList.fromJson(res.data['Variables']);
   }
+}
 
-  // 表情
-  Future<List<dynamic>> fetchSmiley() async {
-    final res = await _dio.post('/api/mobile/index.php',
-        queryParameters: {'module': 'smiley'},
-        options: buildCacheOptions(Duration(days: 7)));
-
-    if (res.data['Message'] != null) {
-      return Future.error(res.data['Message']!['messagestr']);
-    }
-    return res.data['Variables'];
-  }
-
-  // 热帖
-  Future<List<Thread>> fetchHotThread({int page = 1}) async {
-    final res = await _dio.post('/api/mobile/index.php',
-        queryParameters: {'module': 'hotthread', 'page': page});
-
-    if (res.data['Message'] != null) {
-      return Future.error(res.data['Message']!['messagestr']);
-    }
-    return (res.data['Variables']['data'] as List)
-        .map((e) => Thread.fromJson(e))
-        .toList();
-  }
-
+extension FavThread on KeylolClient {
   // 收藏帖子
   Future<void> favoriteThread(String tid, String description) async {
     final res = await _dio.post('/api/mobile/index.php',

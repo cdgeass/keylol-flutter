@@ -190,7 +190,9 @@ class _ThreadPageState extends State<ThreadPage> {
             icon: Icon(Icons.thumb_up_outlined)),
         IconButton(
             onPressed: () {
-              // TODO 支持
+              KeylolClient()
+                  .recommend(widget.tid)
+                  .then((value) => _onRefresh());
             },
             icon: Icon(Icons.plus_one_outlined)),
       ],
