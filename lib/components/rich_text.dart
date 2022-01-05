@@ -7,6 +7,7 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html_unescape/html_unescape.dart';
 import 'package:keylol_flutter/components/auto_resize_webview.dart';
+import 'package:keylol_flutter/models/attachment.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:video_player/video_player.dart';
@@ -59,7 +60,7 @@ class KRichTextBuilder {
     if (!message.contains('attach') && attachments.isNotEmpty) {
       for (var attachment in attachments.values) {
         message +=
-            '<br /><img src="${attachment.url! + attachment.attachment!}" />';
+            '<br /><img src="${attachment.url + attachment.attachment}" />';
       }
     } else {
       message = message
@@ -71,7 +72,7 @@ class KRichTextBuilder {
     message = message.replaceAllMapped(
         RegExp(r'(?:\[micxp_countdown)(?:=?)([^\[]*)]'), (match) {
       return '<countdown title="${match[1]}">';
-    }).replaceAll('[/countdown]', '</countdown>');
+    }).replaceAll('[/micxp_countdown]', '</countdown>');
 
     return message;
   }
@@ -138,9 +139,16 @@ class KRichTextBuilder {
         final iframe = message.substring(lastIndex, index);
         final document = HtmlParser.parseHTML(iframe);
         final element = document.body!.children[0];
+        var url = element.attributes['src'] ?? '';
+        if (!url.startsWith('http')) {
+          if (url.startsWith('//')) {
+            url = 'https:$url';
+          } else {
+            url = 'https://$url';
+          }
+        }
         widgets.add(AutoResizeWebView(
-            padding: EdgeInsets.only(left: 16.0, right: 16.0),
-            url: element.attributes['src']!));
+            padding: EdgeInsets.only(left: 16.0, right: 16.0), url: url));
 
         message = message.substring(index);
         lastIndex = 0;
@@ -170,7 +178,6 @@ class KRichTextBuilder {
     return KRichText(
       message: message,
       attachments: attachments,
-      firstFloor: true,
     );
   }
 }
@@ -178,14 +185,12 @@ class KRichTextBuilder {
 class KRichText extends StatefulWidget {
   final String message;
   final Map<String, Attachment> attachments;
-  final bool firstFloor;
   final ScrollToFunction? scrollTo;
 
   const KRichText(
       {Key? key,
       required this.message,
       this.attachments = const {},
-      this.firstFloor = false,
       this.scrollTo})
       : super(key: key);
 
@@ -243,16 +248,17 @@ class _KRichTextState extends State<KRichText> {
             final title = context.tree.element!.attributes['title'] ?? '';
             final message = context.tree.element!.innerHtml;
             return _Collapse(
-              title: title,
-              message: message,
-              firstFloor: widget.firstFloor,
-            );
+                title: title,
+                message: message,
+                attachments: widget.attachments);
           },
           'spoil': (context, child) {
             final title = context.tree.element!.attributes['title'] ?? '';
             final message = context.tree.element!.innerHtml;
             return _Spoil(
-                title: title, message: message, firstFloor: widget.firstFloor);
+                title: title,
+                message: message,
+                attachments: widget.attachments);
           },
           'img': (context, child) {
             var src = context.tree.element!.attributes['src'];
@@ -287,7 +293,7 @@ class _KRichTextState extends State<KRichText> {
                     placeholder: (context, url) => CircularProgressIndicator(),
                     errorWidget: (context, url, error) =>
                         CircularProgressIndicator(),
-                    imageUrl: attachment.url! + attachment.attachment!));
+                    imageUrl: attachment.url + attachment.attachment));
           },
           'video': (context, child) {
             var src = context.tree.element!.attributes['src'];
@@ -319,21 +325,29 @@ class _KRichTextState extends State<KRichText> {
             return _CountDown(date: date);
           },
           'blockquote': (context, child) {
-            if (!widget.firstFloor) {
-              return Container(
-                margin: EdgeInsets.only(top: 8.0, bottom: 8.0),
-                padding: EdgeInsets.all(8.0),
-                decoration: BoxDecoration(
-                    border: Border(
-                        left: BorderSide(
-                  width: 8.0,
-                  color: Theme.of(context.buildContext)
-                      .primaryColor
-                      .withOpacity(0.5),
-                ))),
-                child: child,
-              );
-            }
+            return Column(
+              children: [
+                Row(
+                  children: [
+                    Image.asset('images/quote_proper_left.png'),
+                    Expanded(child: Container())
+                  ],
+                ),
+                Row(
+                  children: [
+                    SizedBox(width: 24.0),
+                    Expanded(child: child),
+                    SizedBox(width: 24.0)
+                  ],
+                ),
+                Row(
+                  children: [
+                    Expanded(child: Container()),
+                    Image.asset('images/quote_proper_right.png')
+                  ],
+                )
+              ],
+            );
           }
         },
         style: {
@@ -347,13 +361,13 @@ class _KRichTextState extends State<KRichText> {
 class _Collapse extends StatefulWidget {
   final String title;
   final String message;
-  final bool firstFloor;
+  final Map<String, Attachment> attachments;
 
   const _Collapse(
       {Key? key,
       required this.title,
       required this.message,
-      required this.firstFloor})
+      required this.attachments})
       : super(key: key);
 
   @override
@@ -405,14 +419,14 @@ class _CollapseState extends State<_Collapse> with RestorationMixin {
               ),
               if (_expanded.value)
                 Material(
-                  color: Theme.of(context).backgroundColor,
-                  shape: RoundedRectangleBorder(
-                      side: BorderSide(color: Colors.blue),
-                      borderRadius:
-                          BorderRadius.vertical(bottom: Radius.circular(10.0))),
-                  child: KRichText(
-                      message: widget.message, firstFloor: widget.firstFloor),
-                )
+                    color: Theme.of(context).backgroundColor,
+                    shape: RoundedRectangleBorder(
+                        side: BorderSide(color: Colors.blue),
+                        borderRadius: BorderRadius.vertical(
+                            bottom: Radius.circular(10.0))),
+                    child: KRichText(
+                        message: widget.message,
+                        attachments: widget.attachments))
             ],
           ),
         ));
@@ -423,13 +437,13 @@ class _CollapseState extends State<_Collapse> with RestorationMixin {
 class _Spoil extends StatefulWidget {
   final String title;
   final String message;
-  final bool firstFloor;
+  final Map<String, Attachment> attachments;
 
   const _Spoil(
       {Key? key,
       required this.title,
       required this.message,
-      required this.firstFloor})
+      required this.attachments})
       : super(key: key);
 
   @override
@@ -493,7 +507,7 @@ class _SpoilState extends State<_Spoil> with RestorationMixin {
                   if (_expanded.value)
                     KRichText(
                       message: widget.message,
-                      firstFloor: widget.firstFloor,
+                      attachments: widget.attachments,
                     )
                 ],
               ),

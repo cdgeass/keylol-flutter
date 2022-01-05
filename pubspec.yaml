@@ -72,6 +72,8 @@ flutter:
     - images/unknown_avatar.jpg
     - images/slide_view_placeholder.jpg
     - images/forum.gif
+    - images/quote_proper_left.png
+    - images/quote_proper_right.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

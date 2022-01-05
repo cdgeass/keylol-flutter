@@ -18,21 +18,10 @@ class ThrowableFutureBuilder<T> extends StatelessWidget {
           if (snapshot.hasError) {
             final error = snapshot.error ?? '不知道怎么了。。。';
 
-            final dialog = AlertDialog(
-              title: Text('出错啦!'),
-              content: Text(error.toString()),
-              actions: [
-                ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: Text('确定'))
-              ],
-            );
-
-            showDialog(context: context, builder: (context) => dialog);
-            return Center(
-              child: CircularProgressIndicator(),
+            return Scaffold(
+              body: Center(
+                child: Text(error.toString()),
+              ),
             );
           }
           if (snapshot.hasData) {

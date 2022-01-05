@@ -1,3 +1,6 @@
+import 'package:html_unescape/html_unescape.dart';
+import 'package:keylol_flutter/models/attachment.dart';
+
 class Post {
   // pid
   final String pid;
@@ -32,6 +35,8 @@ class Post {
   // 楼层
   final int number;
   final int dbDateline;
+  final Map<String, Attachment> attachments;
+  final List<String> imageList;
 
   Post.fromJson(Map<String, dynamic> json)
       : pid = json['pid'] ?? '',
@@ -39,8 +44,8 @@ class Post {
         first = json['first'] == '1',
         author = json['author'] ?? '',
         authorId = json['authorid'] ?? '',
-        dateline = json['dateline'] ?? '',
-        message = json['message'] ?? '',
+        dateline = HtmlUnescape().convert(json['dateline'] ?? ''),
+        message = HtmlUnescape().convert(json['message'] ?? ''),
         anonymous = int.parse(json['anonymous'] ?? '0'),
         attachment = int.parse(json['attachment'] ?? '0'),
         status = int.parse(json['status'] ?? '0'),
@@ -49,5 +54,10 @@ class Post {
         groupId = json['groupid'],
         memberStatus = int.parse(json['memberstatus'] ?? '0'),
         number = int.parse(json['number'] ?? '0'),
-        dbDateline = int.parse(json['dbdateline'] ?? '0');
+        dbDateline = int.parse(json['dbdateline'] ?? '0'),
+        attachments = ((json['attachments'] ?? {}) as Map<dynamic, dynamic>)
+            .map((key, value) => MapEntry(key, Attachment.fromJson(value))),
+        imageList = ((json['imagelist'] ?? []) as List<dynamic>)
+            .map((i) => i as String)
+            .toList();
 }

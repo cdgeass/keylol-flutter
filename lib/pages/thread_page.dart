@@ -12,6 +12,8 @@ import 'package:keylol_flutter/components/rich_text.dart';
 import 'package:keylol_flutter/components/sliver_tab_bar_delegate.dart';
 import 'package:keylol_flutter/components/throwable_future_builder.dart';
 import 'package:keylol_flutter/models/favorite_thread.dart';
+import 'package:keylol_flutter/models/post.dart';
+import 'package:keylol_flutter/models/thread.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -32,7 +34,7 @@ class _ThreadPageState extends State<ThreadPage> {
 
   var _page = 1;
   var _total = 0;
-  List<ViewThreadPost> _posts = [];
+  List<Post> _posts = [];
   final _controller = ItemScrollController();
   final _listener = ItemPositionsListener.create();
 
@@ -58,13 +60,13 @@ class _ThreadPageState extends State<ThreadPage> {
     try {
       final page = _page + 1;
       final viewThread = await KeylolClient().fetchThread(widget.tid, page);
-      final posts = viewThread.posts ?? [];
+      final posts = viewThread.postList;
       setState(() {
         error = null;
-        _total = (viewThread.replies ?? 0) + 1;
+        _total = viewThread.thread.replies + 1;
         if (posts.isNotEmpty) {
           for (final post in posts) {
-            if (post.number! > _posts[_posts.length - 1].number!) {
+            if (post.number > _posts[_posts.length - 1].number) {
               _posts.add(post);
               _page = page;
             }
@@ -87,11 +89,11 @@ class _ThreadPageState extends State<ThreadPage> {
         builder: (context, ViewThread viewThread) {
           if (_posts.isEmpty) {
             _page = 1;
-            _total = (viewThread.replies ?? 0) + 1;
-            _posts = viewThread.posts ?? [];
+            _total = viewThread.thread.replies + 1;
+            _posts = viewThread.postList;
           }
 
-          _buildList(context, viewThread);
+          _buildList(context, viewThread.thread);
 
           return Scaffold(
               appBar: AppBar(
@@ -110,7 +112,7 @@ class _ThreadPageState extends State<ThreadPage> {
                     left: 0.0,
                     right: 0.0,
                     child: _Reply(
-                      fid: viewThread.fid!,
+                      fid: viewThread.fid,
                       tid: widget.tid,
                       onSuccess: () {
                         _onRefresh();
@@ -124,13 +126,13 @@ class _ThreadPageState extends State<ThreadPage> {
 
   void _buildList(
     BuildContext context,
-    ViewThread viewThread,
+    Thread thread,
   ) {
-    final title = viewThread.subject ?? '';
+    final title = thread.subject;
     // 拆分 html 延迟加载 iframe
-    _widgets = KRichTextBuilder(_posts[0].message!,
-            attachments: _posts[0].attachments ?? {})
-        .splitBuild();
+    _widgets =
+        KRichTextBuilder(_posts[0].message, attachments: _posts[0].attachments)
+            .splitBuild();
     // merge thread and posts
     _widgets = [
       // 标题
@@ -144,7 +146,8 @@ class _ThreadPageState extends State<ThreadPage> {
           color: Theme.of(context).cardColor,
           child: _buildFirstHeader(_posts[0])),
       // 帖子
-      for (var widget in _widgets) widget,
+      for (var widget in _widgets)
+        Material(color: Theme.of(context).cardColor, child: widget),
       // 帖子操作
       Material(
           color: Theme.of(context).cardColor,
@@ -154,32 +157,32 @@ class _ThreadPageState extends State<ThreadPage> {
       // 回复
       for (var post in _posts.sublist(1))
         PostCard(
-            authorId: post.authorId!,
-            author: post.author!,
-            dateline: post.dateline!,
-            pid: post.pid!,
-            content: KRichTextBuilder(post.message!,
-                    attachments: post.attachments ?? {}, scrollTo: _scrollTo)
+            authorId: post.authorId,
+            author: post.author,
+            dateline: post.dateline,
+            pid: post.pid,
+            content: KRichTextBuilder(post.message,
+                    attachments: post.attachments, scrollTo: _scrollTo)
                 .build(),
-            tid: post.tid!),
+            tid: post.tid),
       // loading error
       _buildLoading()
     ];
   }
 
-  Widget _buildFirstHeader(ViewThreadPost post) {
+  Widget _buildFirstHeader(Post post) {
     return ListTile(
       leading: Avatar(
-        uid: post.authorId!,
+        uid: post.authorId,
         size: AvatarSize.middle,
         width: 40.0,
       ),
-      title: Text(post.author!),
-      subtitle: Text(post.dateline!),
+      title: Text(post.author),
+      subtitle: Text(post.dateline),
     );
   }
 
-  Widget _buildFirstBottom(ViewThreadPost post) {
+  Widget _buildFirstBottom(Post post) {
     return ButtonBar(
       alignment: MainAxisAlignment.start,
       children: [
