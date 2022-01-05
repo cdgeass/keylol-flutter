@@ -19,13 +19,12 @@ class _AutoResizeWebViewState extends State<AutoResizeWebView> {
   Widget build(BuildContext context) {
     return Container(
       padding: widget.padding,
-      color: Theme.of(context).backgroundColor,
       height: _height ?? 73.0,
       child: InAppWebView(
         initialUrlRequest: URLRequest(url: Uri.parse(widget.url)),
         initialOptions: InAppWebViewGroupOptions(
             crossPlatform: InAppWebViewOptions(
-                transparentBackground: true, javaScriptEnabled: false)),
+                transparentBackground: true, javaScriptEnabled: true)),
         onLoadStop: (controller, uri) async {
           if (uri
               .toString()

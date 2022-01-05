@@ -471,7 +471,7 @@ extension Thead on KeylolClient {
     });
 
     if (res.data['Message'] != null) {
-      return Future.error(res.data['Message']!['messagestr']);
+      return Future.error(res.data['Message']['messagestr'] ?? '不知道怎么了。。。');
     }
     return ViewThread.fromJson(res.data['Variables']);
   }

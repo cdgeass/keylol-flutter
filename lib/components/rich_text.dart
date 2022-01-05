@@ -260,25 +260,6 @@ class _KRichTextState extends State<KRichText> {
                 message: message,
                 attachments: widget.attachments);
           },
-          'img': (context, child) {
-            var src = context.tree.element!.attributes['src'];
-            if (src != null) {
-              if (src.startsWith('http')) {
-                src = src.replaceFirst('http://', 'https://');
-              } else {
-                src = 'https://keylol.com/$src';
-              }
-              return Container(
-                  padding: EdgeInsets.only(bottom: 8.0),
-                  child: CachedNetworkImage(
-                      placeholder: (context, url) =>
-                          Center(child: CircularProgressIndicator()),
-                      errorWidget: (context, url, error) =>
-                          Center(child: CircularProgressIndicator()),
-                      imageUrl: src));
-            }
-            return null;
-          },
           'attach': (context, child) {
             final attachmentId = context.tree.element!.innerHtml;
 
@@ -294,19 +275,6 @@ class _KRichTextState extends State<KRichText> {
                     errorWidget: (context, url, error) =>
                         CircularProgressIndicator(),
                     imageUrl: attachment.url + attachment.attachment));
-          },
-          'video': (context, child) {
-            var src = context.tree.element!.attributes['src'];
-            if (src != null) {
-              src = src.replaceFirst('http://', 'https://');
-              var videoPlayerController = VideoPlayerController.network(src);
-              _videoPlayerControllers.add(videoPlayerController);
-              return Container(
-                  padding: EdgeInsets.only(bottom: 8.0),
-                  height: 320.0,
-                  child: VideoPlayer(videoPlayerController));
-            }
-            return Container();
           },
           'iframe': (context, child) {
             final src = context.tree.element!.attributes['src'];
@@ -349,6 +317,17 @@ class _KRichTextState extends State<KRichText> {
               ],
             );
           }
+        },
+        customImageRenders: {
+          (attr, _) => attr['src'] != null: networkImageRender(mapUrl: (url) {
+            if (url!.startsWith('http://')) {
+              return url.replaceFirst('http://', 'https://');
+            } else if (!url.startsWith('http')) {
+              return 'https://keylol.com/$url';
+            } else {
+              return url;
+            }
+          })
         },
         style: {
           'body': Style(margin: EdgeInsets.only(left: 16.0, right: 16.0)),
