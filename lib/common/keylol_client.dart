@@ -466,6 +466,7 @@ extension Thead on KeylolClient {
       'version': null,
       'module': 'viewthread',
       'tid': tid,
+      'cp': 'all',
       'page': page
     });
 

@@ -1,37 +1,51 @@
 import 'package:html_unescape/html_unescape.dart';
 
 class Thread {
+  // 帖子 id
   final String tid;
+  // 版块 id
   final String fid;
   final String postTableId;
   final String typeId;
   final String sortId;
   final int readPerm;
   final int price;
+  // 作者
   final String author;
+  // 作者 id
   final String authorId;
+  // 标题
   final String subject;
+  // 时间
   final String dateline;
+  // 最后回复时间
   final String lastPost;
+  // 最后回复人
   final String lastPoster;
+  // 查看数
   final int views;
+  // 回复数
   final int replies;
   final int displayOrder;
   final String highlight;
-  final int digest;
+  // 精华
+  final bool digest;
   final int rate;
   final int special;
   final int attachment;
   final int moderated;
   final int closed;
   final int stickReply;
+  // 支持数
   final int recommends;
   final int recommendAdd;
   final int recommendSub;
   final int heats;
   final String status;
   final int isGroup;
+  // 收藏数
   final int favTimes;
+  // 分享数
   final int shareTimes;
   final String stamp;
   final String icon;
@@ -81,7 +95,7 @@ class Thread {
         replies = int.parse(json['replies'] ?? '0'),
         displayOrder = int.parse(json['displayorder'] ?? '0'),
         highlight = json['hightlight'],
-        digest = int.parse(json['digest'] ?? '0'),
+        digest = json['digest'] == '1',
         rate = int.parse(json['rate'] ?? '0'),
         special = int.parse(json['special'] ?? '0'),
         attachment = int.parse(json['attachment'] ?? '0'),
