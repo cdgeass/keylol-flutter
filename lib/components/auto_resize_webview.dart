@@ -4,8 +4,10 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 class AutoResizeWebView extends StatefulWidget {
   final String url;
   final EdgeInsets? padding;
+  final double? height;
 
-  const AutoResizeWebView({Key? key, required this.url, this.padding})
+  const AutoResizeWebView(
+      {Key? key, required this.url, this.padding, this.height})
       : super(key: key);
 
   @override
@@ -19,7 +21,7 @@ class _AutoResizeWebViewState extends State<AutoResizeWebView> {
   Widget build(BuildContext context) {
     return Container(
       padding: widget.padding,
-      height: _height ?? 73.0,
+      height: _height ?? widget.height ?? 73.0,
       child: InAppWebView(
         initialUrlRequest: URLRequest(url: Uri.parse(widget.url)),
         initialOptions: InAppWebViewGroupOptions(

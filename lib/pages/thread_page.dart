@@ -44,6 +44,17 @@ class _ThreadPageState extends State<ThreadPage> {
   void initState() {
     super.initState();
     _onRefresh();
+
+    _listener.itemPositions.addListener(() {
+      final max = _listener.itemPositions.value
+          .where((position) => position.itemLeadingEdge < 1)
+          .reduce((max, position) =>
+              position.itemLeadingEdge > max.itemLeadingEdge ? position : max)
+          .index;
+      if (max == _widgets.length - 1) {
+        _loadMore();
+      }
+    });
   }
 
   Future<void> _onRefresh() async {
@@ -215,12 +226,11 @@ class _ThreadPageState extends State<ThreadPage> {
                         : max)
                 .index;
             if (max == _widgets.length - 1) {
-              _loadMore();
               // 异常
-              if (error != null) Center(child: Text(error!));
+              if (error != null) return Center(child: Text(error!));
               // loading
               if (error == null)
-                Center(
+                return Center(
                     child: Opacity(
                   opacity: _total > _posts.length ? 1.0 : 0.0,
                   child: CircularProgressIndicator(),

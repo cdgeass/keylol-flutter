@@ -244,7 +244,20 @@ class _KRichTextState extends State<KRichText> {
         tagsList: Html.tags
           ..addAll(['collapse', 'spoil', 'countdown', 'attach', 'blockquote']),
         customRender: {
-          'collapse': (RenderContext context, child) {
+          'video': (context, child) {
+            final src = context.tree.element?.attributes['src'];
+            if (src?.contains('www.bilibili.com') == true) {
+              final splits = src!.split('/');
+              final bv = splits[splits.length - 1];
+              return AutoResizeWebView(
+                url:
+                    'https://player.bilibili.com/player.html?high_quality=1&bvid=$bv&as_wide=1',
+                height: 200.0,
+              );
+            }
+            return child;
+          },
+          'collapse': (context, child) {
             final title = context.tree.element!.attributes['title'] ?? '';
             final message = context.tree.element!.innerHtml;
             return _Collapse(
