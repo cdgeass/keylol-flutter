@@ -37,7 +37,6 @@ class _ProfilePageState extends State<ProfilePage>
     return RefreshIndicator(
         onRefresh: _onRefresh,
         child: Scaffold(
-          backgroundColor: Theme.of(context).backgroundColor,
           appBar: AppBar(),
           body: ThrowableFutureBuilder(
             future: _future,
@@ -45,6 +44,7 @@ class _ProfilePageState extends State<ProfilePage>
               return Column(children: [
                 _buildProfileCard(space),
                 Container(
+                    color: Theme.of(context).primaryColor,
                     padding: EdgeInsets.only(left: 32.0, right: 32.0),
                     child: TabBar(
                       controller: _controller,
@@ -62,7 +62,7 @@ class _ProfilePageState extends State<ProfilePage>
   }
 
   Widget _buildProfileCard(Space space) {
-    return Card(
+    return Material(
         child: Container(
       padding: EdgeInsets.all(32.0),
       child: Column(

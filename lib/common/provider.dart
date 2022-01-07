@@ -1,16 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:keylol_flutter/common/theme.dart';
 import 'package:keylol_flutter/models/favorite_thread.dart';
 import 'package:keylol_flutter/models/notice.dart';
 import 'package:keylol_flutter/models/profile.dart';
 
-class ProfileNotifier extends ChangeNotifier {
+class ThemeProvider extends ChangeNotifier {
+  ThemeData? _themeData;
+
+  void update(ThemeData themeData) {
+    this._themeData = themeData;
+
+    notifyListeners();
+  }
+
+  ThemeData get themeData => _themeData ?? blue;
+}
+
+class ProfileProvider extends ChangeNotifier {
   Profile? profile;
 
-  ProfileNotifier._internal();
+  ProfileProvider._internal();
 
-  static late final _instance = ProfileNotifier._internal();
+  static late final _instance = ProfileProvider._internal();
 
-  factory ProfileNotifier() => _instance;
+  factory ProfileProvider() => _instance;
 
   void update(Profile? profile) {
     // auth 为空则未成功登录
@@ -24,16 +37,16 @@ class ProfileNotifier extends ChangeNotifier {
   }
 }
 
-class NoticeNotifier extends ChangeNotifier {
+class NoticeProvider extends ChangeNotifier {
   static final _empty = Notice(0, 0, 0, 0);
 
   Notice notice = _empty;
 
-  NoticeNotifier._internal();
+  NoticeProvider._internal();
 
-  static late final _instance = NoticeNotifier._internal();
+  static late final _instance = NoticeProvider._internal();
 
-  factory NoticeNotifier() => _instance;
+  factory NoticeProvider() => _instance;
 
   void update(Notice notice) {
     this.notice = notice;
@@ -46,14 +59,14 @@ class NoticeNotifier extends ChangeNotifier {
   }
 }
 
-class FavoriteThreadsNotifier extends ChangeNotifier {
+class FavoriteThreadsProvider extends ChangeNotifier {
   List<FavoriteThread> favoriteThreads = [];
 
-  FavoriteThreadsNotifier._internal();
+  FavoriteThreadsProvider._internal();
 
-  static late final _instance = FavoriteThreadsNotifier._internal();
+  static late final _instance = FavoriteThreadsProvider._internal();
 
-  factory FavoriteThreadsNotifier() => _instance;
+  factory FavoriteThreadsProvider() => _instance;
 
   void update(List<FavoriteThread> favoriteThreads) {
     this.favoriteThreads = favoriteThreads;

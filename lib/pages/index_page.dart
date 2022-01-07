@@ -87,7 +87,7 @@ class _IndexPageState extends State<IndexPage> {
         addRepaintBoundaries: true,
         itemCount: threads.length,
         itemBuilder: (context, index) {
-          return _ThreadItem(thread: threads[index]);
+          return ThreadCard(thread: threads[index]);
         },
       );
     }).toList();
@@ -98,7 +98,7 @@ class _IndexPageState extends State<IndexPage> {
           headerSliverBuilder: (context, innerBoxIsScrolled) {
             return [
               SliverAppBar(
-                leading: buildAppBarLeading(),
+                leading: buildAppBarLeading(context),
                 expandedHeight: 275.0,
                 flexibleSpace: slideView,
               ),
@@ -164,22 +164,5 @@ class _SlideViewItem extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-// 帖子 item
-class _ThreadItem extends StatelessWidget {
-  final IndexTabThreadItem thread;
-
-  const _ThreadItem({Key? key, required this.thread}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return IndexThreadCard(
-        tid: thread.tid,
-        title: thread.title,
-        dateline: thread.dateline,
-        authorId: thread.memberUid,
-        author: thread.memberUsername);
   }
 }

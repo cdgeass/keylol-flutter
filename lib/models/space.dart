@@ -149,7 +149,14 @@ class Space {
       return [];
     }
 
-    return (medals as List).map((e) => Medal.fromJson(e)).toList();
+    if (medals is List<dynamic>) {
+      return medals.map((e) => Medal.fromJson(e)).toList();
+    } else {
+      return (medals as Map<String, dynamic>)
+          .values
+          .map((e) => Medal.fromJson(e))
+          .toList();
+    }
   }
 }
 
@@ -162,10 +169,10 @@ class Medal {
   final String medalId;
 
   Medal.fromJson(Map<String, dynamic> json)
-      : name = json['name'],
-        image = json['image'],
-        description = json['description'],
-        medalId = json['medalid'];
+      : name = json['name'] ?? '',
+        image = json['image'] ?? '',
+        description = json['description'] ?? '',
+        medalId = json['medalid'] ?? '';
 }
 
 class Group {

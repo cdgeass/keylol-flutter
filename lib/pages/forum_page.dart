@@ -5,6 +5,7 @@ import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/components/thread_card.dart';
 import 'package:keylol_flutter/components/throwable_future_builder.dart';
 import 'package:keylol_flutter/models/forum_display.dart';
+import 'package:keylol_flutter/models/thread.dart';
 
 class ForumPage extends StatefulWidget {
   final String fid;
@@ -283,9 +284,9 @@ class _ForumThreadItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ContentBuilder? contentBuilder;
+    ThreadBuilder? builder;
     if (forumThread.displayOrder == 1) {
-      contentBuilder = (child) {
+      builder = (child) {
         return ClipRect(
             child: Banner(
                 location: BannerLocation.topStart,
@@ -294,7 +295,7 @@ class _ForumThreadItem extends StatelessWidget {
                 child: child));
       };
     } else if (forumThread.displayOrder == 3) {
-      contentBuilder = (child) {
+      builder = (child) {
         return ClipRect(
             child: Banner(
                 location: BannerLocation.topStart,
@@ -305,12 +306,13 @@ class _ForumThreadItem extends StatelessWidget {
     }
 
     return ThreadCard(
-      tid: forumThread.tid!,
-      subject: forumThread.subject!,
-      authorId: forumThread.authorId!,
-      author: forumThread.author!,
-      dateline: forumThread.dateline!,
-      contentBuilder: contentBuilder,
-    );
+        thread: Thread.fromJson({
+          'tid': forumThread.tid!,
+          'subject': forumThread.subject!,
+          'authorId': forumThread.authorId!,
+          'author': forumThread.author!,
+          'dateline': forumThread.dateline!
+        }),
+        builder: builder);
   }
 }

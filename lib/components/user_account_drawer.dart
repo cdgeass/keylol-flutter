@@ -1,8 +1,11 @@
+import 'dart:math';
+
 import 'package:badges/badges.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
-import 'package:keylol_flutter/common/notifiers.dart';
+import 'package:keylol_flutter/common/provider.dart';
+import 'package:keylol_flutter/common/theme.dart';
 import 'package:keylol_flutter/models/profile.dart';
 import 'package:provider/provider.dart';
 
@@ -14,14 +17,7 @@ class UserAccountDrawer extends StatefulWidget {
 class _UserAccountDrawerState extends State<UserAccountDrawer> {
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: ProfileNotifier(),
-      child: Consumer<ProfileNotifier>(
-        builder: (context, notifier, child) {
-          return _buildDrawerContent(notifier.profile);
-        },
-      ),
-    );
+    return _buildDrawerContent(Provider.of<ProfileProvider>(context).profile);
   }
 
   Widget _buildDrawerContent(Profile? profile) {
@@ -67,31 +63,35 @@ class _UserAccountDrawerState extends State<UserAccountDrawer> {
     items.add(forums);
 
     if (profile != null) {
-      final notice = ChangeNotifierProvider.value(
-          value: NoticeNotifier(),
-          child: Consumer<NoticeNotifier>(
-            builder: (context, notifier, child) {
-              final notice = notifier.notice;
-              late Widget leading;
-              if (notice.count() > 0) {
-                leading = Badge(
-                  child: Icon(Icons.notifications),
-                );
-              } else {
-                leading = Icon(Icons.notifications);
-              }
+      final notice = Provider.of<NoticeProvider>(context).notice;
+      late Widget leading;
+      if (notice.count() > 0) {
+        leading = Badge(
+          child: Icon(Icons.notifications),
+        );
+      } else {
+        leading = Icon(Icons.notifications);
+      }
 
-              return ListTile(
-                  leading: leading,
-                  title: Text('提醒'),
-                  onTap: () {
-                    notifier.clear();
-                    Navigator.of(context).pushNamed('/noteList');
-                  });
-            },
-          ));
-      items.add(notice);
+      final noticeWidget = ListTile(
+          leading: leading,
+          title: Text('提醒'),
+          onTap: () {
+            Provider.of<NoticeProvider>(context).clear();
+            Navigator.of(context).pushNamed('/noteList');
+          });
+      items.add(noticeWidget);
     }
+
+    final theme = ListTile(
+      leading: Icon(Icons.color_lens),
+      title: Text('主题'),
+      onTap: () {
+        final index = Random().nextInt(colors.length);
+        Provider.of<ThemeProvider>(context).update(colors[index]);
+      },
+    );
+    items.add(theme);
 
     final loginOrLogout = ListTile(
       leading: profile == null ? Icon(Icons.login) : Icon(Icons.logout),
@@ -100,8 +100,8 @@ class _UserAccountDrawerState extends State<UserAccountDrawer> {
         if (profile == null) {
           Navigator.of(context).pushNamed("/login");
         } else {
-          NoticeNotifier().clear();
-          ProfileNotifier().clear();
+          Provider.of<NoticeProvider>(context).clear();
+          Provider.of<ProfileProvider>(context).clear();
           KeylolClient().clearCookies();
         }
       },
@@ -118,32 +118,25 @@ class _UserAccountDrawerState extends State<UserAccountDrawer> {
   }
 }
 
-Widget buildAppBarLeading() {
-  return ChangeNotifierProvider.value(
-    value: NoticeNotifier(),
-    child: Consumer<NoticeNotifier>(
-      builder: (context, notifier, child) {
-        final notice = notifier.notice;
-        if (notice.count() > 0) {
-          return IconButton(
-            icon: Badge(
-              child: Icon(Icons.menu),
-            ),
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
-            tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
-          );
-        } else {
-          return IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
-            tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
-          );
-        }
+Widget buildAppBarLeading(BuildContext context) {
+  final notice = Provider.of<NoticeProvider>(context).notice;
+  if (notice.count() > 0) {
+    return IconButton(
+      icon: Badge(
+        child: Icon(Icons.menu),
+      ),
+      onPressed: () {
+        Scaffold.of(context).openDrawer();
       },
-    ),
-  );
+      tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
+    );
+  } else {
+    return IconButton(
+      icon: const Icon(Icons.menu),
+      onPressed: () {
+        Scaffold.of(context).openDrawer();
+      },
+      tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
+    );
+  }
 }

@@ -1,111 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/components/avatar.dart';
+import 'package:keylol_flutter/models/thread.dart';
 
-class IndexThreadCard extends StatefulWidget {
-  final String tid;
-  final String title;
-  final String dateline;
-  final String authorId;
-  final String author;
+typedef ThreadBuilder = Widget Function(Widget child);
 
-  const IndexThreadCard(
-      {Key? key,
-      required this.tid,
-      required this.title,
-      required this.dateline,
-      required this.authorId,
-      required this.author})
+class ThreadCard extends StatelessWidget {
+  final Thread thread;
+  final ThreadBuilder? builder;
+
+  const ThreadCard({Key? key, required this.thread, this.builder})
       : super(key: key);
 
-  @override
-  State<StatefulWidget> createState() => _IndexThreadCardState();
-}
-
-class _IndexThreadCardState extends State<IndexThreadCard> {
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 1.0,
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-          onTap: () {
-            Navigator.of(context).pushNamed('/thread', arguments: widget.tid);
-          },
-          child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
-            child: Row(
-              mainAxisSize: MainAxisSize.max,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                    child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('${widget.author} - ${widget.dateline}'),
-                    SizedBox(height: 2.0),
-                    Text(widget.title)
-                  ],
-                )),
-                Avatar(
-                  uid: widget.authorId,
-                  size: AvatarSize.middle,
-                  width: 36.0,
-                )
-              ],
-            ),
-          )),
-    );
-  }
-}
-
-typedef ContentBuilder = Widget Function(Widget child);
-
-class ThreadCard extends StatefulWidget {
-  final String tid;
-  final String subject;
-  final String authorId;
-  final String author;
-  final String dateline;
-  final ContentBuilder? contentBuilder;
-
-  const ThreadCard(
-      {Key? key,
-      required this.tid,
-      required this.subject,
-      required this.authorId,
-      required this.author,
-      required this.dateline,
-      this.contentBuilder})
-      : super(key: key);
-
-  @override
-  State<StatefulWidget> createState() => _ThreadCard();
-}
-
-class _ThreadCard extends State<ThreadCard> {
   @override
   Widget build(BuildContext context) {
     final content = ListTile(
       leading: Avatar(
-        uid: widget.authorId,
+        uid: thread.authorId,
         size: AvatarSize.middle,
         width: 40.0,
       ),
-      title: Text(widget.subject),
-      subtitle: Text('${widget.author} - ${widget.dateline}'),
+      title: Text(thread.subject),
+      subtitle: Text('${thread.author} - ${thread.dateline}'),
     );
     return Card(
       elevation: 1.0,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          Navigator.of(context).pushNamed('/thread', arguments: widget.tid);
+          Navigator.of(context).pushNamed('/thread', arguments: thread.tid);
         },
-        child: widget.contentBuilder == null
-            ? content
-            : widget.contentBuilder!.call(content),
+        child: builder == null ? content : builder!.call(content),
       ),
     );
   }

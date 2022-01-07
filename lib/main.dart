@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
+import 'package:keylol_flutter/common/provider.dart';
 import 'package:keylol_flutter/pages/forum_index_page.dart';
 import 'package:keylol_flutter/pages/forum_page.dart';
 import 'package:keylol_flutter/pages/index_page.dart';
@@ -8,6 +9,7 @@ import 'package:keylol_flutter/pages/note_list_page.dart';
 import 'package:keylol_flutter/pages/profile_page.dart';
 import 'package:keylol_flutter/pages/thread_page.dart';
 import 'package:keylol_flutter/pages/webview_page.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,13 +19,20 @@ void main() async {
       .then((_) => KeylolClient().fetchProfile())
       .then((_) => KeylolClient().fetchAllFavoriteThreads());
 
-  runApp(KeylolApp());
+  runApp(MultiProvider(providers: [
+    ChangeNotifierProvider(create: (context) => ThemeProvider()),
+    ChangeNotifierProvider(create: (context) => ProfileProvider()),
+    ChangeNotifierProvider(create: (context) => NoticeProvider()),
+    ChangeNotifierProvider(create: (context) => FavoriteThreadsProvider()),
+  ], child: KeylolApp()));
 }
 
 class KeylolApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: Provider.of<ThemeProvider>(context).themeData,
+      darkTheme: ThemeData.dark(),
       title: 'Keylol',
       initialRoute: "/index",
       routes: _routes(),

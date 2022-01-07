@@ -7,7 +7,7 @@ import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:dio_http_cache/dio_http_cache.dart';
 import 'package:html/parser.dart' as parser;
-import 'package:keylol_flutter/common/notifiers.dart';
+import 'package:keylol_flutter/common/provider.dart';
 import 'package:keylol_flutter/models/cat.dart';
 import 'package:keylol_flutter/models/favorite_thread.dart';
 import 'package:keylol_flutter/models/forum_display.dart';
@@ -60,7 +60,7 @@ class _ProfileInterceptor extends _KeylolMobileInterceptor {
         if (profileJson != null) {
           final profile = Profile.fromJson(profileJson);
 
-          ProfileNotifier().update(profile);
+          ProfileProvider().update(profile);
         }
       }
     }
@@ -80,7 +80,7 @@ class _NoticeInterceptor extends _KeylolMobileInterceptor {
         if (noticeJson != null) {
           final notice = Notice.fromJson(noticeJson);
 
-          NoticeNotifier().update(notice);
+          NoticeProvider().update(notice);
         }
       }
     }
@@ -487,7 +487,7 @@ extension Thead on KeylolClient {
           'tid': tid
         },
         data: FormData.fromMap({
-          'formhash': ProfileNotifier().profile!.formHash,
+          'formhash': ProfileProvider().profile!.formHash,
           'message': message,
           'posttime': '${DateTime.now().millisecondsSinceEpoch}',
           'usesig': 1
@@ -506,7 +506,7 @@ extension Thead on KeylolClient {
       'module': 'recommend',
       'do': 'add',
       'tid': tid,
-      'hash': ProfileNotifier().profile?.formHash
+      'hash': ProfileProvider().profile?.formHash
     });
     if (res.data['Message']['messageval'] != 'recommend_succeed') {
       return Future.error(res.data['Message']['messagestr'] ?? '不知道怎么了。。。');
@@ -522,7 +522,7 @@ extension FavThread on KeylolClient {
           'module': 'favthread',
           'type': 'thread',
           'id': tid,
-          'formhash': ProfileNotifier().profile?.formHash,
+          'formhash': ProfileProvider().profile?.formHash,
         },
         data: FormData.fromMap({'description': description}));
 
@@ -551,7 +551,7 @@ extension FavThread on KeylolClient {
       favoriteThreads.addAll(list);
     }
 
-    FavoriteThreadsNotifier().update(favoriteThreads);
+    FavoriteThreadsProvider().update(favoriteThreads);
     return favoriteThreads;
   }
 
@@ -576,7 +576,7 @@ extension FavThread on KeylolClient {
       'op': 'delete',
       'deletesubmit': 'true',
       'favid': favId,
-      'formhash': ProfileNotifier().profile?.formHash
+      'formhash': ProfileProvider().profile?.formHash
     });
 
     if (res.data['Message'] != null &&

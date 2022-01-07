@@ -56,7 +56,7 @@ class _NoteListPageState extends State<NoteListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          leading: buildAppBarLeading(),
+          leading: buildAppBarLeading(context),
           title: Text('提醒'),
           centerTitle: true,
         ),

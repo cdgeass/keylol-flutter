@@ -1,9 +1,10 @@
 import 'package:html/dom.dart';
+import 'package:keylol_flutter/models/thread.dart';
 
 // 首页
 class Index {
   late final List<IndexSlideViewItem> slideViewItems;
-  late final Map<IndexTabTitleItem, List<IndexTabThreadItem>> tabThreadsMap;
+  late final Map<IndexTabTitleItem, List<Thread>> tabThreadsMap;
 
   Index(this.slideViewItems, this.tabThreadsMap);
 
@@ -37,8 +38,8 @@ class Index {
 
         var tabThreads = items.map((item) {
           var aTags = item.getElementsByTagName('a');
-          var memberInfo = aTags[0];
-          final memberUid = memberInfo.attributes['href']!.split('-')[1];
+          var authorHref = aTags[0];
+          final authorId = authorHref.attributes['href']!.split('-')[1];
 
           String? fid;
           String? fname;
@@ -64,11 +65,16 @@ class Index {
           }
           final titleInfo =
               tInfo.attributes['title']!.split('\n')[1].split(' ');
-          final memberUsername = titleInfo[1];
-          final dateLine = titleInfo[2].substring(1, titleInfo[2].length - 1);
+          final author = titleInfo[1];
+          final dateline = titleInfo[2].substring(1, titleInfo[2].length - 1);
 
-          return IndexTabThreadItem(
-              tid, fid, fname, title, memberUsername, memberUid, dateLine);
+          return Thread.fromJson({
+            'tid': tid,
+            'subject': title,
+            'dateline': dateline,
+            'authorId': authorId,
+            'author': author
+          });
         }).toList();
 
         var fid = titleId.split('_')[2];
@@ -123,31 +129,4 @@ class IndexTabTitleItem {
   final String name;
 
   IndexTabTitleItem(this.fid, this.name);
-}
-
-// Tab页板块
-class IndexTabThreadItem {
-  // 帖子id
-  final String tid;
-
-  // 版块id
-  final String? fid;
-
-  // 版块名称
-  final String? fname;
-
-  // 标题
-  final String title;
-
-  // 作者名
-  final String memberUsername;
-
-  // 作者uid
-  final String memberUid;
-
-  // 日期
-  final String dateline;
-
-  IndexTabThreadItem(this.tid, this.fid, this.fname, this.title,
-      this.memberUsername, this.memberUid, this.dateline);
 }

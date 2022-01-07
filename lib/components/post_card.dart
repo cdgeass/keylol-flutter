@@ -1,30 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:keylol_flutter/common/notifiers.dart';
+import 'package:keylol_flutter/common/provider.dart';
 import 'package:keylol_flutter/components/avatar.dart';
+import 'package:keylol_flutter/models/post.dart';
+import 'package:provider/provider.dart';
 
-class PostCard extends StatefulWidget {
-  final String authorId;
-  final String author;
-  final String dateline;
-  final String pid;
-  final Widget content;
-  final String tid;
+typedef PostBuilder = Widget Function(Post post);
 
-  const PostCard(
-      {Key? key,
-      required this.authorId,
-      required this.author,
-      required this.dateline,
-      required this.pid,
-      required this.content,
-      required this.tid})
+class PostCard extends StatelessWidget {
+  final Post post;
+  final PostBuilder builder;
+
+  const PostCard({Key? key, required this.post, required this.builder})
       : super(key: key);
 
-  @override
-  State<StatefulWidget> createState() => _PostCardState();
-}
-
-class _PostCardState extends State<PostCard> {
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -37,14 +25,14 @@ class _PostCardState extends State<PostCard> {
         children: [
           ListTile(
             leading: Avatar(
-              uid: widget.authorId,
+              uid: post.authorId,
               size: AvatarSize.middle,
               width: 40.0,
             ),
-            title: Text(widget.author),
-            subtitle: Text(widget.dateline),
+            title: Text(post.author),
+            subtitle: Text(post.dateline),
           ),
-          widget.content,
+          builder.call(post),
           ButtonBar(
             alignment: MainAxisAlignment.start,
             children: [
@@ -53,17 +41,13 @@ class _PostCardState extends State<PostCard> {
                     // TODO 回复
                   },
                   icon: Icon(Icons.reply_outlined)),
-              if (ProfileNotifier().profile?.memberUid == widget.authorId)
+              if (Provider.of<ProfileProvider>(context).profile?.memberUid ==
+                  post.authorId)
                 IconButton(
                     onPressed: () {
                       // TODO 编辑
                     },
                     icon: Icon(Icons.edit)),
-              IconButton(
-                  onPressed: () {
-                    // TODO 支持
-                  },
-                  icon: Icon(Icons.plus_one_outlined)),
             ],
           )
         ],

@@ -4,7 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/constants.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
-import 'package:keylol_flutter/common/notifiers.dart';
+import 'package:keylol_flutter/common/provider.dart';
 import 'package:keylol_flutter/components/avatar.dart';
 import 'package:keylol_flutter/components/post_card.dart';
 import 'package:keylol_flutter/components/rich_text.dart';
@@ -166,14 +166,12 @@ class _ThreadPageState extends State<ThreadPage> {
       // 回复
       for (var post in _posts.sublist(1))
         PostCard(
-            authorId: post.authorId,
-            author: post.author,
-            dateline: post.dateline,
-            pid: post.pid,
-            content: KRichTextBuilder(post.message,
-                    attachments: post.attachments, scrollTo: _scrollTo)
-                .build(),
-            tid: post.tid),
+            post: post,
+            builder: (post) {
+              return KRichTextBuilder(post.message,
+                      attachments: post.attachments, scrollTo: _scrollTo)
+                  .build();
+            }),
       // loading error
       _buildLoading()
     ];
@@ -240,34 +238,30 @@ class _ThreadPageState extends State<ThreadPage> {
   }
 
   List<Widget> _buildActions(BuildContext context, ViewThread viewThread) {
+    FavoriteThread? favoriteThread;
+    for (var value
+        in Provider.of<FavoriteThreadsProvider>(context).favoriteThreads) {
+      if (value.idType == 'tid' && value.id == widget.tid) {
+        favoriteThread = value;
+        break;
+      }
+    }
     return [
-      ChangeNotifierProvider.value(
-          value: FavoriteThreadsNotifier(),
-          child: Consumer<FavoriteThreadsNotifier>(
-              builder: (context, notifier, child) {
-            FavoriteThread? favoriteThread;
-            for (var value in FavoriteThreadsNotifier().favoriteThreads) {
-              if (value.idType == 'tid' && value.id == widget.tid) {
-                favoriteThread = value;
-                break;
-              }
-            }
-            if (favoriteThread == null) {
-              return IconButton(
-                  onPressed: () {
-                    _favoriteThread(context);
-                  },
-                  icon: Icon(Icons.favorite_outline));
-            } else {
-              return IconButton(
-                  onPressed: () {
-                    final favId = favoriteThread!.favId;
-                    KeylolClient().deleteFavoriteThread(favId).then(
-                        (value) => FavoriteThreadsNotifier().delete(favId));
-                  },
-                  icon: Icon(Icons.favorite));
-            }
-          })),
+      if (favoriteThread == null)
+        IconButton(
+            onPressed: () {
+              _favoriteThread(context);
+            },
+            icon: Icon(Icons.favorite_outline)),
+      if (favoriteThread != null)
+        IconButton(
+            onPressed: () {
+              final favId = favoriteThread!.favId;
+              KeylolClient()
+                  .deleteFavoriteThread(favId)
+                  .then((value) => FavoriteThreadsProvider().delete(favId));
+            },
+            icon: Icon(Icons.favorite)),
       PopupMenuButton(
         icon: Icon(Icons.more_vert),
         itemBuilder: (BuildContext context) {
@@ -312,7 +306,7 @@ class _ThreadPageState extends State<ThreadPage> {
   void _scrollTo(String pid) {
     var index = 0;
     for (final widget in _widgets) {
-      if (widget is PostCard && widget.pid == pid) {
+      if (widget is PostCard && widget.post.pid == pid) {
         _controller.scrollTo(index: index, duration: Duration(seconds: 1));
         return;
       }
@@ -340,7 +334,7 @@ class _ReplyState extends State<_Reply> {
 
   @override
   Widget build(BuildContext context) {
-    final profile = ProfileNotifier().profile;
+    final profile = Provider.of<ProfileProvider>(context).profile;
     if (profile != null) {
       return Material(
           child: Row(

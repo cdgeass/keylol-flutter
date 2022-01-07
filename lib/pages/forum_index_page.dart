@@ -25,7 +25,7 @@ class ForumIndexPageState extends State<ForumIndexPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: buildAppBarLeading(),
+        leading: buildAppBarLeading(context),
         title: Text('版块'),
         centerTitle: true,
       ),
