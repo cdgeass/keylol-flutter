@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:keylol_flutter/common/styling.dart';
 import 'package:keylol_flutter/components/avatar.dart';
 
 class IndexThreadCard extends StatefulWidget {
@@ -44,13 +43,9 @@ class _IndexThreadCardState extends State<IndexThreadCard> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('${widget.author} - ${widget.dateline}',
-                        style: AppTheme.caption
-                            .copyWith(color: AppTheme.darkText)),
-                    const SizedBox(height: 2.0),
-                    Text(widget.title,
-                        style:
-                            AppTheme.title.copyWith(color: AppTheme.darkText))
+                    Text('${widget.author} - ${widget.dateline}'),
+                    SizedBox(height: 2.0),
+                    Text(widget.title)
                   ],
                 )),
                 Avatar(

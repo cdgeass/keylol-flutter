@@ -9,14 +9,13 @@ import 'package:keylol_flutter/pages/profile_page.dart';
 import 'package:keylol_flutter/pages/thread_page.dart';
 import 'package:keylol_flutter/pages/webview_page.dart';
 
-import 'common/styling.dart';
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  KeylolClient().init()
-  .then((_) => KeylolClient().fetchProfile())
-  .then((_) => KeylolClient().fetchAllFavoriteThreads());
+  KeylolClient()
+      .init()
+      .then((_) => KeylolClient().fetchProfile())
+      .then((_) => KeylolClient().fetchAllFavoriteThreads());
 
   runApp(KeylolApp());
 }
@@ -26,11 +25,6 @@ class KeylolApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Keylol',
-      theme: ThemeData(
-          primaryColor: Colors.lightBlue,
-          backgroundColor: Color(0xFFFAFAFA),
-          textTheme: AppTheme.textTheme),
-      darkTheme: ThemeData.dark(),
       initialRoute: "/index",
       routes: _routes(),
     );

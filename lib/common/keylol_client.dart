@@ -477,8 +477,7 @@ extension Thead on KeylolClient {
   }
 
   // 回复
-  Future<void> sendReply(
-      String fid, String tid, String formHash, String message) async {
+  Future<void> sendReply(String fid, String tid, String message) async {
     final res = await _dio.post("/api/mobile/index.php",
         queryParameters: {
           'module': 'sendreply',
@@ -488,7 +487,7 @@ extension Thead on KeylolClient {
           'tid': tid
         },
         data: FormData.fromMap({
-          'formhash': formHash,
+          'formhash': ProfileNotifier().profile!.formHash,
           'message': message,
           'posttime': '${DateTime.now().millisecondsSinceEpoch}',
           'usesig': 1
@@ -497,6 +496,9 @@ extension Thead on KeylolClient {
       return Future.error(res.data['Message']?['messagestr'] ?? '不知道怎么了。。。');
     }
   }
+
+  Future<void> sendReplyForPost(
+      String fid, String tid, String pid, String message) async {}
 
   // +1
   Future<void> recommend(String tid) async {

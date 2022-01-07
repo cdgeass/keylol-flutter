@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/constants.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/common/notifiers.dart';
-import 'package:keylol_flutter/common/styling.dart';
 import 'package:keylol_flutter/components/avatar.dart';
 import 'package:keylol_flutter/components/post_card.dart';
 import 'package:keylol_flutter/components/rich_text.dart';
@@ -149,8 +148,7 @@ class _ThreadPageState extends State<ThreadPage> {
       // 标题
       Padding(
         padding: EdgeInsets.all(16.0),
-        child: Text(title,
-            style: AppTheme.title.copyWith(color: AppTheme.darkText)),
+        child: Text(title, style: Theme.of(context).textTheme.headline6),
       ),
       // 帖子作者
       Material(
@@ -344,7 +342,6 @@ class _ReplyState extends State<_Reply> {
   Widget build(BuildContext context) {
     final profile = ProfileNotifier().profile;
     if (profile != null) {
-      final formHash = profile.formHash!;
       return Material(
           child: Row(
         children: [
@@ -370,8 +367,8 @@ class _ReplyState extends State<_Reply> {
               onPressed: () {
                 final message = _controller.text;
                 if (message.isNotEmpty) {
-                  final replyFuture = KeylolClient()
-                      .sendReply(widget.fid, widget.tid, formHash, message);
+                  final replyFuture =
+                      KeylolClient().sendReply(widget.fid, widget.tid, message);
                   replyFuture.then((_) {
                     _controller.clear();
                     showDialog(
@@ -426,8 +423,7 @@ class _ReplyState extends State<_Reply> {
                       tabBar: TabBar(
                           isScrollable: true,
                           tabs: EMOJI_MAP.keys
-                              .map((key) => Tab(
-                                  child: Text(key, style: AppTheme.subtitle)))
+                              .map((key) => Tab(child: Text(key)))
                               .toList()))),
             ];
           },

@@ -4,7 +4,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
-import 'package:keylol_flutter/common/styling.dart';
 import 'package:keylol_flutter/components/sliver_tab_bar_delegate.dart';
 import 'package:keylol_flutter/components/thread_card.dart';
 import 'package:keylol_flutter/components/throwable_future_builder.dart';
@@ -51,10 +50,7 @@ class _IndexPageState extends State<IndexPage> {
           builder: (context, Index index) {
             final body = _buildTabPage(index);
 
-            return Scaffold(
-                backgroundColor: Theme.of(context).backgroundColor,
-                drawer: UserAccountDrawer(),
-                body: body);
+            return Scaffold(drawer: UserAccountDrawer(), body: body);
           },
         ));
   }
@@ -81,11 +77,7 @@ class _IndexPageState extends State<IndexPage> {
 
     // tabBar
     final tabs = index.tabThreadsMap.keys
-        .map((key) => Tab(
-                child: Text(
-              key.name,
-              style: AppTheme.subtitle.copyWith(fontWeight: FontWeight.bold),
-            )))
+        .map((key) => Tab(child: Text(key.name)))
         .toList();
     final tabChildren = index.tabThreadsMap.keys.map((key) {
       final threads = index.tabThreadsMap[key]!;
@@ -153,13 +145,9 @@ class _SlideViewItem extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       color: Colors.transparent,
       child: GridTileBar(
-        backgroundColor: Colors.black45,
-        title: Text(
-          slideViewItem.title,
-          softWrap: true,
-          overflow: TextOverflow.ellipsis,
-          style: AppTheme.title.copyWith(color: AppTheme.spacer),
-        ),
+        backgroundColor: Colors.black26,
+        title: Text(slideViewItem.title,
+            softWrap: true, overflow: TextOverflow.ellipsis),
       ),
     );
 

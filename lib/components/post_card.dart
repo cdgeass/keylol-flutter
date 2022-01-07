@@ -8,9 +8,7 @@ class PostCard extends StatefulWidget {
   final String dateline;
   final String pid;
   final Widget content;
-  final bool first;
   final String tid;
-  final bool favored;
 
   const PostCard(
       {Key? key,
@@ -19,9 +17,7 @@ class PostCard extends StatefulWidget {
       required this.dateline,
       required this.pid,
       required this.content,
-      this.first = false,
-      required this.tid,
-      this.favored = false})
+      required this.tid})
       : super(key: key);
 
   @override
@@ -52,20 +48,12 @@ class _PostCardState extends State<PostCard> {
           ButtonBar(
             alignment: MainAxisAlignment.start,
             children: [
-              if (widget.first)
-                IconButton(
-                    onPressed: () {
-                      // TODO 评分
-                    },
-                    icon: Icon(Icons.thumb_up_outlined)),
-              if (!widget.first)
-                IconButton(
-                    onPressed: () {
-                      // TODO 回复
-                    },
-                    icon: Icon(Icons.reply_outlined)),
-              if (!widget.first &&
-                  ProfileNotifier().profile?.memberUid == widget.authorId)
+              IconButton(
+                  onPressed: () {
+                    // TODO 回复
+                  },
+                  icon: Icon(Icons.reply_outlined)),
+              if (ProfileNotifier().profile?.memberUid == widget.authorId)
                 IconButton(
                     onPressed: () {
                       // TODO 编辑

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
-import 'package:keylol_flutter/common/styling.dart';
 import 'package:keylol_flutter/components/thread_card.dart';
 import 'package:keylol_flutter/components/throwable_future_builder.dart';
 import 'package:keylol_flutter/models/forum_display.dart';
@@ -46,19 +45,9 @@ class _ForumPageState extends State<ForumPage>
                 controller: _tabController,
                 isScrollable: true,
                 tabs: [
-                  Tab(
-                      child: Text(
-                    '全部',
-                    style: AppTheme.subtitle.copyWith(
-                        fontWeight: FontWeight.bold, color: Colors.white),
-                  )),
+                  Tab(child: Text('全部')),
                   for (final threadType in threadTypes)
-                    Tab(
-                        child: Text(
-                      threadType.name,
-                      style: AppTheme.subtitle.copyWith(
-                          fontWeight: FontWeight.bold, color: Colors.white),
-                    )),
+                    Tab(child: Text(threadType.name)),
                 ],
               ),
             ),

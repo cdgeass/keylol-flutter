@@ -30,7 +30,7 @@ class Avatar extends StatelessWidget {
   const Avatar({
     Key? key,
     required this.uid,
-    required this.size,
+    this.size = AvatarSize.middle,
     required this.width,
     this.clip = true,
   }) : super(key: key);
