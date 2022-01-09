@@ -19,24 +19,29 @@ void main() async {
       .then((_) => KeylolClient().fetchProfile())
       .then((_) => KeylolClient().fetchAllFavoriteThreads());
 
-  runApp(MultiProvider(providers: [
-    ChangeNotifierProvider(create: (context) => ThemeProvider()),
-    ChangeNotifierProvider(create: (context) => ProfileProvider()),
-    ChangeNotifierProvider(create: (context) => NoticeProvider()),
-    ChangeNotifierProvider(create: (context) => FavoriteThreadsProvider()),
-  ], child: KeylolApp()));
+  runApp(KeylolApp());
 }
 
 class KeylolApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: Provider.of<ThemeProvider>(context).themeData,
-      darkTheme: ThemeData.dark(),
-      title: 'Keylol',
-      initialRoute: "/index",
-      routes: _routes(),
-    );
+    return MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (context) => ThemeProvider()),
+          ChangeNotifierProvider(create: (context) => ProfileProvider()),
+          ChangeNotifierProvider(create: (context) => NoticeProvider()),
+          ChangeNotifierProvider(
+              create: (context) => FavoriteThreadsProvider()),
+        ],
+        builder: (context, child) {
+          return MaterialApp(
+            theme: Provider.of<ThemeProvider>(context).themeData,
+            darkTheme: ThemeData.dark(),
+            title: 'Keylol',
+            initialRoute: "/index",
+            routes: _routes(),
+          );
+        });
   }
 }
 

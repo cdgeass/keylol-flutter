@@ -1,3 +1,6 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter_html/flutter_html.dart';
+import 'package:html/dom.dart' as dom;
 import 'package:html_unescape/html_unescape.dart';
 import 'package:keylol_flutter/models/attachment.dart';
 
@@ -60,4 +63,33 @@ class Post {
         imageList = ((json['imagelist'] ?? []) as List<dynamic>)
             .map((i) => i as String)
             .toList();
+
+  String? _pureMessage;
+
+  String pureMessage() {
+    if (_pureMessage != null) {
+      return _pureMessage!;
+    }
+
+    final document = HtmlParser.parseHTML(message);
+
+    _pureMessage = '';
+    for (final node in document.body!.nodes) {
+      if (node is dom.Text) {
+        _pureMessage = _pureMessage! + node.text;
+        if (_pureMessage!.length >= 100) break;
+      } else if (node is dom.Element) {
+        _pureMessage = _pureMessage! + node.text;
+        if (_pureMessage!.length >= 100) break;
+      }
+    }
+
+    if (_pureMessage!.length > 100) {
+      _pureMessage = _pureMessage!.substring(0, 100) + '...';
+      return _pureMessage!;
+    }
+
+    return _pureMessage!;
+  }
+
 }

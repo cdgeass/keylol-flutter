@@ -17,10 +17,8 @@ class UserAccountDrawer extends StatefulWidget {
 class _UserAccountDrawerState extends State<UserAccountDrawer> {
   @override
   Widget build(BuildContext context) {
-    return _buildDrawerContent(Provider.of<ProfileProvider>(context).profile);
-  }
+    final profile = Provider.of<ProfileProvider>(context).profile;
 
-  Widget _buildDrawerContent(Profile? profile) {
     var items = List<Widget>.empty(growable: true);
 
     final avatarProvider = profile?.memberAvatar == null
@@ -46,22 +44,25 @@ class _UserAccountDrawerState extends State<UserAccountDrawer> {
     );
     items.add(drawerHeader);
 
+    // 聚焦
     final index = ListTile(
         leading: Icon(Icons.home),
         title: Text('聚焦'),
         onTap: () {
-          Navigator.of(context).pushNamed('/index');
+          Navigator.of(context).pushReplacementNamed('/index');
         });
     items.add(index);
 
+    // 版块
     final forums = ListTile(
         leading: Icon(Icons.dashboard),
         title: Text('版块'),
         onTap: () {
-          Navigator.of(context).pushNamed('/forumIndex');
+          Navigator.of(context).pushReplacementNamed('/forumIndex');
         });
     items.add(forums);
 
+    // 提醒
     if (profile != null) {
       final notice = Provider.of<NoticeProvider>(context).notice;
       late Widget leading;
@@ -77,18 +78,20 @@ class _UserAccountDrawerState extends State<UserAccountDrawer> {
           leading: leading,
           title: Text('提醒'),
           onTap: () {
-            Provider.of<NoticeProvider>(context).clear();
-            Navigator.of(context).pushNamed('/noteList');
+            Provider.of<NoticeProvider>(context, listen: false).clear();
+            Navigator.of(context).pushReplacementNamed('/noteList');
           });
       items.add(noticeWidget);
     }
 
+    // 主题
     final theme = ListTile(
       leading: Icon(Icons.color_lens),
       title: Text('主题'),
       onTap: () {
         final index = Random().nextInt(colors.length);
-        Provider.of<ThemeProvider>(context).update(colors[index]);
+        Provider.of<ThemeProvider>(context, listen: false)
+            .update(colors[index]);
       },
     );
     items.add(theme);
@@ -114,29 +117,6 @@ class _UserAccountDrawerState extends State<UserAccountDrawer> {
 
     return Drawer(
       child: drawItems,
-    );
-  }
-}
-
-Widget buildAppBarLeading(BuildContext context) {
-  final notice = Provider.of<NoticeProvider>(context).notice;
-  if (notice.count() > 0) {
-    return IconButton(
-      icon: Badge(
-        child: Icon(Icons.menu),
-      ),
-      onPressed: () {
-        Scaffold.of(context).openDrawer();
-      },
-      tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
-    );
-  } else {
-    return IconButton(
-      icon: const Icon(Icons.menu),
-      onPressed: () {
-        Scaffold.of(context).openDrawer();
-      },
-      tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
     );
   }
 }

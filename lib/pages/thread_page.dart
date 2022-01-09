@@ -6,6 +6,7 @@ import 'package:keylol_flutter/common/constants.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/common/provider.dart';
 import 'package:keylol_flutter/components/avatar.dart';
+import 'package:keylol_flutter/components/smiley_modal.dart';
 import 'package:keylol_flutter/components/post_card.dart';
 import 'package:keylol_flutter/components/rich_text.dart';
 import 'package:keylol_flutter/components/sliver_tab_bar_delegate.dart';
@@ -111,6 +112,7 @@ class _ThreadPageState extends State<ThreadPage> {
               ),
               body: Stack(children: [
                 ScrollablePositionedList.builder(
+                    addAutomaticKeepAlives: true,
                     itemScrollController: _controller,
                     itemPositionsListener: _listener,
                     itemCount: _widgets.length,
@@ -345,7 +347,9 @@ class _ReplyState extends State<_Reply> {
               showModalBottomSheet(
                   context: context,
                   builder: (_) {
-                    return _buildEmojiPicker();
+                    return SmileyModal(onSelect: (smiley) {
+                      _controller.text = _controller.text + smiley;
+                    });
                   });
             },
           ),
@@ -362,7 +366,7 @@ class _ReplyState extends State<_Reply> {
                 final message = _controller.text;
                 if (message.isNotEmpty) {
                   final replyFuture =
-                      KeylolClient().sendReply(widget.fid, widget.tid, message);
+                      KeylolClient().sendReply(widget.tid, message);
                   replyFuture.then((_) {
                     _controller.clear();
                     showDialog(
@@ -402,45 +406,5 @@ class _ReplyState extends State<_Reply> {
         height: 0.0,
       );
     }
-  }
-
-  Widget _buildEmojiPicker() {
-    return DefaultTabController(
-      length: EMOJI_MAP.keys.length,
-      child: NestedScrollView(
-          headerSliverBuilder: (context, innerBoxIsScrolled) {
-            return [
-              SliverPersistentHeader(
-                  pinned: true,
-                  floating: true,
-                  delegate: SliverTabBarDelegate(
-                      tabBar: TabBar(
-                          isScrollable: true,
-                          tabs: EMOJI_MAP.keys
-                              .map((key) => Tab(child: Text(key)))
-                              .toList()))),
-            ];
-          },
-          body: TabBarView(
-              children: EMOJI_MAP.keys.map((key) {
-            var emojis = EMOJI_MAP[key]!;
-            return GridView.count(
-              crossAxisCount: 5,
-              children: emojis.map((pair) {
-                var url = pair.keys.first;
-                var alt = pair[url]!;
-                return GestureDetector(
-                  onTap: () {
-                    var text = _controller.text;
-                    _controller.text = text + alt;
-                  },
-                  child: CachedNetworkImage(
-                    imageUrl: url,
-                  ),
-                );
-              }).toList(),
-            );
-          }).toList())),
-    );
   }
 }

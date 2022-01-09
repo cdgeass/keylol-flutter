@@ -13,6 +13,7 @@ import 'package:keylol_flutter/models/favorite_thread.dart';
 import 'package:keylol_flutter/models/forum_display.dart';
 import 'package:keylol_flutter/models/index.dart';
 import 'package:keylol_flutter/models/notice.dart';
+import 'package:keylol_flutter/models/post.dart';
 import 'package:keylol_flutter/models/profile.dart';
 import 'package:keylol_flutter/models/sec_code.dart';
 import 'package:keylol_flutter/models/space.dart';
@@ -165,18 +166,6 @@ class KeylolClient {
       return Future.error(res.data['Message']!['messagestr']);
     }
     return NoteList.fromJson(res.data['Variables']);
-  }
-
-  // 表情
-  Future<List<dynamic>> fetchSmiley() async {
-    final res = await _dio.post('/api/mobile/index.php',
-        queryParameters: {'module': 'smiley'},
-        options: buildCacheOptions(Duration(days: 7)));
-
-    if (res.data['Message'] != null) {
-      return Future.error(res.data['Message']!['messagestr']);
-    }
-    return res.data['Variables'];
   }
 
   // 热帖
@@ -477,13 +466,12 @@ extension Thead on KeylolClient {
   }
 
   // 回复
-  Future<void> sendReply(String fid, String tid, String message) async {
+  Future<void> sendReply(String tid, String message) async {
     final res = await _dio.post("/api/mobile/index.php",
         queryParameters: {
           'module': 'sendreply',
           'replysubmit': 'yes',
           'action': 'reply',
-          'fid': fid,
           'tid': tid
         },
         data: FormData.fromMap({
@@ -497,8 +485,31 @@ extension Thead on KeylolClient {
     }
   }
 
-  Future<void> sendReplyForPost(
-      String fid, String tid, String pid, String message) async {}
+  // 回复回复
+  Future<void> sendReplyForPost(Post post, String message) async {
+    final dateTime = DateTime.now();
+
+    final res = await _dio.post('/api/mobile/index.php',
+        queryParameters: {
+          'module': 'sendreply',
+          'replysubmit': 'yes',
+          'action': 'reply',
+          'tid': post.tid,
+          'reppid': post.pid,
+        },
+        data: FormData.fromMap({
+          'formhash': ProfileProvider().profile!.formHash,
+          'message': message,
+          'noticetrimstr':
+              '[quote][size=2][url=forum.php?mod=redirect&goto=findpost&pid=${post.pid}&ptid=${post.tid}][color=#999999]${post.author} 发表于 ${dateTime.year}-${dateTime.month}-${dateTime.day} ${dateTime.hour}:${dateTime.minute}[/color][/url][/size]${post.pureMessage}[/quote]',
+          'posttime': '${dateTime.millisecondsSinceEpoch}',
+          'usesig': 1
+        }));
+
+    if (res.data['Message']['messageval'] != 'post_reply_succeed') {
+      return Future.error(res.data['Message']?['messagestr'] ?? '不知道怎么了。。。');
+    }
+  }
 
   // +1
   Future<void> recommend(String tid) async {

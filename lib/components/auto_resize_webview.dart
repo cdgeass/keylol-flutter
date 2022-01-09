@@ -14,11 +14,16 @@ class AutoResizeWebView extends StatefulWidget {
   State<StatefulWidget> createState() => _AutoResizeWebViewState();
 }
 
-class _AutoResizeWebViewState extends State<AutoResizeWebView> {
+class _AutoResizeWebViewState extends State<AutoResizeWebView>
+    with AutomaticKeepAliveClientMixin {
   double? _height;
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Container(
       padding: widget.padding,
       height: _height ?? widget.height ?? 73.0,
@@ -28,6 +33,9 @@ class _AutoResizeWebViewState extends State<AutoResizeWebView> {
             crossPlatform: InAppWebViewOptions(
                 transparentBackground: true, javaScriptEnabled: true)),
         onLoadStop: (controller, uri) async {
+          if (_height != null) {
+            return;
+          }
           if (uri
               .toString()
               .startsWith('https://store.steampowered.com/widget')) {

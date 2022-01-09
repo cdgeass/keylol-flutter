@@ -366,19 +366,16 @@ class _Collapse extends StatefulWidget {
   State<StatefulWidget> createState() => _CollapseState();
 }
 
-class _CollapseState extends State<_Collapse> with RestorationMixin {
-  RestorableBool _expanded = RestorableBool(false);
+class _CollapseState extends State<_Collapse>
+    with AutomaticKeepAliveClientMixin {
+  bool _expanded = false;
 
   @override
-  String? get restorationId => 'collapse';
-
-  @override
-  void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
-    registerForRestoration(_expanded, 'expanded');
-  }
+  bool get wantKeepAlive => true;
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Padding(
         padding: EdgeInsets.only(top: 8.0, bottom: 8.0),
         child: Material(
@@ -390,14 +387,14 @@ class _CollapseState extends State<_Collapse> with RestorationMixin {
               InkWell(
                 onTap: () {
                   setState(() {
-                    _expanded.value = !_expanded.value;
+                    _expanded = !_expanded;
                   });
                 },
                 child: Padding(
                   padding: EdgeInsets.all(8.0),
                   child: Row(
                     children: [
-                      _expanded.value
+                      _expanded
                           ? Icon(Icons.arrow_drop_up, color: Colors.white)
                           : Icon(Icons.arrow_right, color: Colors.white),
                       Text(
@@ -409,7 +406,7 @@ class _CollapseState extends State<_Collapse> with RestorationMixin {
                   ),
                 ),
               ),
-              if (_expanded.value)
+              if (_expanded)
                 Material(
                     color: Theme.of(context).backgroundColor,
                     shape: RoundedRectangleBorder(
@@ -442,19 +439,15 @@ class _Spoil extends StatefulWidget {
   State<StatefulWidget> createState() => _SpoilState();
 }
 
-class _SpoilState extends State<_Spoil> with RestorationMixin {
-  RestorableBool _expanded = RestorableBool(false);
+class _SpoilState extends State<_Spoil> with AutomaticKeepAliveClientMixin {
+  bool _expanded = false;
 
   @override
-  String? get restorationId => 'spoil';
-
-  @override
-  void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
-    registerForRestoration(_expanded, 'expanded');
-  }
+  bool get wantKeepAlive => true;
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Padding(
         padding: EdgeInsets.only(top: 4.0, bottom: 4.0),
         child: DottedBorder(
@@ -470,14 +463,14 @@ class _SpoilState extends State<_Spoil> with RestorationMixin {
                       InkWell(
                         onTap: () {
                           setState(() {
-                            _expanded.value = !_expanded.value;
+                            _expanded = !_expanded;
                           });
                         },
                         child: Padding(
                           padding: EdgeInsets.all(8.0),
                           child: Row(
                             children: [
-                              _expanded.value
+                              _expanded
                                   ? Text(
                                       '点击隐藏',
                                       style: TextStyle(
@@ -496,7 +489,7 @@ class _SpoilState extends State<_Spoil> with RestorationMixin {
                       ),
                     ],
                   ),
-                  if (_expanded.value)
+                  if (_expanded)
                     KRichText(
                       message: widget.message,
                       attachments: widget.attachments,

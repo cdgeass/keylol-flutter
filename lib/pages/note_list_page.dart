@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:html/parser.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
+import 'package:keylol_flutter/components/noticeable_leading.dart';
 import 'package:keylol_flutter/components/user_account_drawer.dart';
 import 'package:keylol_flutter/models/notice.dart';
 
@@ -56,7 +57,7 @@ class _NoteListPageState extends State<NoteListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          leading: buildAppBarLeading(context),
+          leading: NoticeableLeading(),
           title: Text('提醒'),
           centerTitle: true,
         ),
