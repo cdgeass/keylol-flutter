@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/common/provider.dart';
 import 'package:keylol_flutter/components/avatar.dart';
-import 'package:keylol_flutter/components/smiley_modal.dart';
+import 'package:keylol_flutter/components/reply_modal.dart';
 import 'package:keylol_flutter/models/post.dart';
 import 'package:provider/provider.dart';
 
@@ -40,7 +39,9 @@ class PostCard extends StatelessWidget {
             children: [
               IconButton(
                   onPressed: () {
-                    _showReplyDialog(context);
+                    Navigator.of(context).push(ReplyRoute(null, post, () {
+
+                    }));
                   },
                   icon: Icon(Icons.reply_outlined)),
               if (Provider.of<ProfileProvider>(context).profile?.memberUid ==
@@ -55,36 +56,5 @@ class PostCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  void _showReplyDialog(BuildContext context) {
-    showDialog(
-        context: context,
-        builder: (context) {
-          final controller = TextEditingController();
-          return AlertDialog(
-            title: Text('回复'),
-            content: TextField(controller: controller),
-            actionsAlignment: MainAxisAlignment.spaceBetween,
-            actions: [
-              IconButton(
-                  onPressed: () {
-                    showModalBottomSheet(
-                        context: context,
-                        builder: (_) {
-                          return SmileyModal(onSelect: (smiley) {
-                            controller.text = controller.text + smiley;
-                          });
-                        });
-                  },
-                  icon: Icon(Icons.emoji_emotions_outlined)),
-              ElevatedButton(
-                  onPressed: () {
-                    KeylolClient().sendReplyForPost(post, controller.text);
-                  },
-                  child: Text('回复'))
-            ],
-          );
-        });
   }
 }

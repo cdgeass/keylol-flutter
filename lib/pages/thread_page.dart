@@ -1,22 +1,19 @@
 import 'dart:async';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:keylol_flutter/common/constants.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/common/provider.dart';
 import 'package:keylol_flutter/components/avatar.dart';
-import 'package:keylol_flutter/components/smiley_modal.dart';
+import 'package:keylol_flutter/components/reply_modal.dart';
 import 'package:keylol_flutter/components/post_card.dart';
 import 'package:keylol_flutter/components/rich_text.dart';
-import 'package:keylol_flutter/components/sliver_tab_bar_delegate.dart';
 import 'package:keylol_flutter/components/throwable_future_builder.dart';
 import 'package:keylol_flutter/models/favorite_thread.dart';
 import 'package:keylol_flutter/models/post.dart';
 import 'package:keylol_flutter/models/thread.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:provider/provider.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:scroll_to_index/scroll_to_index.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ThreadPage extends StatefulWidget {
@@ -35,8 +32,7 @@ class _ThreadPageState extends State<ThreadPage> {
   var _page = 1;
   var _total = 0;
   List<Post> _posts = [];
-  final _controller = ItemScrollController();
-  final _listener = ItemPositionsListener.create();
+  final _controller = AutoScrollController();
 
   String? error;
 
@@ -45,13 +41,11 @@ class _ThreadPageState extends State<ThreadPage> {
     super.initState();
     _onRefresh();
 
-    _listener.itemPositions.addListener(() {
-      final max = _listener.itemPositions.value
-          .where((position) => position.itemLeadingEdge < 1)
-          .reduce((max, position) =>
-              position.itemLeadingEdge > max.itemLeadingEdge ? position : max)
-          .index;
-      if (max == _widgets.length - 1) {
+    _controller.addListener(() {
+      final maxScroll = _controller.position.maxScrollExtent;
+      final pixels = _controller.position.pixels;
+
+      if (maxScroll == pixels) {
         _loadMore();
       }
     });
@@ -110,27 +104,24 @@ class _ThreadPageState extends State<ThreadPage> {
               appBar: AppBar(
                 actions: _buildActions(context, viewThread),
               ),
-              body: Stack(children: [
-                ScrollablePositionedList.builder(
-                    addAutomaticKeepAlives: true,
-                    itemScrollController: _controller,
-                    itemPositionsListener: _listener,
-                    itemCount: _widgets.length,
-                    itemBuilder: (context, index) {
-                      return _widgets[index];
-                    }),
-                Positioned(
-                    bottom: 0.0,
-                    left: 0.0,
-                    right: 0.0,
-                    child: _Reply(
-                      fid: viewThread.fid,
-                      tid: widget.tid,
-                      onSuccess: () {
-                        _onRefresh();
-                      },
-                    ))
-              ]));
+              floatingActionButton: FloatingActionButton(
+                  child: Icon(Icons.add),
+                  onPressed: () {
+                    Navigator.of(context)
+                        .push(ReplyRoute(viewThread.thread, null, () {}));
+                  }),
+              body: ListView.builder(
+                  addAutomaticKeepAlives: true,
+                  controller: _controller,
+                  itemCount: _widgets.length,
+                  itemBuilder: (context, index) {
+                    return AutoScrollTag(
+                      key: ValueKey(index),
+                      controller: _controller,
+                      index: index,
+                      child: _widgets[index],
+                    );
+                  }));
         },
       ),
     );
@@ -174,8 +165,15 @@ class _ThreadPageState extends State<ThreadPage> {
                       attachments: post.attachments, scrollTo: _scrollTo)
                   .build();
             }),
-      // loading error
-      _buildLoading()
+      // 异常
+      if (error != null) Center(child: Text(error!)),
+      // loading
+      if (error == null)
+        Center(
+            child: Opacity(
+          opacity: _total > _posts.length ? 1.0 : 0.0,
+          child: CircularProgressIndicator(),
+        ))
     ];
   }
 
@@ -209,34 +207,6 @@ class _ThreadPageState extends State<ThreadPage> {
             icon: Icon(Icons.plus_one_outlined)),
       ],
     );
-  }
-
-  Widget _buildLoading() {
-    return ValueListenableBuilder<Iterable<ItemPosition>>(
-        valueListenable: _listener.itemPositions,
-        builder: (context, positions, child) {
-          if (positions.isNotEmpty) {
-            final max = positions
-                .where((position) => position.itemLeadingEdge < 1)
-                .reduce((max, position) =>
-                    position.itemLeadingEdge > max.itemLeadingEdge
-                        ? position
-                        : max)
-                .index;
-            if (max == _widgets.length - 1) {
-              // 异常
-              if (error != null) return Center(child: Text(error!));
-              // loading
-              if (error == null)
-                return Center(
-                    child: Opacity(
-                  opacity: _total > _posts.length ? 1.0 : 0.0,
-                  child: CircularProgressIndicator(),
-                ));
-            }
-          }
-          return Container();
-        });
   }
 
   List<Widget> _buildActions(BuildContext context, ViewThread viewThread) {
@@ -309,102 +279,11 @@ class _ThreadPageState extends State<ThreadPage> {
     var index = 0;
     for (final widget in _widgets) {
       if (widget is PostCard && widget.post.pid == pid) {
-        _controller.scrollTo(index: index, duration: Duration(seconds: 1));
+        _controller.scrollToIndex(index);
         return;
       }
       index++;
     }
     _loadMore().then((value) => _scrollTo(pid));
-  }
-}
-
-class _Reply extends StatefulWidget {
-  final String fid;
-  final String tid;
-  final Function onSuccess;
-
-  const _Reply(
-      {Key? key, required this.fid, required this.tid, required this.onSuccess})
-      : super(key: key);
-
-  @override
-  State<StatefulWidget> createState() => _ReplyState();
-}
-
-class _ReplyState extends State<_Reply> {
-  final TextEditingController _controller = TextEditingController();
-
-  @override
-  Widget build(BuildContext context) {
-    final profile = Provider.of<ProfileProvider>(context).profile;
-    if (profile != null) {
-      return Material(
-          child: Row(
-        children: [
-          IconButton(
-            icon: Icon(Icons.emoji_emotions_outlined),
-            onPressed: () {
-              showModalBottomSheet(
-                  context: context,
-                  builder: (_) {
-                    return SmileyModal(onSelect: (smiley) {
-                      _controller.text = _controller.text + smiley;
-                    });
-                  });
-            },
-          ),
-          Expanded(
-              child: Padding(
-            padding: EdgeInsets.only(bottom: 8.0),
-            child: TextField(
-              controller: _controller,
-            ),
-          )),
-          IconButton(
-              icon: Icon(Icons.send),
-              onPressed: () {
-                final message = _controller.text;
-                if (message.isNotEmpty) {
-                  final replyFuture =
-                      KeylolClient().sendReply(widget.tid, message);
-                  replyFuture.then((_) {
-                    _controller.clear();
-                    showDialog(
-                        context: context,
-                        builder: (_) {
-                          return AlertDialog(title: Text('回复成功'), actions: [
-                            TextButton(
-                                onPressed: () {
-                                  widget.onSuccess.call();
-                                  Navigator.pop(context);
-                                },
-                                child: Text('确定'))
-                          ]);
-                        });
-                  }).onError((error, _) {
-                    showDialog(
-                        context: context,
-                        builder: (_) {
-                          return AlertDialog(
-                              title: Text('回复失败'),
-                              content: Text(error as String),
-                              actions: [
-                                TextButton(
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                    },
-                                    child: Text('确定'))
-                              ]);
-                        });
-                  });
-                }
-              })
-        ],
-      ));
-    } else {
-      return Container(
-        height: 0.0,
-      );
-    }
   }
 }

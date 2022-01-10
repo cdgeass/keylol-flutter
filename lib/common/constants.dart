@@ -7,7 +7,7 @@ const String AVATAR_URL_MIDDLE =
 const String AVATAR_URL_LARGE =
     'https://keylol.com/uc_server/avatar.php?size=large&uid=';
 
-const EMOJI_MAP = {
+const SMILEY_MAP = {
   '茸茸1': [
     {
       'https://keylol.com/static/image/smiley/kylo_1/r2emo_08_googoo.png':

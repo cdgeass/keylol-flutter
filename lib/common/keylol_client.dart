@@ -489,26 +489,28 @@ extension Thead on KeylolClient {
   Future<void> sendReplyForPost(Post post, String message) async {
     final dateTime = DateTime.now();
 
-    final res = await _dio.post('/api/mobile/index.php',
-        queryParameters: {
-          'module': 'sendreply',
-          'replysubmit': 'yes',
-          'action': 'reply',
-          'tid': post.tid,
-          'reppid': post.pid,
-        },
-        data: FormData.fromMap({
-          'formhash': ProfileProvider().profile!.formHash,
-          'message': message,
-          'noticetrimstr':
-              '[quote][size=2][url=forum.php?mod=redirect&goto=findpost&pid=${post.pid}&ptid=${post.tid}][color=#999999]${post.author} 发表于 ${dateTime.year}-${dateTime.month}-${dateTime.day} ${dateTime.hour}:${dateTime.minute}[/color][/url][/size]${post.pureMessage}[/quote]',
-          'posttime': '${dateTime.millisecondsSinceEpoch}',
-          'usesig': 1
-        }));
+    print('[quote][size=2][url=forum.php?mod=redirect&goto=findpost&pid=${post.pid}&ptid=${post.tid}][color=#999999]${post.author} 发表于 ${dateTime.year}-${dateTime.month}-${dateTime.day} ${dateTime.hour}:${dateTime.minute}[/color][/url][/size]${post.pureMessage()}[/quote]');
 
-    if (res.data['Message']['messageval'] != 'post_reply_succeed') {
-      return Future.error(res.data['Message']?['messagestr'] ?? '不知道怎么了。。。');
-    }
+    // final res = await _dio.post('/api/mobile/index.php',
+    //     queryParameters: {
+    //       'module': 'sendreply',
+    //       'replysubmit': 'yes',
+    //       'action': 'reply',
+    //       'tid': post.tid,
+    //       'reppid': post.pid,
+    //     },
+    //     data: FormData.fromMap({
+    //       'formhash': ProfileProvider().profile!.formHash,
+    //       'message': message,
+    //       'noticetrimstr':
+    //           '[quote][size=2][url=forum.php?mod=redirect&goto=findpost&pid=${post.pid}&ptid=${post.tid}][color=#999999]${post.author} 发表于 ${dateTime.year}-${dateTime.month}-${dateTime.day} ${dateTime.hour}:${dateTime.minute}[/color][/url][/size]${post.pureMessage()}[/quote]',
+    //       'posttime': '${dateTime.millisecondsSinceEpoch}',
+    //       'usesig': 1
+    //     }));
+    //
+    // if (res.data['Message']['messageval'] != 'post_reply_succeed') {
+    //   return Future.error(res.data['Message']?['messagestr'] ?? '不知道怎么了。。。');
+    // }
   }
 
   // +1
