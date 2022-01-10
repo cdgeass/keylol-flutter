@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html_unescape/html_unescape.dart';
+import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/components/auto_resize_webview.dart';
 import 'package:keylol_flutter/models/attachment.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
@@ -17,9 +18,11 @@ typedef ScrollToFunction = void Function(String pid);
 class KRichTextBuilder {
   final String message;
   final Map<String, Attachment> attachments;
+  final SpecialPoll? poll;
   final ScrollToFunction? scrollTo;
 
-  KRichTextBuilder(message, {this.attachments = const {}, this.scrollTo})
+  KRichTextBuilder(message,
+      {this.attachments = const {}, this.scrollTo, this.poll})
       : message =
             _formatMessage(HtmlUnescape().convert(message).trim(), attachments);
 
@@ -105,6 +108,9 @@ class KRichTextBuilder {
     }
     if (html.isNotEmpty) {
       widgets.addAll(_splitByIframe(html));
+    }
+    if (poll != null) {
+      widgets.add(Poll(poll: poll!));
     }
 
     return widgets;
@@ -248,12 +254,15 @@ class _KRichTextState extends State<KRichText> {
             final src = context.tree.element?.attributes['src'];
             if (src?.contains('www.bilibili.com') == true) {
               final splits = src!.split('/');
-              final bv = splits[splits.length - 1];
+              late String bv;
+              if (src.endsWith('/')) {
+                bv = splits[splits.length - 2];
+              } else {
+                bv = splits[splits.length - 1];
+              }
               return AutoResizeWebView(
-                url:
-                    'https://player.bilibili.com/player.html?high_quality=1&bvid=$bv&as_wide=1',
-                height: 200.0,
-              );
+                  url:
+                      'https://player.bilibili.com/player.html?high_quality=1&bvid=$bv&as_wide=1');
             }
             return child;
           },
@@ -449,7 +458,7 @@ class _SpoilState extends State<_Spoil> with AutomaticKeepAliveClientMixin {
   Widget build(BuildContext context) {
     super.build(context);
     return Padding(
-        padding: EdgeInsets.only(top: 4.0, bottom: 4.0),
+        padding: EdgeInsets.only(top: 8.0, bottom: 8.0),
         child: DottedBorder(
             padding: EdgeInsets.all(4.0),
             dashPattern: [2.0],
@@ -557,21 +566,23 @@ class _CountDownState extends State<_CountDown> {
 
 // 投票组件
 class Poll extends StatefulWidget {
-  final SpecialPoll specialPoll;
+  final SpecialPoll poll;
 
-  const Poll({Key? key, required this.specialPoll}) : super(key: key);
+  const Poll({Key? key, required this.poll}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _PollState();
 }
 
 class _PollState extends State<Poll> {
+  final List<String> pollAnswers = [];
+
   @override
   Widget build(BuildContext context) {
     List<Widget> children = [];
     final pollTitle = Row(
       children: [
-        widget.specialPoll.multiple == '1'
+        widget.poll.multiple == '1'
             ? Text(
                 '多选投票：',
                 style: TextStyle(fontWeight: FontWeight.bold),
@@ -580,14 +591,14 @@ class _PollState extends State<Poll> {
                 '单选投票，',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
-        if (widget.specialPoll.multiple == '1')
-          Text('最多可选${widget.specialPoll.maxChoices}项，'),
-        Text('共有 ${widget.specialPoll.votersCount} 人参与投票')
+        if (widget.poll.multiple == '1')
+          Text('最多可选${widget.poll.maxChoices}项，'),
+        Text('共有 ${widget.poll.votersCount} 人参与投票')
       ],
     );
     children.add(pollTitle);
     var index = 1;
-    for (final pollOption in widget.specialPoll.pollOptions!) {
+    for (final pollOption in widget.poll.pollOptions!) {
       final indexStr = index.toString() + '.';
       final title = Row(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -604,21 +615,53 @@ class _PollState extends State<Poll> {
           ),
         ],
       );
+
+      final leading = widget.poll.allowVote!
+          ? Checkbox(
+              value: pollAnswers.contains(pollOption.pollOptionId!),
+              onChanged: (value) {
+                if (value!) {
+                  if (!pollAnswers.contains(pollOption.pollOptionId!)) {
+                    pollAnswers.add(pollOption.pollOptionId!);
+                  }
+                } else {
+                  pollAnswers.remove(pollOption.pollOptionId!);
+                }
+                setState(() {});
+              },
+            )
+          : null;
       final linearPercent = LinearPercentIndicator(
-        width: MediaQuery.of(context).size.width - 16.0,
+        width: MediaQuery.of(context).size.width - 100.0,
         lineHeight: 24.0,
         animation: true,
         animationDuration: 1000,
         percent: pollOption.percent! / 100,
         backgroundColor: Colors.transparent,
         progressColor: Color(int.parse('ff' + pollOption.color!, radix: 16)),
+        leading: leading,
       );
       children.add(title);
       children.add(linearPercent);
       index++;
     }
+
+    if (widget.poll.allowVote!) {
+      children.add(Row(children: [
+        ElevatedButton(
+          child: Text('投票'),
+          onPressed: () {
+            if (pollAnswers.isNotEmpty) {
+              KeylolClient().pollVote(widget.poll.tid!, pollAnswers);
+            }
+          },
+        ),
+        Expanded(child: Container())
+      ]));
+    }
+
     return Padding(
-      padding: EdgeInsets.all(8.0),
+      padding: EdgeInsets.all(16.0),
       child: Column(
         children: children,
       ),

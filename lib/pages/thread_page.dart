@@ -27,8 +27,9 @@ class ThreadPage extends StatefulWidget {
 
 class _ThreadPageState extends State<ThreadPage> {
   late Future<ViewThread> _future;
-  List<Widget> _widgets = [];
+  SpecialPoll? _poll;
 
+  List<Widget> _widgets = [];
   var _page = 1;
   var _total = 0;
   List<Post> _posts = [];
@@ -44,7 +45,6 @@ class _ThreadPageState extends State<ThreadPage> {
     _controller.addListener(() {
       final maxScroll = _controller.position.maxScrollExtent;
       final pixels = _controller.position.pixels;
-
       if (maxScroll == pixels) {
         _loadMore();
       }
@@ -77,6 +77,7 @@ class _ThreadPageState extends State<ThreadPage> {
             }
           }
         }
+        _poll = viewThread.specialPoll;
       });
     } catch (e) {
       setState(() {
@@ -96,6 +97,7 @@ class _ThreadPageState extends State<ThreadPage> {
             _page = 1;
             _total = viewThread.thread.replies + 1;
             _posts = viewThread.postList;
+            _poll = viewThread.specialPoll;
           }
 
           _buildList(context, viewThread.thread);
@@ -133,9 +135,9 @@ class _ThreadPageState extends State<ThreadPage> {
   ) {
     final title = thread.subject;
     // 拆分 html 延迟加载 iframe
-    _widgets =
-        KRichTextBuilder(_posts[0].message, attachments: _posts[0].attachments)
-            .splitBuild();
+    _widgets = KRichTextBuilder(_posts[0].message,
+            attachments: _posts[0].attachments, poll: _poll)
+        .splitBuild();
     // merge thread and posts
     _widgets = [
       // 标题

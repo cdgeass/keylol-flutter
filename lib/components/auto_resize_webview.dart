@@ -24,21 +24,28 @@ class _AutoResizeWebViewState extends State<AutoResizeWebView>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    var url = widget.url;
+    if (url.startsWith('https://store.steampowered.com/widget')) {
+      _height = 73.0;
+    } else if (url.startsWith('https://player.bilibili.com/player.html')) {
+      _height = 200.0;
+    } else if (url.startsWith('https://music.163.com/outchain/player')) {
+      url = url.replaceAllMapped(RegExp(r'height=(\d+)'), (match) {
+        return 'height=70';
+      });
+      _height = 70.0;
+    }
+
     return Container(
       padding: widget.padding,
       height: _height ?? widget.height ?? 73.0,
       child: InAppWebView(
-        initialUrlRequest: URLRequest(url: Uri.parse(widget.url)),
+        initialUrlRequest: URLRequest(url: Uri.parse(url)),
         initialOptions: InAppWebViewGroupOptions(
             crossPlatform: InAppWebViewOptions(
                 transparentBackground: true, javaScriptEnabled: true)),
         onLoadStop: (controller, uri) async {
           if (_height != null) {
-            return;
-          }
-          if (uri
-              .toString()
-              .startsWith('https://store.steampowered.com/widget')) {
             return;
           }
           final scrollHeight = await controller.evaluateJavascript(

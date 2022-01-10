@@ -6,6 +6,7 @@ class ViewThread {
   final Thread thread;
   final List<Post> postList;
   final List<String> imageList;
+  final SpecialPoll? specialPoll;
 
   ViewThread.fromJson(Map<String, dynamic> json)
       : fid = json['fid'] ?? '',
@@ -15,20 +16,26 @@ class ViewThread {
             .toList(),
         imageList = ((json['imagelist'] ?? []) as List<dynamic>)
             .map((i) => i as String)
-            .toList();
+            .toList(),
+        specialPoll = json['special_poll'] != null
+            ? SpecialPoll.fromJson(
+                json['thread']?['tid'] ?? '', json['special_poll'])
+            : null;
 }
 
 class SpecialPoll {
+  String? tid;
   List<PollOption>? pollOptions;
   int? expirations;
   String? multiple;
   int? maxChoices;
   int? votersCount;
   int? visiblePoll;
-  int? allowVote;
+  bool? allowVote;
   int? remainTime;
 
-  SpecialPoll.fromJson(Map<String, dynamic> json) {
+  SpecialPoll.fromJson(String tid, Map<String, dynamic> json) {
+    this.tid = tid;
     Map<String, dynamic>? pollOptionJsons = json['polloptions'];
     if (pollOptionJsons != null) {
       pollOptions = pollOptionJsons.values
@@ -52,6 +59,7 @@ class SpecialPoll {
     if (visiblePollStr != null) {
       visiblePoll = int.parse(visiblePollStr);
     }
+    allowVote = json['allowvote'] == '1';
   }
 }
 

@@ -489,28 +489,42 @@ extension Thead on KeylolClient {
   Future<void> sendReplyForPost(Post post, String message) async {
     final dateTime = DateTime.now();
 
-    print('[quote][size=2][url=forum.php?mod=redirect&goto=findpost&pid=${post.pid}&ptid=${post.tid}][color=#999999]${post.author} 发表于 ${dateTime.year}-${dateTime.month}-${dateTime.day} ${dateTime.hour}:${dateTime.minute}[/color][/url][/size]${post.pureMessage()}[/quote]');
+    final res = await _dio.post('/api/mobile/index.php',
+        queryParameters: {
+          'module': 'sendreply',
+          'replysubmit': 'yes',
+          'action': 'reply',
+          'tid': post.tid,
+          'reppid': post.pid,
+        },
+        data: FormData.fromMap({
+          'formhash': ProfileProvider().profile!.formHash,
+          'message': message,
+          'noticetrimstr':
+              '[quote][size=2][url=forum.php?mod=redirect&goto=findpost&pid=${post.pid}&ptid=${post.tid}][color=#999999]${post.author} 发表于 ${dateTime.year}-${dateTime.month}-${dateTime.day} ${dateTime.hour}:${dateTime.minute}[/color][/url][/size]${post.pureMessage()}[/quote]',
+          'posttime': '${dateTime.millisecondsSinceEpoch}',
+          'usesig': 1
+        }));
 
-    // final res = await _dio.post('/api/mobile/index.php',
-    //     queryParameters: {
-    //       'module': 'sendreply',
-    //       'replysubmit': 'yes',
-    //       'action': 'reply',
-    //       'tid': post.tid,
-    //       'reppid': post.pid,
-    //     },
-    //     data: FormData.fromMap({
-    //       'formhash': ProfileProvider().profile!.formHash,
-    //       'message': message,
-    //       'noticetrimstr':
-    //           '[quote][size=2][url=forum.php?mod=redirect&goto=findpost&pid=${post.pid}&ptid=${post.tid}][color=#999999]${post.author} 发表于 ${dateTime.year}-${dateTime.month}-${dateTime.day} ${dateTime.hour}:${dateTime.minute}[/color][/url][/size]${post.pureMessage()}[/quote]',
-    //       'posttime': '${dateTime.millisecondsSinceEpoch}',
-    //       'usesig': 1
-    //     }));
-    //
-    // if (res.data['Message']['messageval'] != 'post_reply_succeed') {
-    //   return Future.error(res.data['Message']?['messagestr'] ?? '不知道怎么了。。。');
-    // }
+    if (res.data['Message']['messageval'] != 'post_reply_succeed') {
+      return Future.error(res.data['Message']?['messagestr'] ?? '不知道怎么了。。。');
+    }
+  }
+
+  // 投票
+  Future<void> pollVote(String tid, List<String> pollAnswers) async {
+    final res = await _dio.post('/api/mobile/index.php',
+        queryParameters: {
+          'module': 'pollvote',
+          'pollsubmit': 'yes',
+          'action': 'votepoll',
+          'tid': tid
+        },
+        data: FormData.fromMap({'pollanswers[]': pollAnswers}));
+
+    if (res.data['Message']['messageval'] != 'thread_poll_succeed') {
+      return Future.error(res.data['Message']?['messagestr'] ?? '不知道怎么了。。。');
+    }
   }
 
   // +1
