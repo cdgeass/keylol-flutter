@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/common/provider.dart';
+import 'package:keylol_flutter/components/throwable_future_builder.dart';
 import 'package:keylol_flutter/pages/forum_index_page.dart';
 import 'package:keylol_flutter/pages/forum_page.dart';
 import 'package:keylol_flutter/pages/index_page.dart';
@@ -13,11 +14,6 @@ import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  KeylolClient()
-      .init()
-      .then((_) => KeylolClient().fetchProfile())
-      .then((_) => KeylolClient().fetchAllFavoriteThreads());
 
   runApp(KeylolApp());
 }
@@ -34,6 +30,11 @@ class KeylolApp extends StatelessWidget {
               create: (context) => FavoriteThreadsProvider()),
         ],
         builder: (context, child) {
+          KeylolClient()
+              .init(context)
+              .then((_) => KeylolClient().fetchProfile())
+              .then((_) => KeylolClient().fetchAllFavoriteThreads());
+
           return MaterialApp(
             theme: Provider.of<ThemeProvider>(context).themeData,
             darkTheme: ThemeData.dark(),

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-typedef WidgetBuilder<T> = Function(BuildContext context, T t);
+typedef KWidgetBuilder<T> = Function(BuildContext context, T t);
 
 class ThrowableFutureBuilder<T> extends StatelessWidget {
   final Future<T> future;
-  final WidgetBuilder<T> builder;
+  final KWidgetBuilder<T> builder;
 
   const ThrowableFutureBuilder(
       {Key? key, required this.future, required this.builder})

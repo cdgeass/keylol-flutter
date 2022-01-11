@@ -27,7 +27,7 @@ class ReplyRoute extends PopupRoute {
   @override
   Widget buildPage(BuildContext context, Animation<double> animation,
       Animation<double> secondaryAnimation) {
-    return ReplyModal(thread: thread, post: post);
+    return ReplyModal(thread: thread, post: post, callback: callback);
   }
 
   @override

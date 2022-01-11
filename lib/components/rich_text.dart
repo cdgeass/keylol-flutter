@@ -14,15 +14,21 @@ import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:video_player/video_player.dart';
 
 typedef ScrollToFunction = void Function(String pid);
+typedef PollFallback = void Function();
 
 class KRichTextBuilder {
   final String message;
   final Map<String, Attachment> attachments;
-  final SpecialPoll? poll;
   final ScrollToFunction? scrollTo;
 
+  final SpecialPoll? poll;
+  final PollFallback? pollFallback;
+
   KRichTextBuilder(message,
-      {this.attachments = const {}, this.scrollTo, this.poll})
+      {this.attachments = const {},
+      this.scrollTo,
+      this.poll,
+      this.pollFallback})
       : message =
             _formatMessage(HtmlUnescape().convert(message).trim(), attachments);
 
@@ -110,7 +116,7 @@ class KRichTextBuilder {
       widgets.addAll(_splitByIframe(html));
     }
     if (poll != null) {
-      widgets.add(Poll(poll: poll!));
+      widgets.add(Poll(poll: poll!, callback: pollFallback));
     }
 
     return widgets;
@@ -250,6 +256,17 @@ class _KRichTextState extends State<KRichText> {
         tagsList: Html.tags
           ..addAll(['collapse', 'spoil', 'countdown', 'attach', 'blockquote']),
         customRender: {
+          'iframe': (context, child) {
+            final src = context.tree.element!.attributes['src'];
+            if (src == null) {
+              return Container();
+            }
+
+            if (src.startsWith('http')) {
+              return AutoResizeWebView(url: src);
+            }
+            return Container();
+          },
           'video': (context, child) {
             final src = context.tree.element?.attributes['src'];
             if (src?.contains('www.bilibili.com') == true) {
@@ -297,17 +314,6 @@ class _KRichTextState extends State<KRichText> {
                     errorWidget: (context, url, error) =>
                         CircularProgressIndicator(),
                     imageUrl: attachment.url + attachment.attachment));
-          },
-          'iframe': (context, child) {
-            final src = context.tree.element!.attributes['src'];
-            if (src == null) {
-              return Container();
-            }
-
-            if (src.startsWith('http')) {
-              return AutoResizeWebView(url: src);
-            }
-            return Container();
           },
           'countdown': (context, child) {
             final date = context.tree.element!.text;
@@ -567,8 +573,9 @@ class _CountDownState extends State<_CountDown> {
 // 投票组件
 class Poll extends StatefulWidget {
   final SpecialPoll poll;
+  final PollFallback? callback;
 
-  const Poll({Key? key, required this.poll}) : super(key: key);
+  const Poll({Key? key, required this.poll, this.callback}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _PollState();
@@ -652,7 +659,9 @@ class _PollState extends State<Poll> {
           child: Text('投票'),
           onPressed: () {
             if (pollAnswers.isNotEmpty) {
-              KeylolClient().pollVote(widget.poll.tid!, pollAnswers);
+              KeylolClient()
+                  .pollVote(widget.poll.tid!, pollAnswers)
+                  .then((value) => widget.callback?.call());
             }
           },
         ),

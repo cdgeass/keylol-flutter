@@ -66,19 +66,24 @@ class _ThreadPageState extends State<ThreadPage> {
       final page = _page + 1;
       final viewThread = await KeylolClient().fetchThread(widget.tid, page);
       final posts = viewThread.postList;
-      setState(() {
-        error = null;
-        _total = viewThread.thread.replies + 1;
-        if (posts.isNotEmpty) {
-          for (final post in posts) {
-            if (post.number > _posts[_posts.length - 1].number) {
-              _posts.add(post);
-              _page = page;
-            }
+      error = null;
+      _total = viewThread.thread.replies + 1;
+
+      bool changed = false;
+      if (posts.isNotEmpty) {
+        for (final post in posts) {
+          if (post.number > _posts[_posts.length - 1].number) {
+            changed = true;
+            _posts.add(post);
+            _page = page;
           }
         }
-        _poll = viewThread.specialPoll;
-      });
+      }
+      _poll = viewThread.specialPoll;
+
+      if (changed) {
+        setState(() {});
+      }
     } catch (e) {
       setState(() {
         error = e.toString();
@@ -109,8 +114,8 @@ class _ThreadPageState extends State<ThreadPage> {
               floatingActionButton: FloatingActionButton(
                   child: Icon(Icons.add),
                   onPressed: () {
-                    Navigator.of(context)
-                        .push(ReplyRoute(viewThread.thread, null, () {}));
+                    Navigator.of(context).push(ReplyRoute(
+                        viewThread.thread, null, () => _scrollToEnd()));
                   }),
               body: ListView.builder(
                   addAutomaticKeepAlives: true,
@@ -134,10 +139,13 @@ class _ThreadPageState extends State<ThreadPage> {
     Thread thread,
   ) {
     final title = thread.subject;
+
     // 拆分 html 延迟加载 iframe
     _widgets = KRichTextBuilder(_posts[0].message,
-            attachments: _posts[0].attachments, poll: _poll)
-        .splitBuild();
+        attachments: _posts[0].attachments,
+        poll: _poll,
+        pollFallback: () => _onRefresh()).splitBuild();
+
     // merge thread and posts
     _widgets = [
       // 标题
@@ -287,5 +295,13 @@ class _ThreadPageState extends State<ThreadPage> {
       index++;
     }
     _loadMore().then((value) => _scrollTo(pid));
+  }
+
+  void _scrollToEnd() async {
+    do {
+      await _loadMore();
+    } while (_posts.length != _total);
+
+    _scrollTo(_posts[_posts.length - 1].pid);
   }
 }

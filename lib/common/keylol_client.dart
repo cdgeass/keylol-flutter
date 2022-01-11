@@ -6,6 +6,8 @@ import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:dio_http_cache/dio_http_cache.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:html/parser.dart' as parser;
 import 'package:keylol_flutter/common/provider.dart';
 import 'package:keylol_flutter/models/cat.dart';
@@ -92,6 +94,9 @@ class _NoticeInterceptor extends _KeylolMobileInterceptor {
 class KeylolClient {
   late Dio _dio;
   late CookieJar _cj;
+  late BuildContext _context;
+
+  bool _canShowDialog = true;
 
   KeylolClient._internal();
 
@@ -99,7 +104,9 @@ class KeylolClient {
 
   factory KeylolClient() => _instance;
 
-  Future<void> init() async {
+  Future<void> init(BuildContext context) async {
+    _context = context;
+
     // 初始化 dio client
     _dio = Dio(BaseOptions(
         baseUrl: "https://keylol.com", queryParameters: {'version': 4}));
@@ -131,6 +138,29 @@ class KeylolClient {
     return _cj.loadForRequest(Uri.parse('https://keylol.com'));
   }
 
+  void _showErrorDialog(String? error) {
+    if (_canShowDialog) {
+      _canShowDialog = false;
+
+      showDialog(
+          context: _context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('出错啦'),
+              content: Text(error ?? '不知道怎么了。。。'),
+              actions: [
+                ElevatedButton(
+                    onPressed: () {
+                      _canShowDialog = true;
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('确定'))
+              ],
+            );
+          });
+    }
+  }
+
   // 用户信息
   Future<Space> fetchProfile({String? uid, bool cached = true}) async {
     final queryParameters = {'module': 'profile'};
@@ -143,7 +173,7 @@ class KeylolClient {
             ? buildCacheOptions(Duration(days: 1))
             : null);
     if (res.data['Message'] != null) {
-      return Future.error(res.data['Message']!['messagestr']);
+      return Future.error(res.data['Message']?['messagestr']);
     }
     return Space.fromJson(res.data['Variables']?['space']);
   }
@@ -163,7 +193,7 @@ class KeylolClient {
         queryParameters: {'module': 'mynotelist', 'page': page});
 
     if (res.data['Message'] != null) {
-      return Future.error(res.data['Message']!['messagestr']);
+      return Future.error(res.data['Message']?['messagestr']);
     }
     return NoteList.fromJson(res.data['Variables']);
   }
@@ -174,7 +204,7 @@ class KeylolClient {
         queryParameters: {'module': 'hotthread', 'page': page});
 
     if (res.data['Message'] != null) {
-      return Future.error(res.data['Message']!['messagestr']);
+      return Future.error(res.data['Message']['messagestr']);
     }
     return (res.data['Variables']['data'] as List)
         .map((e) => Thread.fromJson(e))
@@ -207,7 +237,8 @@ extension Login on KeylolClient {
       return fetchSecCodeParam(auth, formHash);
     } else {
       // 登录失败
-      return Future.error(res.data['Message']?['messagestr']);
+      final error = res.data['Message']?['messagestr'];
+      _showErrorDialog(error);
     }
   }
 
@@ -265,7 +296,7 @@ extension Login on KeylolClient {
     });
 
     if (!(res.data as String).contains('succeed')) {
-      return Future.error('验证码错误');
+      _showErrorDialog('验证码错误');
     }
   }
 
@@ -295,7 +326,7 @@ extension Login on KeylolClient {
     if (data.contains('succeedhandle_login')) {
       return fetchProfile();
     } else {
-      return Future.error('登录出错');
+      _showErrorDialog('登录出错');
     }
   }
 
@@ -396,7 +427,7 @@ extension Login on KeylolClient {
     if (data.contains('succeedhandle_login')) {
       return fetchProfile();
     } else {
-      return Future.error('登录出错');
+      _showErrorDialog('登录出错');
     }
   }
 }
@@ -460,7 +491,7 @@ extension Thead on KeylolClient {
     });
 
     if (res.data['Message'] != null) {
-      return Future.error(res.data['Message']['messagestr'] ?? '不知道怎么了。。。');
+      return Future.error(res.data['Message']?['messagestr']);
     }
     return ViewThread.fromJson(res.data['Variables']);
   }
@@ -480,8 +511,9 @@ extension Thead on KeylolClient {
           'posttime': '${DateTime.now().millisecondsSinceEpoch}',
           'usesig': 1
         }));
-    if (res.data['Message']['messageval'] != 'post_reply_succeed') {
-      return Future.error(res.data['Message']?['messagestr'] ?? '不知道怎么了。。。');
+    if (res.data['Message']?['messageval'] != 'post_reply_succeed') {
+      final error = res.data['Message']?['messagestr'];
+      _showErrorDialog(error);
     }
   }
 
@@ -506,8 +538,9 @@ extension Thead on KeylolClient {
           'usesig': 1
         }));
 
-    if (res.data['Message']['messageval'] != 'post_reply_succeed') {
-      return Future.error(res.data['Message']?['messagestr'] ?? '不知道怎么了。。。');
+    if (res.data['Message']?['messageval'] != 'post_reply_succeed') {
+      final error = res.data['Message']?['messagestr'];
+      _showErrorDialog(error);
     }
   }
 
@@ -522,8 +555,9 @@ extension Thead on KeylolClient {
         },
         data: FormData.fromMap({'pollanswers[]': pollAnswers}));
 
-    if (res.data['Message']['messageval'] != 'thread_poll_succeed') {
-      return Future.error(res.data['Message']?['messagestr'] ?? '不知道怎么了。。。');
+    if (res.data['Message']?['messageval'] != 'thread_poll_succeed') {
+      final error = res.data['Message']?['messagestr'];
+      _showErrorDialog(error);
     }
   }
 
@@ -535,8 +569,9 @@ extension Thead on KeylolClient {
       'tid': tid,
       'hash': ProfileProvider().profile?.formHash
     });
-    if (res.data['Message']['messageval'] != 'recommend_succeed') {
-      return Future.error(res.data['Message']['messagestr'] ?? '不知道怎么了。。。');
+    if (res.data['Message']?['messageval'] != 'recommend_succeed') {
+      final error = res.data['Message']?['messagestr'];
+      _showErrorDialog(error);
     }
   }
 }
@@ -606,9 +641,9 @@ extension FavThread on KeylolClient {
       'formhash': ProfileProvider().profile?.formHash
     });
 
-    if (res.data['Message'] != null &&
-        res.data['Message']!['messageval'] != 'do_success') {
-      return Future.error(res.data['Message']!['messagestr']);
+    if (res.data['Message']?['messageval'] != 'do_success') {
+      final error = res.data['Message']?['messagestr'];
+      _showErrorDialog(error);
     }
   }
 }
