@@ -48,6 +48,7 @@ dependencies:
   html_unescape: ^2.0.0
   flutter_inappwebview: ^5.3.2
   scroll_to_index: ^2.1.1
+  chewie: ^1.1.0
 
 dev_dependencies:
   flutter_test:

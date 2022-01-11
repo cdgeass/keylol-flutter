@@ -57,8 +57,16 @@ Map<String, WidgetBuilder> _routes() {
     },
     "/noteList": (context) => NoteListPage(),
     "/thread": (context) {
-      final tid = ModalRoute.of(context)?.settings.arguments as String;
-      return ThreadPage(tid: tid);
+      final arguments = ModalRoute.of(context)?.settings.arguments;
+      late String tid;
+      String? pid;
+      if (arguments is List) {
+        tid = arguments[0];
+        pid = arguments[1];
+      } else {
+        tid = arguments as String;
+      }
+      return ThreadPage(tid: tid, pid: pid);
     },
     "/profile": (context) {
       final uid = ModalRoute.of(context)?.settings.arguments as String;

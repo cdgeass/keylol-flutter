@@ -6,7 +6,6 @@ import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:dio_http_cache/dio_http_cache.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:html/parser.dart' as parser;
 import 'package:keylol_flutter/common/provider.dart';
@@ -237,8 +236,7 @@ extension Login on KeylolClient {
       return fetchSecCodeParam(auth, formHash);
     } else {
       // 登录失败
-      final error = res.data['Message']?['messagestr'];
-      _showErrorDialog(error);
+      return Future.error(res.data['Message']?['messagestr']);
     }
   }
 
@@ -296,7 +294,7 @@ extension Login on KeylolClient {
     });
 
     if (!(res.data as String).contains('succeed')) {
-      _showErrorDialog('验证码错误');
+      return Future.error('验证码错误');
     }
   }
 
@@ -326,7 +324,7 @@ extension Login on KeylolClient {
     if (data.contains('succeedhandle_login')) {
       return fetchProfile();
     } else {
-      _showErrorDialog('登录出错');
+      return Future.error('登录出错');
     }
   }
 

@@ -27,7 +27,9 @@ class ProfileProvider extends ChangeNotifier {
 
   void update(Profile? profile) {
     // auth 为空则未成功登录
-    this.profile = profile?.auth == null ? null : profile;
+    this.profile = (profile?.memberUid == null || profile?.memberUid == '0')
+        ? null
+        : profile;
 
     notifyListeners();
   }

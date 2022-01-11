@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:keylol_flutter/components/user_account_drawer.dart';
 
 typedef KWidgetBuilder<T> = Function(BuildContext context, T t);
 
@@ -16,9 +17,12 @@ class ThrowableFutureBuilder<T> extends StatelessWidget {
         future: future,
         builder: (context, AsyncSnapshot<T> snapshot) {
           if (snapshot.hasError) {
-            final error = snapshot.error ?? '不知道怎么了。。。';
+            final error =
+                snapshot.error is String ? snapshot.error : '不知道怎么了。。。';
 
             return Scaffold(
+              appBar: AppBar(),
+              drawer: UserAccountDrawer(),
               body: Center(
                 child: Text(error.toString()),
               ),

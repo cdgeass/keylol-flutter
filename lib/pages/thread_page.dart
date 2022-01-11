@@ -18,8 +18,9 @@ import 'package:url_launcher/url_launcher.dart';
 
 class ThreadPage extends StatefulWidget {
   final String tid;
+  final String? pid;
 
-  const ThreadPage({Key? key, required this.tid}) : super(key: key);
+  const ThreadPage({Key? key, required this.tid, this.pid}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _ThreadPageState();
@@ -49,6 +50,12 @@ class _ThreadPageState extends State<ThreadPage> {
         _loadMore();
       }
     });
+
+    if (widget.pid != null) {
+      WidgetsBinding.instance!.addPersistentFrameCallback((timeStamp) {
+        _scrollTo(widget.pid!);
+      });
+    }
   }
 
   Future<void> _onRefresh() async {

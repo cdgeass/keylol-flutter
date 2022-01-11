@@ -103,8 +103,8 @@ class _UserAccountDrawerState extends State<UserAccountDrawer> {
         if (profile == null) {
           Navigator.of(context).pushNamed("/login");
         } else {
-          Provider.of<NoticeProvider>(context).clear();
-          Provider.of<ProfileProvider>(context).clear();
+          Provider.of<NoticeProvider>(context, listen: false).clear();
+          Provider.of<ProfileProvider>(context, listen: false).clear();
           KeylolClient().clearCookies();
         }
       },

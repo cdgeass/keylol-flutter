@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:html/parser.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
+import 'package:keylol_flutter/components/note_card.dart';
 import 'package:keylol_flutter/components/noticeable_leading.dart';
 import 'package:keylol_flutter/components/user_account_drawer.dart';
 import 'package:keylol_flutter/models/notice.dart';
@@ -77,25 +78,18 @@ class _NoteListPageState extends State<NoteListPage> {
                 );
               } else {
                 final note = _noteList[index];
-                var text = parse(note.note).body?.text ?? '';
-                text = text.replaceAll(' 查看', '');
-                return InkWell(
-                    onTap: () {
-                      final tid = note.noteVar?.tid;
-                      if (tid != null) {
-                        Navigator.of(context)
-                            .pushNamed('/thread', arguments: tid);
-                      }
-                    },
-                    child: Card(
-                        color: Theme.of(context).cardColor,
-                        child: Container(
-                          padding: EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 4.0),
-                          alignment: Alignment.centerLeft,
-                          constraints: BoxConstraints(minHeight: 48.0),
-                          child: Text(text),
-                        )));
+
+                if (note.type == 'pcomment') {
+                  return PcommentCard(note: note);
+                } else if (note.type == 'system') {
+                  return SystemCard(note: note);
+                } else if (note.type == 'post') {
+                  return PostCard(note: note);
+                } else if (note.type == 'favorite_thread') {
+                  return FavoriteThread(note: note);
+                }
               }
+              return Container();
             },
           ),
         ));

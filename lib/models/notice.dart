@@ -47,6 +47,7 @@ class Note {
   // final int new;
 
   final String authorId;
+  final String author;
   final String note;
   final int dateline;
   final String fromId;
@@ -59,6 +60,7 @@ class Note {
         uid = json['uid'],
         type = json['type'],
         authorId = json['authorid'],
+        author = json['author'] ?? '',
         note = json['note'],
         dateline = int.parse(json['dateline'] ?? '0'),
         fromId = json['from_id'],

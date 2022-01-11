@@ -7,6 +7,7 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html_unescape/html_unescape.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
+import 'package:keylol_flutter/components/auto_resize_video_player.dart';
 import 'package:keylol_flutter/components/auto_resize_webview.dart';
 import 'package:keylol_flutter/models/attachment.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
@@ -82,6 +83,9 @@ class KRichTextBuilder {
         RegExp(r'(?:\[micxp_countdown)(?:=?)([^\[]*)]'), (match) {
       return '<countdown title="${match[1]}">';
     }).replaceAll('[/micxp_countdown]', '</countdown>');
+
+    // 使用 https
+    message = message.replaceAll('http://', 'https://');
 
     return message;
   }
@@ -268,9 +272,9 @@ class _KRichTextState extends State<KRichText> {
             return Container();
           },
           'video': (context, child) {
-            final src = context.tree.element?.attributes['src'];
-            if (src?.contains('www.bilibili.com') == true) {
-              final splits = src!.split('/');
+            final src = context.tree.element!.attributes['src']!;
+            if (src.contains('www.bilibili.com')) {
+              final splits = src.split('/');
               late String bv;
               if (src.endsWith('/')) {
                 bv = splits[splits.length - 2];
@@ -281,7 +285,7 @@ class _KRichTextState extends State<KRichText> {
                   url:
                       'https://player.bilibili.com/player.html?high_quality=1&bvid=$bv&as_wide=1');
             }
-            return child;
+            return AutoResizeVideoPlayer(initialUrl: src);
           },
           'collapse': (context, child) {
             final title = context.tree.element!.attributes['title'] ?? '';
@@ -392,7 +396,7 @@ class _CollapseState extends State<_Collapse>
   Widget build(BuildContext context) {
     super.build(context);
     return Padding(
-        padding: EdgeInsets.only(top: 8.0, bottom: 8.0),
+        padding: EdgeInsets.all(8.0),
         child: Material(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
@@ -464,7 +468,7 @@ class _SpoilState extends State<_Spoil> with AutomaticKeepAliveClientMixin {
   Widget build(BuildContext context) {
     super.build(context);
     return Padding(
-        padding: EdgeInsets.only(top: 8.0, bottom: 8.0),
+        padding: EdgeInsets.all(8.0),
         child: DottedBorder(
             padding: EdgeInsets.all(4.0),
             dashPattern: [2.0],
