@@ -53,6 +53,15 @@ class _UserAccountDrawerState extends State<UserAccountDrawer> {
         });
     items.add(index);
 
+    // 导读
+    final guide = ListTile(
+        leading: Icon(Icons.camera),
+        title: Text('导读'),
+        onTap: () {
+          Navigator.of(context).pushReplacementNamed('/guide');
+        });
+    items.add(guide);
+
     // 版块
     final forums = ListTile(
         leading: Icon(Icons.dashboard),

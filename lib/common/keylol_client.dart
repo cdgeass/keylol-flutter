@@ -12,6 +12,7 @@ import 'package:keylol_flutter/common/provider.dart';
 import 'package:keylol_flutter/models/cat.dart';
 import 'package:keylol_flutter/models/favorite_thread.dart';
 import 'package:keylol_flutter/models/forum_display.dart';
+import 'package:keylol_flutter/models/guide.dart';
 import 'package:keylol_flutter/models/index.dart';
 import 'package:keylol_flutter/models/notice.dart';
 import 'package:keylol_flutter/models/post.dart';
@@ -195,19 +196,6 @@ class KeylolClient {
       return Future.error(res.data['Message']?['messagestr']);
     }
     return NoteList.fromJson(res.data['Variables']);
-  }
-
-  // 热帖
-  Future<List<Thread>> fetchHotThread({int page = 1}) async {
-    final res = await _dio.post('/api/mobile/index.php',
-        queryParameters: {'module': 'hotthread', 'page': page});
-
-    if (res.data['Message'] != null) {
-      return Future.error(res.data['Message']['messagestr']);
-    }
-    return (res.data['Variables']['data'] as List)
-        .map((e) => Thread.fromJson(e))
-        .toList();
   }
 }
 
@@ -643,5 +631,29 @@ extension FavThread on KeylolClient {
       final error = res.data['Message']?['messagestr'];
       _showErrorDialog(error);
     }
+  }
+}
+
+extension GuideMod on KeylolClient {
+  // 热帖
+  Future<List<Thread>> fetchHotThread({int page = 1}) async {
+    final res = await _dio.post('/api/mobile/index.php',
+        queryParameters: {'module': 'hotthread', 'page': page});
+
+    if (res.data['Message'] != null) {
+      return Future.error(res.data['Message']['messagestr']);
+    }
+    return (res.data['Variables']['data'] as List)
+        .map((e) => Thread.fromJson(e))
+        .toList();
+  }
+
+  Future<Guide> fetchGuide(String view, {int page = 1}) async {
+    final res = await _dio.get('/forum.php',
+        queryParameters: {'mod': 'guide', 'view': view});
+
+    final document = parser.parse(res.data);
+
+    return Guide.fromDocument(document);
   }
 }

@@ -17,16 +17,29 @@ class ThrowableFutureBuilder<T> extends StatelessWidget {
         future: future,
         builder: (context, AsyncSnapshot<T> snapshot) {
           if (snapshot.hasError) {
-            final error =
-                snapshot.error is String ? snapshot.error : '不知道怎么了。。。';
+            final error = (snapshot.error is String
+                ? snapshot.error
+                : '不知道怎么了。。。') as String;
 
+            // showDialog(
+            //     context: context,
+            //     builder: (context) {
+            //       return AlertDialog(
+            //         title: Text('出错啦'),
+            //         content: Text(error),
+            //         actions: [
+            //           ElevatedButton(
+            //               onPressed: () {
+            //                 Navigator.of(context).pop();
+            //               },
+            //               child: Text('确定'))
+            //         ],
+            //       );
+            //     });
             return Scaffold(
-              appBar: AppBar(),
-              drawer: UserAccountDrawer(),
-              body: Center(
-                child: Text(error.toString()),
-              ),
-            );
+                body: Center(
+              child: Text(error),
+            ));
           }
           if (snapshot.hasData) {
             return builder.call(context, snapshot.data!);

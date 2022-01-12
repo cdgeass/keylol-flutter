@@ -72,7 +72,7 @@ class Index {
             'tid': tid,
             'subject': title,
             'dateline': dateline,
-            'authorId': authorId,
+            'authorid': authorId,
             'author': author
           });
         }).toList();

@@ -4,6 +4,7 @@ import 'package:keylol_flutter/common/provider.dart';
 import 'package:keylol_flutter/components/throwable_future_builder.dart';
 import 'package:keylol_flutter/pages/forum_index_page.dart';
 import 'package:keylol_flutter/pages/forum_page.dart';
+import 'package:keylol_flutter/pages/guide_page.dart';
 import 'package:keylol_flutter/pages/index_page.dart';
 import 'package:keylol_flutter/pages/login_page.dart';
 import 'package:keylol_flutter/pages/note_list_page.dart';
@@ -50,6 +51,7 @@ Map<String, WidgetBuilder> _routes() {
   return {
     "/login": (context) => LoginPage(),
     "/index": (context) => IndexPage(),
+    "/guide": (context) => GuidePage(),
     "/forumIndex": (context) => ForumIndexPage(),
     "/forum": (context) {
       final fid = ModalRoute.of(context)?.settings.arguments as String;

@@ -93,7 +93,7 @@ class Thread {
         readPerm = int.parse(json['readperm'] ?? '0'),
         price = int.parse(json['price'] ?? '0'),
         author = json['author'] ?? '',
-        authorId = json['authorId'] ?? '',
+        authorId = json['authorid'] ?? '',
         subject = json['subject'] ?? '',
         dateline = HtmlUnescape().convert(json['dateline'] ?? ''),
         lastPost = json['lastpost'] ?? '',

@@ -52,7 +52,7 @@ class _ThreadPageState extends State<ThreadPage> {
     });
 
     if (widget.pid != null) {
-      WidgetsBinding.instance!.addPersistentFrameCallback((timeStamp) {
+      WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
         _scrollTo(widget.pid!);
       });
     }
@@ -292,7 +292,7 @@ class _ThreadPageState extends State<ThreadPage> {
     showDialog(context: context, builder: (context) => dialog);
   }
 
-  void _scrollTo(String pid) {
+  void _scrollTo(String pid) async {
     var index = 0;
     for (final widget in _widgets) {
       if (widget is PostCard && widget.post.pid == pid) {
@@ -301,7 +301,8 @@ class _ThreadPageState extends State<ThreadPage> {
       }
       index++;
     }
-    _loadMore().then((value) => _scrollTo(pid));
+
+    _loadMore().then((_) => _scrollTo(pid));
   }
 
   void _scrollToEnd() async {

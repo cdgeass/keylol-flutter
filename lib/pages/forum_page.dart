@@ -309,7 +309,7 @@ class _ForumThreadItem extends StatelessWidget {
         thread: Thread.fromJson({
           'tid': forumThread.tid!,
           'subject': forumThread.subject!,
-          'authorId': forumThread.authorId!,
+          'authorid': forumThread.authorId!,
           'author': forumThread.author!,
           'dateline': forumThread.dateline!
         }),
