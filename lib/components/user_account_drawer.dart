@@ -1,13 +1,11 @@
-import 'dart:math';
-
 import 'package:badges/badges.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/common/provider.dart';
 import 'package:keylol_flutter/common/theme.dart';
-import 'package:keylol_flutter/models/profile.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class UserAccountDrawer extends StatefulWidget {
   @override
@@ -97,8 +95,18 @@ class _UserAccountDrawerState extends State<UserAccountDrawer> {
     final theme = ListTile(
       leading: Icon(Icons.color_lens),
       title: Text('主题'),
-      onTap: () {
-        final index = Random().nextInt(colors.length);
+      onTap: () async {
+        final prefs = await SharedPreferences.getInstance();
+
+        var index = prefs.getInt('theme') ?? 0;
+
+        index += 1;
+        if (index == colors.length) {
+          index = 0;
+        }
+
+        prefs.setInt('theme', index);
+
         Provider.of<ThemeProvider>(context, listen: false)
             .update(colors[index]);
       },

@@ -2,8 +2,8 @@ import 'package:html/dom.dart';
 import 'package:keylol_flutter/models/thread.dart';
 
 class Guide {
-  int? totalPage;
-  List<Thread>? threadList;
+  int totalPage = 1;
+  List<Thread> threadList = [];
 
   Guide.fromDocument(Document document) {
     final bmCs = document.getElementsByClassName('bm_c');
@@ -20,6 +20,10 @@ class Guide {
     threadList = [];
     final tbodys = table.getElementsByTagName('tbody');
     for (final tbody in tbodys) {
+      if (tbody.text == '暂时还没有帖子') {
+        return;
+      }
+
       // 帖子
       final common = tbody.getElementsByClassName('common')[0];
       final commonAs = common.getElementsByTagName('a');
@@ -60,11 +64,7 @@ class Guide {
       final views = numA.text;
       final replies = numEm.text;
 
-      // 最后回复者
-      final by3 = tbody.getElementsByClassName('by')[2];
-      // TODO
-
-      threadList!.add(Thread.fromJson({
+      threadList.add(Thread.fromJson({
         'tid': tid,
         'fid': fid,
         'author': author,
@@ -76,7 +76,7 @@ class Guide {
       }));
     }
 
-    final labels = document.getElementsByTagName('labels');
+    final labels = document.getElementsByTagName('label');
     for (final label in labels) {
       final spans = label.getElementsByTagName('span');
       if (spans.isNotEmpty) {

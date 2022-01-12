@@ -94,9 +94,6 @@ class _NoticeInterceptor extends _KeylolMobileInterceptor {
 class KeylolClient {
   late Dio _dio;
   late CookieJar _cj;
-  late BuildContext _context;
-
-  bool _canShowDialog = true;
 
   KeylolClient._internal();
 
@@ -105,8 +102,6 @@ class KeylolClient {
   factory KeylolClient() => _instance;
 
   Future<void> init(BuildContext context) async {
-    _context = context;
-
     // 初始化 dio client
     _dio = Dio(BaseOptions(
         baseUrl: "https://keylol.com", queryParameters: {'version': 4}));
@@ -136,29 +131,6 @@ class KeylolClient {
 
   Future<List<Cookie>> getCookies() {
     return _cj.loadForRequest(Uri.parse('https://keylol.com'));
-  }
-
-  void _showErrorDialog(String? error) {
-    if (_canShowDialog) {
-      _canShowDialog = false;
-
-      showDialog(
-          context: _context,
-          builder: (context) {
-            return AlertDialog(
-              title: Text('出错啦'),
-              content: Text(error ?? '不知道怎么了。。。'),
-              actions: [
-                ElevatedButton(
-                    onPressed: () {
-                      _canShowDialog = true;
-                      Navigator.of(context).pop();
-                    },
-                    child: Text('确定'))
-              ],
-            );
-          });
-    }
   }
 
   // 用户信息
@@ -413,7 +385,7 @@ extension Login on KeylolClient {
     if (data.contains('succeedhandle_login')) {
       return fetchProfile();
     } else {
-      _showErrorDialog('登录出错');
+      return Future.error('登录出错');
     }
   }
 }
@@ -499,7 +471,7 @@ extension Thead on KeylolClient {
         }));
     if (res.data['Message']?['messageval'] != 'post_reply_succeed') {
       final error = res.data['Message']?['messagestr'];
-      _showErrorDialog(error);
+      return Future.error(error);
     }
   }
 
@@ -526,7 +498,7 @@ extension Thead on KeylolClient {
 
     if (res.data['Message']?['messageval'] != 'post_reply_succeed') {
       final error = res.data['Message']?['messagestr'];
-      _showErrorDialog(error);
+      return Future.error(error);
     }
   }
 
@@ -543,7 +515,7 @@ extension Thead on KeylolClient {
 
     if (res.data['Message']?['messageval'] != 'thread_poll_succeed') {
       final error = res.data['Message']?['messagestr'];
-      _showErrorDialog(error);
+      return Future.error(error);
     }
   }
 
@@ -557,7 +529,7 @@ extension Thead on KeylolClient {
     });
     if (res.data['Message']?['messageval'] != 'recommend_succeed') {
       final error = res.data['Message']?['messagestr'];
-      _showErrorDialog(error);
+      return Future.error(error);
     }
   }
 }
@@ -629,7 +601,7 @@ extension FavThread on KeylolClient {
 
     if (res.data['Message']?['messageval'] != 'do_success') {
       final error = res.data['Message']?['messagestr'];
-      _showErrorDialog(error);
+      return Future.error(error);
     }
   }
 }
@@ -650,7 +622,7 @@ extension GuideMod on KeylolClient {
 
   Future<Guide> fetchGuide(String view, {int page = 1}) async {
     final res = await _dio.get('/forum.php',
-        queryParameters: {'mod': 'guide', 'view': view});
+        queryParameters: {'mod': 'guide', 'view': view, 'page': page});
 
     final document = parser.parse(res.data);
 

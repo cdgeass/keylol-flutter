@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/common/provider.dart';
-import 'package:keylol_flutter/components/throwable_future_builder.dart';
+import 'package:keylol_flutter/common/theme.dart';
 import 'package:keylol_flutter/pages/forum_index_page.dart';
 import 'package:keylol_flutter/pages/forum_page.dart';
 import 'package:keylol_flutter/pages/guide_page.dart';
@@ -12,38 +12,67 @@ import 'package:keylol_flutter/pages/profile_page.dart';
 import 'package:keylol_flutter/pages/thread_page.dart';
 import 'package:keylol_flutter/pages/webview_page.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  runApp(KeylolApp());
+  runApp(MultiProvider(providers: [
+    ChangeNotifierProvider(create: (context) => ThemeProvider()),
+    ChangeNotifierProvider(create: (context) => ProfileProvider()),
+    ChangeNotifierProvider(create: (context) => NoticeProvider()),
+    ChangeNotifierProvider(create: (context) => FavoriteThreadsProvider()),
+  ], builder: (context, child) => KeylolApp()));
 }
 
-class KeylolApp extends StatelessWidget {
+class KeylolApp extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => _KeylolAppState();
+}
+
+class _KeylolAppState extends State<KeylolApp> {
+  late Future<bool> _future;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _future = init(context);
+  }
+
+  Future<bool> init(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    final themeIndex = prefs.getInt('theme') ?? 0;
+    Provider.of<ThemeProvider>(context).update(colors[themeIndex]);
+
+    await KeylolClient()
+        .init(context)
+        .then((_) => KeylolClient().fetchProfile())
+        .then((_) => KeylolClient().fetchAllFavoriteThreads());
+
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (context) => ThemeProvider()),
-          ChangeNotifierProvider(create: (context) => ProfileProvider()),
-          ChangeNotifierProvider(create: (context) => NoticeProvider()),
-          ChangeNotifierProvider(
-              create: (context) => FavoriteThreadsProvider()),
-        ],
-        builder: (context, child) {
-          KeylolClient()
-              .init(context)
-              .then((_) => KeylolClient().fetchProfile())
-              .then((_) => KeylolClient().fetchAllFavoriteThreads());
-
-          return MaterialApp(
-            theme: Provider.of<ThemeProvider>(context).themeData,
-            darkTheme: ThemeData.dark(),
-            title: 'Keylol',
-            initialRoute: "/index",
-            routes: _routes(),
-          );
-        });
+    return MaterialApp(
+        theme: Provider.of<ThemeProvider>(context).themeData,
+        darkTheme: ThemeData.dark(),
+        title: 'Keylol',
+        routes: _routes(),
+        home: FutureBuilder(
+            future: _future,
+            builder: (context, AsyncSnapshot<bool> snapshot) {
+              if (snapshot.hasData && snapshot.data!) {
+                return IndexPage();
+              } else {
+                return Container(
+                    color: blue.primaryColor,
+                    child: Center(
+                      child: Image.asset('images/splash.png'),
+                    ));
+              }
+            }));
   }
 }
 

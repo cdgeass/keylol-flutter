@@ -151,10 +151,13 @@ class _ProfilePageState extends State<ProfilePage>
             children: [
               Text(medal.name),
               Text(medal.description),
-              CachedNetworkImage(
-                  height: 30.0,
-                  imageUrl:
-                      'https://keylol.com/static/image/common/${medal.image}'),
+              Row(children: [
+                CachedNetworkImage(
+                    height: 30.0,
+                    imageUrl:
+                        'https://keylol.com/static/image/common/${medal.image}'),
+                Expanded(child: Container()),
+              ]),
               if (index != medals.length - 1)
                 SizedBox(
                   height: 8.0,

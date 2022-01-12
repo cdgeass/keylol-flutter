@@ -141,6 +141,9 @@ class KRichTextBuilder {
 
       while (message.contains('iframe')) {
         index = message.indexOf('<iframe');
+        if (index == -1) {
+          break;
+        }
         final beforeIframe = message.substring(lastIndex, index);
         if (beforeIframe != '\n' && beforeIframe.isNotEmpty) {
           widgets.add(_richText(
@@ -529,9 +532,14 @@ class _CountDown extends StatefulWidget {
   State<StatefulWidget> createState() => _CountDownState();
 }
 
-class _CountDownState extends State<_CountDown> {
+class _CountDownState extends State<_CountDown>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Padding(
         padding: EdgeInsets.all(8.0),
         child: Center(

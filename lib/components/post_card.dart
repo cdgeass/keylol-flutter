@@ -44,13 +44,13 @@ class PostCard extends StatelessWidget {
                     }));
                   },
                   icon: Icon(Icons.reply_outlined)),
-              if (Provider.of<ProfileProvider>(context).profile?.memberUid ==
-                  post.authorId)
-                IconButton(
-                    onPressed: () {
-                      // TODO 编辑
-                    },
-                    icon: Icon(Icons.edit)),
+              // if (Provider.of<ProfileProvider>(context).profile?.memberUid ==
+              //     post.authorId)
+              //   IconButton(
+              //       onPressed: () {
+              //         // TODO 编辑
+              //       },
+              //       icon: Icon(Icons.edit)),
             ],
           )
         ],

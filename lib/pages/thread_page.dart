@@ -183,7 +183,7 @@ class _ThreadPageState extends State<ThreadPage> {
                   .build();
             }),
       // 异常
-      if (error != null) Center(child: Text(error!)),
+      if (error != null) Card(child: Text(error!)),
       // loading
       if (error == null)
         Center(

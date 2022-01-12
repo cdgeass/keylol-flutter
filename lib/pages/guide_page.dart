@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/components/thread_card.dart';
-import 'package:keylol_flutter/components/throwable_future_builder.dart';
 import 'package:keylol_flutter/components/user_account_drawer.dart';
 import 'package:keylol_flutter/models/guide.dart';
 
@@ -88,7 +87,7 @@ class _ThreadListState extends State<_ThreadList> {
     final guide = await KeylolClient().fetchGuide(widget.view, page: _page);
     if (_guide != null) {
       _guide!.totalPage = guide.totalPage;
-      _guide!.threadList!.addAll(guide.threadList!);
+      _guide!.threadList.addAll(guide.threadList);
       setState(() {});
     }
   }
@@ -105,13 +104,13 @@ class _ThreadListState extends State<_ThreadList> {
               )
             : ListView.builder(
                 controller: _controller,
-                itemCount: _guide!.threadList!.length + 1,
+                itemCount: _guide!.threadList.length + 1,
                 itemBuilder: (context, index) {
-                  if (index < _guide!.threadList!.length) {
-                    return ThreadCard(thread: _guide!.threadList![index]);
+                  if (index < _guide!.threadList.length) {
+                    return ThreadCard(thread: _guide!.threadList[index]);
                   } else {
                     return Opacity(
-                      opacity: _page == _guide!.totalPage ? 0.0 : 1.0,
+                      opacity: _page < _guide!.totalPage ? 1.0 : 0.0,
                       child: Center(
                         child: CircularProgressIndicator(),
                       ),
