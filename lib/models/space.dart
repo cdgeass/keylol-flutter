@@ -1,6 +1,8 @@
 import 'dart:ui';
 
+import 'package:html/dom.dart';
 import 'package:html_unescape/html_unescape.dart';
+import 'package:keylol_flutter/models/thread.dart';
 
 class Space {
   final String uid;
@@ -238,4 +240,131 @@ class Group {
     }
     return null;
   }
+}
+
+class SpaceThread {
+  List<Thread> threadList = [];
+
+  SpaceThread.fromDocument(Document document) {
+    final tl = document.getElementsByClassName('tl')[0];
+
+    final trs = tl.getElementsByTagName('tr');
+
+    for (final tr in trs) {
+      final clazz = tr.attributes['class'];
+      if (clazz == 'th') {
+        continue;
+      }
+      if (tr.innerHtml.contains('还没有相关的帖子')) {
+        continue;
+      }
+
+      // 帖子
+      final thA = tr.getElementsByTagName('th')[0].getElementsByTagName('a')[0];
+
+      final tid = thA.attributes['href']!.split('-')[0].replaceFirst('t', '');
+      final subject = thA.text;
+
+      final tds = tr.getElementsByTagName('td');
+
+      // 版块
+      final td2A = tds[1].getElementsByTagName('a')[0];
+
+      final fid = td2A.attributes['href']!.split('-')[0].replaceFirst('f', '');
+
+      // 统计
+      final replies = tds[2].getElementsByTagName('a')[0].text;
+      final views = tds[2].getElementsByTagName('em')[0].text;
+
+      threadList.add(Thread.fromJson({
+        'fid': fid,
+        'tid': tid,
+        'subject': subject,
+        'replies': replies,
+        'views': views
+      }));
+    }
+  }
+}
+
+class SpaceReply {
+  List<SpaceReplyItem> replyList = [];
+
+  SpaceReply.fromDocument(Document document) {
+    final tl = document.getElementsByClassName('tl')[0];
+
+    final trs = tl.getElementsByTagName('tr');
+
+    for (var i = 1; i < trs.length;) {
+      final thread = trs[i++];
+
+      // 帖子
+      final threadThA =
+          thread.getElementsByTagName('th')[0].getElementsByTagName('a')[0];
+
+      late String tid;
+      threadThA.attributes['href']!
+          .split('?')[1]
+          .split('&')
+          .forEach((attribute) {
+        if (attribute.startsWith('ptid')) {
+          tid = attribute.replaceFirst('ptid=', '');
+          return;
+        }
+      });
+      final subject = threadThA.text;
+
+      do {
+        final tr = trs[i];
+        if (tr.attributes['class'] != null) {
+          break;
+        }
+
+        final trA = tr.getElementsByTagName('a')[0];
+
+        late String pid;
+        trA.attributes['href']!.split('?')[1].split('&').forEach((attribute) {
+          if (attribute.startsWith('pid')) {
+            pid = attribute.replaceFirst('pid=', '');
+            return;
+          }
+        });
+
+        String message = trA.text;
+
+        replyList.add(SpaceReplyItem(tid, pid, subject, message));
+
+        i++;
+      } while (i < trs.length);
+    }
+  }
+}
+
+class SpaceReplyItem {
+  final String tid;
+  final String pid;
+  final String subject;
+  final String message;
+
+  SpaceReplyItem(this.tid, this.pid, this.subject, this.message);
+}
+
+class SpaceFriend {
+  final List<Friend> friendList;
+  final int count;
+
+  SpaceFriend.fromJson(Map<String, dynamic> json)
+      : friendList = ((json['list'] ?? []) as List<dynamic>)
+            .map((e) => Friend.fromJson(e))
+            .toList(),
+        count = int.parse(json['count'] ?? '0');
+}
+
+class Friend {
+  final String uid;
+  final String username;
+
+  Friend.fromJson(Map<String, dynamic> json)
+      : uid = json['uid'] ?? '',
+        username = json['username'] ?? '';
 }

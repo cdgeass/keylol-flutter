@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/common/provider.dart';
 import 'package:keylol_flutter/common/theme.dart';
+import 'package:keylol_flutter/models/space.dart';
 import 'package:keylol_flutter/pages/forum_index_page.dart';
 import 'package:keylol_flutter/pages/forum_page.dart';
 import 'package:keylol_flutter/pages/guide_page.dart';
@@ -9,6 +10,7 @@ import 'package:keylol_flutter/pages/index_page.dart';
 import 'package:keylol_flutter/pages/login_page.dart';
 import 'package:keylol_flutter/pages/note_list_page.dart';
 import 'package:keylol_flutter/pages/profile_page.dart';
+import 'package:keylol_flutter/pages/space_thread_page.dart';
 import 'package:keylol_flutter/pages/thread_page.dart';
 import 'package:keylol_flutter/pages/webview_page.dart';
 import 'package:provider/provider.dart';
@@ -41,14 +43,19 @@ class _KeylolAppState extends State<KeylolApp> {
   }
 
   Future<bool> init(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
-    final themeIndex = prefs.getInt('theme') ?? 0;
-    Provider.of<ThemeProvider>(context).update(colors[themeIndex]);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final themeIndex = prefs.getInt('theme') ?? 0;
+      Provider.of<ThemeProvider>(context, listen: false)
+          .update(colors[themeIndex]);
 
-    await KeylolClient()
-        .init(context)
-        .then((_) => KeylolClient().fetchProfile())
-        .then((_) => KeylolClient().fetchAllFavoriteThreads());
+      await KeylolClient()
+          .init(context)
+          .then((_) => KeylolClient().fetchProfile())
+          .then((_) => KeylolClient().fetchAllFavoriteThreads());
+    } catch (error) {
+      print(error.toString());
+    }
 
     return true;
   }
@@ -102,6 +109,13 @@ Map<String, WidgetBuilder> _routes() {
     "/profile": (context) {
       final uid = ModalRoute.of(context)?.settings.arguments as String;
       return ProfilePage(uid: uid);
+    },
+    "/space/thread": (context) {
+      final arguments = ModalRoute.of(context)?.settings.arguments as List;
+      return SpaceThreadPage(
+        space: arguments[0],
+        initialIndex: arguments[1],
+      );
     },
     "/webview": (context) {
       var initialUrl = ModalRoute.of(context)?.settings.arguments as String;

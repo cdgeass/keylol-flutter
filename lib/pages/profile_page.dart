@@ -107,11 +107,27 @@ class _ProfilePageState extends State<ProfilePage>
           SizedBox(height: 24.0),
           Row(
             children: [
-              _Label(label: '好友数', value: '${space.friends}'),
+              InkWell(
+                child: _Label(label: '好友数', value: '${space.friends}'),
+                onTap: () {
+                  Navigator.of(context)
+                      .pushNamed('/space/thread', arguments: [space, 0]);
+                },
+              ),
               SizedBox(width: 8.0),
-              _Label(label: '回复数', value: '${space.posts}'),
+              InkWell(
+                  child: _Label(label: '主题数', value: '${space.threads}'),
+                  onTap: () {
+                    Navigator.of(context)
+                        .pushNamed('/space/thread', arguments: [space, 1]);
+                  }),
               SizedBox(width: 8.0),
-              _Label(label: '主题数', value: '${space.threads}'),
+              InkWell(
+                  child: _Label(label: '回复数', value: '${space.posts}'),
+                  onTap: () {
+                    Navigator.of(context)
+                        .pushNamed('/space/thread', arguments: [space, 2]);
+                  }),
               Expanded(child: Container()),
               // ElevatedButton(onPressed: () {}, child: Text('关注')),
               // SizedBox(width: 8.0),
@@ -348,7 +364,10 @@ class _Label extends StatelessWidget {
       children: [
         Text(label),
         SizedBox(height: 8.0),
-        Text(value),
+        Text(
+          value,
+          style: TextStyle(decoration: TextDecoration.underline),
+        ),
       ],
     );
   }

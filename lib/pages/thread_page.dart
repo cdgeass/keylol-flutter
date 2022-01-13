@@ -183,7 +183,11 @@ class _ThreadPageState extends State<ThreadPage> {
                   .build();
             }),
       // 异常
-      if (error != null) Card(child: Text(error!)),
+      if (error != null)
+        Material(
+            color: Theme.of(context).cardColor,
+            elevation: 1.0,
+            child: Padding(padding: EdgeInsets.all(16.0), child: Text(error!))),
       // loading
       if (error == null)
         Center(

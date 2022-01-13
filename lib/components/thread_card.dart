@@ -14,13 +14,17 @@ class ThreadCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final content = ListTile(
-      leading: Avatar(
-        uid: thread.authorId,
-        size: AvatarSize.middle,
-        width: 40.0,
-      ),
+      leading: thread.authorId.isEmpty
+          ? null
+          : Avatar(
+              uid: thread.authorId,
+              size: AvatarSize.middle,
+              width: 40.0,
+            ),
       title: Text(thread.subject),
-      subtitle: Text('${thread.author} - ${thread.dateline}'),
+      subtitle: thread.author.isEmpty
+          ? null
+          : Text('${thread.author} - ${thread.dateline}'),
     );
     return Card(
       elevation: 1.0,

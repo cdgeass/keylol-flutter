@@ -19,7 +19,6 @@ import 'package:keylol_flutter/models/post.dart';
 import 'package:keylol_flutter/models/profile.dart';
 import 'package:keylol_flutter/models/sec_code.dart';
 import 'package:keylol_flutter/models/space.dart';
-import 'package:keylol_flutter/models/thread.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -148,6 +147,52 @@ class KeylolClient {
       return Future.error(res.data['Message']?['messagestr']);
     }
     return Space.fromJson(res.data['Variables']?['space']);
+  }
+
+  Future<SpaceFriend> fetchFriend(String uid, {int page = 1}) async {
+    final res = await _dio.get('/api/mobile/index.php',
+        queryParameters: {'module': 'friend', 'uid': uid, 'page': page});
+
+    if (res.data['Message'] != null) {
+      return Future.error(res.data['Message']?['messagestr']);
+    }
+
+    return SpaceFriend.fromJson(res.data['Variables']);
+  }
+
+  // 主题
+  Future<SpaceThread> fetchSpaceThread(String uid, {int page = 1}) async {
+    final res = await _dio.get('/home.php', queryParameters: {
+      'mod': 'space',
+      'uid': uid,
+      'do': 'thread',
+      'view': 'me',
+      'from': 'space',
+      'type': 'thread',
+      'page': page
+    });
+
+    final document = parser.parse(res.data);
+
+    return SpaceThread.fromDocument(document);
+  }
+
+  // 回复
+  Future<SpaceReply> fetchSpaceReply(String uid, {int page = 1}) async {
+    final res = await _dio.get('/home.php', queryParameters: {
+      'mod': 'space',
+      'uid': uid,
+      'do': 'thread',
+      'view': 'me',
+      'from': 'space',
+      'type': 'reply',
+      'order': 'dateline',
+      'page': page
+    });
+
+    final document = parser.parse(res.data);
+
+    return SpaceReply.fromDocument(document);
   }
 
   // 首页
@@ -565,7 +610,7 @@ extension FavThread on KeylolClient {
     var page = 1;
     while (true) {
       final list = await fetchFavoriteThreads(page++);
-      if (list.isEmpty) {
+      if (list.isEmpty || list.length < 20) {
         break;
       }
       favoriteThreads.addAll(list);
@@ -607,19 +652,6 @@ extension FavThread on KeylolClient {
 }
 
 extension GuideMod on KeylolClient {
-  // 热帖
-  Future<List<Thread>> fetchHotThread({int page = 1}) async {
-    final res = await _dio.post('/api/mobile/index.php',
-        queryParameters: {'module': 'hotthread', 'page': page});
-
-    if (res.data['Message'] != null) {
-      return Future.error(res.data['Message']['messagestr']);
-    }
-    return (res.data['Variables']['data'] as List)
-        .map((e) => Thread.fromJson(e))
-        .toList();
-  }
-
   Future<Guide> fetchGuide(String view, {int page = 1}) async {
     final res = await _dio.get('/forum.php',
         queryParameters: {'mod': 'guide', 'view': view, 'page': page});
