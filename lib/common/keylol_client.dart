@@ -35,7 +35,8 @@ class _LoggerInterceptor extends Interceptor {
 
     final data = options.data;
     if (data != null) {
-      Log().d('request => data: $data');
+      Log().d(
+          'request => data: ${(data as FormData).fields.map((e) => '${e.key}: ${e.value}').toList()}');
     }
 
     handler.next(options);
