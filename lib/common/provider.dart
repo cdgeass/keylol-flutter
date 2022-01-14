@@ -7,6 +7,12 @@ import 'package:keylol_flutter/models/profile.dart';
 class ThemeProvider extends ChangeNotifier {
   ThemeData? _themeData;
 
+  ThemeProvider._internal();
+
+  static late final _instance = ThemeProvider._internal();
+
+  factory ThemeProvider() => _instance;
+
   void update(ThemeData themeData) {
     this._themeData = themeData;
 

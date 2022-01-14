@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
+import 'package:keylol_flutter/common/log.dart';
 import 'package:keylol_flutter/common/provider.dart';
 import 'package:keylol_flutter/common/theme.dart';
-import 'package:keylol_flutter/models/space.dart';
 import 'package:keylol_flutter/pages/forum_index_page.dart';
 import 'package:keylol_flutter/pages/forum_page.dart';
 import 'package:keylol_flutter/pages/guide_page.dart';
@@ -54,7 +54,7 @@ class _KeylolAppState extends State<KeylolApp> {
           .then((_) => KeylolClient().fetchProfile())
           .then((_) => KeylolClient().fetchAllFavoriteThreads());
     } catch (error) {
-      print(error.toString());
+      Log().e('程序初始化错误', error);
     }
 
     return true;

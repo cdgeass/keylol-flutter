@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:keylol_flutter/common/provider.dart';
 import 'package:keylol_flutter/components/avatar.dart';
 import 'package:keylol_flutter/components/reply_modal.dart';
 import 'package:keylol_flutter/models/post.dart';
-import 'package:provider/provider.dart';
 
 typedef PostBuilder = Widget Function(Post post);
 

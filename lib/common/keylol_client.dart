@@ -8,7 +8,10 @@ import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:dio_http_cache/dio_http_cache.dart';
 import 'package:flutter/material.dart';
 import 'package:html/parser.dart' as parser;
+import 'package:image_picker/image_picker.dart';
+import 'package:keylol_flutter/common/log.dart';
 import 'package:keylol_flutter/common/provider.dart';
+import 'package:keylol_flutter/models/allow_perm.dart';
 import 'package:keylol_flutter/models/cat.dart';
 import 'package:keylol_flutter/models/favorite_thread.dart';
 import 'package:keylol_flutter/models/forum_display.dart';
@@ -21,6 +24,47 @@ import 'package:keylol_flutter/models/sec_code.dart';
 import 'package:keylol_flutter/models/space.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:pretty_json/pretty_json.dart';
+
+class _LoggerInterceptor extends Interceptor {
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    final path = options.baseUrl + options.path;
+    final parameters = options.queryParameters;
+    Log().d('request => url: $path, parameters: $parameters');
+
+    final data = options.data;
+    if (data != null) {
+      Log().d('request => data: $data');
+    }
+
+    handler.next(options);
+  }
+
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    final options = response.requestOptions;
+    final path = options.baseUrl + options.path;
+    Log().d('response => url: $path');
+
+    final statusCode = response.statusCode;
+    var data = response.data;
+    Log().d(
+        'response => statusCode: $statusCode, data: ${(data is Map<String, dynamic>) ? prettyJson(data) : data}');
+
+    handler.next(response);
+  }
+
+  @override
+  void onError(DioError err, ErrorInterceptorHandler handler) {
+    final options = err.requestOptions;
+    final path = options.baseUrl + options.path;
+
+    Log().e('error => url: $path', err.error);
+
+    handler.next(err);
+  }
+}
 
 // 统一拦截 keylol mobile 请求
 abstract class _KeylolMobileInterceptor extends Interceptor {
@@ -114,6 +158,8 @@ class KeylolClient {
         ignoreExpires: false, storage: FileStorage(appDocPath + "/.cookies/"));
     _dio.interceptors.add(CookieManager(_cj));
 
+    // 日志
+    _dio.interceptors.add(_LoggerInterceptor());
     // 缓存
     _dio.interceptors.add(
         DioCacheManager(CacheConfig(baseUrl: 'https://keylol.com'))
@@ -132,6 +178,39 @@ class KeylolClient {
     return _cj.loadForRequest(Uri.parse('https://keylol.com'));
   }
 
+  // 首页
+  Future<Index> fetchIndex() async {
+    var res = await _dio.get("");
+
+    var document = parser.parse(res.data);
+
+    return Index.fromDocument(document);
+  }
+
+  // 提醒列表
+  Future<NoteList> fetchNoteList({int page = 1}) async {
+    final res = await _dio.post('/api/mobile/index.php',
+        queryParameters: {'module': 'mynotelist', 'page': page});
+
+    if (res.data['Message'] != null) {
+      return Future.error(res.data['Message']?['messagestr']);
+    }
+    return NoteList.fromJson(res.data['Variables']);
+  }
+
+  // 权限
+  Future<AllowPerm> checkPost() async {
+    final res = await _dio.post('/api/mobile/index.php',
+        queryParameters: {'module': 'checkpost'});
+
+    if (res.data['Message'] != null) {
+      return Future.error(res.data['Message']?['messagestr']);
+    }
+    return AllowPerm.fromJson(res.data['Variables']['allowperm']);
+  }
+}
+
+extension SpaceMod on KeylolClient {
   // 用户信息
   Future<Space> fetchProfile({String? uid, bool cached = true}) async {
     final queryParameters = {'module': 'profile'};
@@ -149,6 +228,7 @@ class KeylolClient {
     return Space.fromJson(res.data['Variables']?['space']);
   }
 
+  // 好友
   Future<SpaceFriend> fetchFriend(String uid, {int page = 1}) async {
     final res = await _dio.get('/api/mobile/index.php',
         queryParameters: {'module': 'friend', 'uid': uid, 'page': page});
@@ -194,29 +274,9 @@ class KeylolClient {
 
     return SpaceReply.fromDocument(document);
   }
-
-  // 首页
-  Future<Index> fetchIndex() async {
-    var res = await _dio.get("");
-
-    var document = parser.parse(res.data);
-
-    return Index.fromDocument(document);
-  }
-
-  // 提醒列表
-  Future<NoteList> fetchNoteList({int page = 1}) async {
-    final res = await _dio.post('/api/mobile/index.php',
-        queryParameters: {'module': 'mynotelist', 'page': page});
-
-    if (res.data['Message'] != null) {
-      return Future.error(res.data['Message']?['messagestr']);
-    }
-    return NoteList.fromJson(res.data['Variables']);
-  }
 }
 
-extension Login on KeylolClient {
+extension LoginMod on KeylolClient {
   /// 登录
   Future login(String username, String password) async {
     final res = await _dio.post("/api/mobile/index.php",
@@ -435,7 +495,7 @@ extension Login on KeylolClient {
   }
 }
 
-extension Forum on KeylolClient {
+extension ForumMod on KeylolClient {
   // 版块列表
   Future<List<Cat>> fetchForumIndex() async {
     var res = await _dio.get("/api/mobile/index.php",
@@ -482,7 +542,7 @@ extension Forum on KeylolClient {
   }
 }
 
-extension Thead on KeylolClient {
+extension TheadMod on KeylolClient {
   // 帖子详情
   Future<ViewThread> fetchThread(String tid, int page) async {
     var res = await _dio.get("/api/mobile/index.php", queryParameters: {
@@ -500,7 +560,8 @@ extension Thead on KeylolClient {
   }
 
   // 回复
-  Future<void> sendReply(String tid, String message) async {
+  Future<void> sendReply(String tid, String message,
+      {List<String> aidList = const []}) async {
     final res = await _dio.post("/api/mobile/index.php",
         queryParameters: {
           'module': 'sendreply',
@@ -512,7 +573,8 @@ extension Thead on KeylolClient {
           'formhash': ProfileProvider().profile!.formHash,
           'message': message,
           'posttime': '${DateTime.now().millisecondsSinceEpoch}',
-          'usesig': 1
+          'usesig': 1,
+          for (final aid in aidList) 'attachnew[$aid][description]': aid,
         }));
     if (res.data['Message']?['messageval'] != 'post_reply_succeed') {
       final error = res.data['Message']?['messagestr'];
@@ -521,7 +583,8 @@ extension Thead on KeylolClient {
   }
 
   // 回复回复
-  Future<void> sendReplyForPost(Post post, String message) async {
+  Future<void> sendReplyForPost(Post post, String message,
+      {List<String> aidList = const []}) async {
     final dateTime = DateTime.now();
 
     final res = await _dio.post('/api/mobile/index.php',
@@ -538,7 +601,8 @@ extension Thead on KeylolClient {
           'noticetrimstr':
               '[quote][size=2][url=forum.php?mod=redirect&goto=findpost&pid=${post.pid}&ptid=${post.tid}][color=#999999]${post.author} 发表于 ${dateTime.year}-${dateTime.month}-${dateTime.day} ${dateTime.hour}:${dateTime.minute}[/color][/url][/size]${post.pureMessage()}[/quote]',
           'posttime': '${dateTime.millisecondsSinceEpoch}',
-          'usesig': 1
+          'usesig': 1,
+          for (final aid in aidList) 'attachnew[$aid][description]': aid,
         }));
 
     if (res.data['Message']?['messageval'] != 'post_reply_succeed') {
@@ -577,9 +641,24 @@ extension Thead on KeylolClient {
       return Future.error(error);
     }
   }
+
+  // 图片上传
+  Future<String> fileUpload(XFile image) async {
+    return await checkPost().then((allowPerm) async {
+      final res = await _dio.post('/api/mobile/index.php',
+          queryParameters: {'module': 'forumupload', 'type': 'image'},
+          data: FormData.fromMap({
+            'uid': ProfileProvider().profile!.memberUid,
+            'hash': allowPerm.uploadHash,
+            'Filedata':
+                await MultipartFile.fromFile(image.path, filename: image.name)
+          }));
+      return res.data;
+    });
+  }
 }
 
-extension FavThread on KeylolClient {
+extension FavoriteMod on KeylolClient {
   // 收藏帖子
   Future<void> favoriteThread(String tid, String description) async {
     final res = await _dio.post('/api/mobile/index.php',

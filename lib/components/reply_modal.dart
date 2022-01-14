@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:keylol_flutter/common/constants.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/components/sliver_tab_bar_delegate.dart';
@@ -51,6 +52,8 @@ class _ReplyModalState extends State<ReplyModal> {
 
   bool _showSmiley = false;
 
+  final List<String> _aidList = [];
+
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
@@ -101,6 +104,21 @@ class _ReplyModalState extends State<ReplyModal> {
                     icon: Icon(Icons.emoji_emotions_outlined),
                     color: Theme.of(context).primaryColor,
                   ),
+                  IconButton(
+                    onPressed: () async {
+                      final picker = ImagePicker();
+                      final image =
+                          await picker.pickImage(source: ImageSource.gallery);
+
+                      if (image != null) {
+                        final aid = await KeylolClient().fileUpload(image);
+                        _insertText('[attachimg]$aid[/attachimg]');
+                        _aidList.add(aid);
+                      }
+                    },
+                    icon: Icon(Icons.photo_outlined),
+                    color: Theme.of(context).primaryColor,
+                  ),
                   // 空白
                   Expanded(child: Container()),
                   // 发送
@@ -141,9 +159,11 @@ class _ReplyModalState extends State<ReplyModal> {
   void _sendReply(BuildContext context) {
     late Future<void> future;
     if (widget.thread != null) {
-      future = KeylolClient().sendReply(widget.thread!.tid, _controller.text);
+      future = KeylolClient()
+          .sendReply(widget.thread!.tid, _controller.text, aidList: _aidList);
     } else if (widget.post != null) {
-      future = KeylolClient().sendReplyForPost(widget.post!, _controller.text);
+      future = KeylolClient()
+          .sendReplyForPost(widget.post!, _controller.text, aidList: _aidList);
     } else {
       future = Future.error('不知道怎么了。。。');
     }

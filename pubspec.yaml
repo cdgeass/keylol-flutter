@@ -50,6 +50,9 @@ dependencies:
   scroll_to_index: ^2.1.1
   chewie: ^1.1.0
   shared_preferences: ^2.0.12
+  logger: ^1.1.0
+  pretty_json: ^2.0.0
+  image_picker: ^0.8.4+4
 
 dev_dependencies:
   flutter_test:
