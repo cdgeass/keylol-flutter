@@ -543,7 +543,7 @@ extension ForumMod on KeylolClient {
   }
 }
 
-extension TheadMod on KeylolClient {
+extension ThreadMod on KeylolClient {
   // 帖子详情
   Future<ViewThread> fetchThread(String tid, int page) async {
     var res = await _dio.get("/api/mobile/index.php", queryParameters: {
@@ -641,6 +641,28 @@ extension TheadMod on KeylolClient {
       final error = res.data['Message']?['messagestr'];
       return Future.error(error);
     }
+  }
+
+  // 加体力
+  Future<void> rate(String tid, String pid, String score, String reason) async {
+    await _dio.post('/forum.php',
+        queryParameters: {
+          'mod': 'misc',
+          'action': 'rate',
+          'ratesubmit': 'yes',
+          'infloat': 'yes',
+          'inajax': '1'
+        },
+        data: FormData.fromMap({
+          'tid': tid,
+          'pid': pid,
+          'handlekey': 'rate',
+          'formhash': ProfileProvider().profile!.formHash,
+          'referer':
+              'https://keylol.com/forum.php?mod=viewthread&tid=$tid&page=0#pid$pid',
+          'score1': score,
+          'reason': reason
+        }));
   }
 
   // 图片上传

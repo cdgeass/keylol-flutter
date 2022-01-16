@@ -58,14 +58,13 @@ class _ThreadPageState extends State<ThreadPage> {
     }
   }
 
-  Future<void> _onRefresh() async {
+  void _onRefresh() {
     final future = KeylolClient().fetchThread(widget.tid, 1);
-    setState(() {
-      _future = future;
-      _page = 1;
-      _total = 0;
-      _posts = [];
-    });
+    _future = future;
+    _page = 1;
+    _total = 0;
+    _posts = [];
+    setState(() {});
   }
 
   Future<void> _loadMore() async {
@@ -92,16 +91,17 @@ class _ThreadPageState extends State<ThreadPage> {
         setState(() {});
       }
     } catch (e) {
-      setState(() {
-        error = e.toString();
-      });
+      error = e.toString();
+      setState(() {});
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      onRefresh: _onRefresh,
+      onRefresh: () async {
+        _onRefresh();
+      },
       child: ThrowableFutureBuilder(
         future: _future,
         builder: (context, ViewThread viewThread) {
