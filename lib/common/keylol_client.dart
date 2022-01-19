@@ -136,7 +136,7 @@ class _NoticeInterceptor extends _KeylolMobileInterceptor {
 
 // 访问 keylol.com dio 单例
 class KeylolClient {
-  late Dio _dio;
+  Dio _dio = Dio();
   late CookieJar _cj;
 
   KeylolClient._internal();
@@ -145,7 +145,7 @@ class KeylolClient {
 
   factory KeylolClient() => _instance;
 
-  Future<void> init(BuildContext context) async {
+  Future<void> init() async {
     // 初始化 dio client
     _dio = Dio(BaseOptions(
         baseUrl: "https://keylol.com", queryParameters: {'version': 4}));
