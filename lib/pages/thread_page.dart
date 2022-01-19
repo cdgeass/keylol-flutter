@@ -167,12 +167,17 @@ class _ThreadPageState extends State<ThreadPage> {
       // 帖子
       for (var widget in _widgets)
         Material(color: Theme.of(context).cardColor, child: widget),
-      // 帖子操作
+      // // 帖子操作
+      // Material(
+      //     color: Theme.of(context).cardColor,
+      //     elevation: 1.0,
+      //     shadowColor: Theme.of(context).cardTheme.shadowColor,
+      //     child: _buildFirstBottom(_posts[0])),
       Material(
           color: Theme.of(context).cardColor,
-          elevation: 1.0,
-          shadowColor: Theme.of(context).cardTheme.shadowColor,
-          child: _buildFirstBottom(_posts[0])),
+          child: SizedBox(
+            height: 16.0,
+          )),
       // 回复
       for (var post in _posts.sublist(1))
         PostCard(

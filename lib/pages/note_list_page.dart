@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:html/parser.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/components/note_card.dart';
 import 'package:keylol_flutter/components/noticeable_leading.dart';

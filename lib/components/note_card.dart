@@ -67,7 +67,26 @@ class PostCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final fromIdType = note.fromIdType;
 
-    if (fromIdType == 'quote') {
+    if (fromIdType == 'post') {
+      final noteVar = note.noteVar!;
+
+      return InkWell(
+        child: Card(
+          child: ListTile(
+            leading: Avatar(
+              uid: note.authorId,
+              width: 40.0,
+              size: AvatarSize.middle,
+            ),
+            title: Text(_trim(note.note)),
+          ),
+        ),
+        onTap: () {
+          Navigator.of(context)
+              .pushNamed('/thread', arguments: [noteVar.tid, noteVar.pid]);
+        },
+      );
+    } else if (fromIdType == 'quote') {
       final noteVar = note.noteVar!;
 
       return InkWell(
