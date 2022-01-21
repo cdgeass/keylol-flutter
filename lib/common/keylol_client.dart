@@ -136,7 +136,7 @@ class _NoticeInterceptor extends _KeylolMobileInterceptor {
 
 // 访问 keylol.com dio 单例
 class KeylolClient {
-  Dio _dio = Dio();
+  Dio dio = Dio();
   late CookieJar _cj;
 
   KeylolClient._internal();
@@ -147,7 +147,7 @@ class KeylolClient {
 
   Future<void> init() async {
     // 初始化 dio client
-    _dio = Dio(BaseOptions(
+    dio = Dio(BaseOptions(
         baseUrl: "https://keylol.com", queryParameters: {'version': 4}));
 
     // app 目录
@@ -157,18 +157,18 @@ class KeylolClient {
     // cookie持久化
     _cj = PersistCookieJar(
         ignoreExpires: false, storage: FileStorage(appDocPath + "/.cookies/"));
-    _dio.interceptors.add(CookieManager(_cj));
+    dio.interceptors.add(CookieManager(_cj));
 
     // 日志
-    _dio.interceptors.add(_LoggerInterceptor());
+    dio.interceptors.add(_LoggerInterceptor());
     // 缓存
-    _dio.interceptors.add(
+    dio.interceptors.add(
         DioCacheManager(CacheConfig(baseUrl: 'https://keylol.com'))
             .interceptor);
     // 解析返回里profile信息
-    _dio.interceptors.add(_ProfileInterceptor());
+    dio.interceptors.add(_ProfileInterceptor());
     // 解析返回里通知信息
-    _dio.interceptors.add(_NoticeInterceptor());
+    dio.interceptors.add(_NoticeInterceptor());
   }
 
   void clearCookies() {
@@ -181,7 +181,7 @@ class KeylolClient {
 
   // 首页
   Future<Index> fetchIndex() async {
-    var res = await _dio.get("");
+    var res = await dio.get("");
 
     var document = parser.parse(res.data);
 
@@ -190,7 +190,7 @@ class KeylolClient {
 
   // 提醒列表
   Future<NoteList> fetchNoteList({int page = 1}) async {
-    final res = await _dio.post('/api/mobile/index.php',
+    final res = await dio.post('/api/mobile/index.php',
         queryParameters: {'module': 'mynotelist', 'page': page});
 
     if (res.data['Message'] != null) {
@@ -201,7 +201,7 @@ class KeylolClient {
 
   // 权限
   Future<AllowPerm> checkPost() async {
-    final res = await _dio.post('/api/mobile/index.php',
+    final res = await dio.post('/api/mobile/index.php',
         queryParameters: {'module': 'checkpost'});
 
     if (res.data['Message'] != null) {
@@ -218,7 +218,7 @@ extension SpaceMod on KeylolClient {
     if (uid != null) {
       queryParameters['uid'] = uid;
     }
-    final res = await _dio.get("/api/mobile/index.php",
+    final res = await dio.get("/api/mobile/index.php",
         queryParameters: queryParameters,
         options: uid != null && cached
             ? buildCacheOptions(Duration(days: 1))
@@ -231,7 +231,7 @@ extension SpaceMod on KeylolClient {
 
   // 好友
   Future<SpaceFriend> fetchFriend(String uid, {int page = 1}) async {
-    final res = await _dio.get('/api/mobile/index.php',
+    final res = await dio.get('/api/mobile/index.php',
         queryParameters: {'module': 'friend', 'uid': uid, 'page': page});
 
     if (res.data['Message'] != null) {
@@ -243,7 +243,7 @@ extension SpaceMod on KeylolClient {
 
   // 主题
   Future<SpaceThread> fetchSpaceThread(String uid, {int page = 1}) async {
-    final res = await _dio.get('/home.php', queryParameters: {
+    final res = await dio.get('/home.php', queryParameters: {
       'mod': 'space',
       'uid': uid,
       'do': 'thread',
@@ -260,7 +260,7 @@ extension SpaceMod on KeylolClient {
 
   // 回复
   Future<SpaceReply> fetchSpaceReply(String uid, {int page = 1}) async {
-    final res = await _dio.get('/home.php', queryParameters: {
+    final res = await dio.get('/home.php', queryParameters: {
       'mod': 'space',
       'uid': uid,
       'do': 'thread',
@@ -280,7 +280,7 @@ extension SpaceMod on KeylolClient {
 extension LoginMod on KeylolClient {
   /// 登录
   Future login(String username, String password) async {
-    final res = await _dio.post("/api/mobile/index.php",
+    final res = await dio.post("/api/mobile/index.php",
         queryParameters: {
           'module': 'login',
           'action': 'login',
@@ -308,7 +308,7 @@ extension LoginMod on KeylolClient {
 
   // 验证码页面
   Future<SecCode> fetchSecCodeParam(String? auth, String formHash) async {
-    final res = await _dio.get('/member.php', queryParameters: {
+    final res = await dio.get('/member.php', queryParameters: {
       'mod': 'logging',
       'action': 'login',
       'auth': auth,
@@ -327,7 +327,7 @@ extension LoginMod on KeylolClient {
 
   // 获取验证码
   Future<Uint8List> fetchSecCode(String update, String idHash) async {
-    final res = await _dio.get('/misc.php',
+    final res = await dio.get('/misc.php',
         options: Options(responseType: ResponseType.bytes, headers: {
           'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
           'Accept-Encoding': 'gzip, deflate, br',
@@ -351,7 +351,7 @@ extension LoginMod on KeylolClient {
 
   // 验证码校验
   Future checkSecCode(String auth, String idHash, String secVerify) async {
-    final res = await _dio.get('/misc.php', queryParameters: {
+    final res = await dio.get('/misc.php', queryParameters: {
       'mod': 'seccode',
       'action': 'check',
       'inajax': 1,
@@ -367,7 +367,7 @@ extension LoginMod on KeylolClient {
   // 验证码登录
   Future loginWithSecCode(String auth, String formHash, String loginHash,
       String idHash, String secVerify) async {
-    final res = await _dio.post('/member.php',
+    final res = await dio.post('/member.php',
         queryParameters: {
           'mod': 'logging',
           'action': 'login',
@@ -396,7 +396,7 @@ extension LoginMod on KeylolClient {
 
   // 获取短信发送验证码参数
   Future<SecCode> fetchSmsSecCodeParam(String cellphone) async {
-    var res = await _dio.get('/member.php',
+    var res = await dio.get('/member.php',
         queryParameters: {'mod': 'logging', 'action': 'login'});
 
     var document = parser.parse(res.data);
@@ -420,7 +420,7 @@ extension LoginMod on KeylolClient {
       loginHash = actionExp.substring(lastIndexOfEqual + 1);
     }
 
-    res = await _dio.post('/plugin.php',
+    res = await dio.post('/plugin.php',
         queryParameters: {
           'id': 'duceapp_smsauth',
           'ac': 'sendcode',
@@ -447,7 +447,7 @@ extension LoginMod on KeylolClient {
   // 发送验证码
   Future sendSmsCode(String loginHash, String formHash, String cellphone,
       String secCodeHash, String secCodeVerify) async {
-    await _dio.post('/plugin.php',
+    await dio.post('/plugin.php',
         queryParameters: {
           'id': 'duceapp_smsauth',
           'ac': 'sendcode',
@@ -469,7 +469,7 @@ extension LoginMod on KeylolClient {
   // 短信验证码登录
   Future loginWithSms(String loginHash, String formHash, String cellphone,
       String smsCode) async {
-    final res = await _dio.post('/plugin.php',
+    final res = await dio.post('/plugin.php',
         queryParameters: {
           'id': 'duceapp_smsauth',
           'ac': 'login',
@@ -499,7 +499,7 @@ extension LoginMod on KeylolClient {
 extension ForumMod on KeylolClient {
   // 版块列表
   Future<List<Cat>> fetchForumIndex() async {
-    var res = await _dio.get("/api/mobile/index.php",
+    var res = await dio.get("/api/mobile/index.php",
         queryParameters: {'module': 'forumindex'});
 
     var variables = res.data['Variables'];
@@ -533,7 +533,7 @@ extension ForumMod on KeylolClient {
       'filter': filter,
     };
     queryParameters.addAll(param);
-    var res = await _dio.get("/api/mobile/index.php",
+    var res = await dio.get("/api/mobile/index.php",
         queryParameters: queryParameters);
 
     if (res.data['Message'] != null) {
@@ -546,7 +546,7 @@ extension ForumMod on KeylolClient {
 extension ThreadMod on KeylolClient {
   // 帖子详情
   Future<ViewThread> fetchThread(String tid, int page) async {
-    var res = await _dio.get("/api/mobile/index.php", queryParameters: {
+    var res = await dio.get("/api/mobile/index.php", queryParameters: {
       'version': null,
       'module': 'viewthread',
       'tid': tid,
@@ -563,7 +563,7 @@ extension ThreadMod on KeylolClient {
   // 回复
   Future<void> sendReply(String tid, String message,
       {List<String> aidList = const []}) async {
-    final res = await _dio.post("/api/mobile/index.php",
+    final res = await dio.post("/api/mobile/index.php",
         queryParameters: {
           'module': 'sendreply',
           'replysubmit': 'yes',
@@ -588,7 +588,7 @@ extension ThreadMod on KeylolClient {
       {List<String> aidList = const []}) async {
     final dateTime = DateTime.now();
 
-    final res = await _dio.post('/api/mobile/index.php',
+    final res = await dio.post('/api/mobile/index.php',
         queryParameters: {
           'module': 'sendreply',
           'replysubmit': 'yes',
@@ -614,7 +614,7 @@ extension ThreadMod on KeylolClient {
 
   // 投票
   Future<void> pollVote(String tid, List<String> pollAnswers) async {
-    final res = await _dio.post('/api/mobile/index.php',
+    final res = await dio.post('/api/mobile/index.php',
         queryParameters: {
           'module': 'pollvote',
           'pollsubmit': 'yes',
@@ -631,7 +631,7 @@ extension ThreadMod on KeylolClient {
 
   // +1
   Future<void> recommend(String tid) async {
-    final res = await _dio.post('/api/mobile/index.php', queryParameters: {
+    final res = await dio.post('/api/mobile/index.php', queryParameters: {
       'module': 'recommend',
       'do': 'add',
       'tid': tid,
@@ -645,7 +645,7 @@ extension ThreadMod on KeylolClient {
 
   // 加体力
   Future<void> rate(String tid, String pid, String score, String reason) async {
-    await _dio.post('/forum.php',
+    await dio.post('/forum.php',
         queryParameters: {
           'mod': 'misc',
           'action': 'rate',
@@ -668,7 +668,7 @@ extension ThreadMod on KeylolClient {
   // 图片上传
   Future<String> fileUpload(XFile image) async {
     return await checkPost().then((allowPerm) async {
-      final res = await _dio.post('/api/mobile/index.php',
+      final res = await dio.post('/api/mobile/index.php',
           queryParameters: {'module': 'forumupload', 'type': 'image'},
           data: FormData.fromMap({
             'uid': ProfileProvider().profile!.memberUid,
@@ -684,7 +684,7 @@ extension ThreadMod on KeylolClient {
 extension FavoriteMod on KeylolClient {
   // 收藏帖子
   Future<void> favoriteThread(String tid, String description) async {
-    final res = await _dio.post('/api/mobile/index.php',
+    final res = await dio.post('/api/mobile/index.php',
         queryParameters: {
           'module': 'favthread',
           'type': 'thread',
@@ -724,7 +724,7 @@ extension FavoriteMod on KeylolClient {
 
   // 收藏的帖子
   Future<List<FavoriteThread>> fetchFavoriteThreads(int page) async {
-    final res = await _dio.post('/api/mobile/index.php',
+    final res = await dio.post('/api/mobile/index.php',
         queryParameters: {'module': 'myfavthread', 'page': page});
 
     if (res.data['Message'] != null) {
@@ -738,7 +738,7 @@ extension FavoriteMod on KeylolClient {
 
   // 删除收藏的帖子
   Future<void> deleteFavoriteThread(String favId) async {
-    final res = await _dio.post('/api/mobile/index.php', queryParameters: {
+    final res = await dio.post('/api/mobile/index.php', queryParameters: {
       'module': 'favthread',
       'op': 'delete',
       'deletesubmit': 'true',
@@ -755,7 +755,7 @@ extension FavoriteMod on KeylolClient {
 
 extension GuideMod on KeylolClient {
   Future<Guide> fetchGuide(String view, {int page = 1}) async {
-    final res = await _dio.get('/forum.php',
+    final res = await dio.get('/forum.php',
         queryParameters: {'mod': 'guide', 'view': view, 'page': page});
 
     final document = parser.parse(res.data);
