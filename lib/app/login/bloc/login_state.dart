@@ -8,6 +8,7 @@ class LoginState extends Equatable {
   final LoginType type;
   final LoginStatus status;
   final SecCode? secCodeParam;
+  final Uint8List? secCode;
 
   final String? auth;
   final String? formHash;
@@ -16,6 +17,7 @@ class LoginState extends Equatable {
     this.type = LoginType.sms,
     this.status = LoginStatus.initial,
     this.secCodeParam,
+    this.secCode,
     this.auth,
     this.formHash,
   });
@@ -24,6 +26,7 @@ class LoginState extends Equatable {
     LoginType? type,
     LoginStatus? status,
     SecCode? secCodeParam,
+    Uint8List? secCode,
     String? auth,
     String? formHash,
   }) {
@@ -31,6 +34,7 @@ class LoginState extends Equatable {
       type: type ?? this.type,
       status: status ?? this.status,
       secCodeParam: secCodeParam ?? this.secCodeParam,
+      secCode: secCode ?? this.secCode,
       auth: auth ?? this.auth,
       formHash: formHash ?? this.formHash,
     );

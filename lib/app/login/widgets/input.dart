@@ -3,9 +3,13 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:keylol_flutter/app/login/bloc/login_bloc.dart';
+import 'package:keylol_flutter/app/login/bloc/sms/login_sms_bloc.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/components/throwable_future_builder.dart';
 import 'package:keylol_flutter/models/sec_code.dart';
+import 'package:provider/src/provider.dart';
 
 class CellphoneInput extends StatelessWidget {
   const CellphoneInput({Key? key, required this.cellphoneController})
@@ -36,7 +40,7 @@ class CellphoneInput extends StatelessWidget {
 
 class SmsInput extends StatefulWidget {
   final TextEditingController smsController;
-  final Future<int> Function() sendSms;
+  final void Function() sendSms;
 
   const SmsInput({Key? key, required this.smsController, required this.sendSms})
       : super(key: key);
@@ -74,7 +78,7 @@ class _SmsInputState extends State<SmsInput> {
             child: TextFormField(
           controller: widget.smsController,
           decoration: InputDecoration(labelText: '短信验证码'),
-          inputFormatters: [LengthLimitingTextInputFormatter(4)],
+          inputFormatters: [LengthLimitingTextInputFormatter(6)],
           validator: (value) {
             if (value == null || value.isEmpty) {
               return '短信验证码不能为空';
@@ -93,27 +97,29 @@ class _SmsInputState extends State<SmsInput> {
                       minimumSize:
                           MaterialStateProperty.all(Size(133.0, 48.0))),
                   onPressed: () {
-                    final sendSmsFuture = widget.sendSms.call();
+                    widget.sendSms.call();
 
-                    sendSmsFuture.then((value) {
-                      if (value == 1) {
-                        _second = 60;
-                        _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-                          _second--;
-                          _streamController.sink.add(_second);
-                          if (_second == 0) {
-                            timer.cancel();
-                          }
-                        });
-                      }
-                    });
+                    final state = context.read<LoginSmsBloc>().state;
+                    if (state.status == LoginSmsStatus.waitSmsSend ||
+                        state.status == LoginSmsStatus.smsSent) {
+                      _second = 60;
+                      _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+                        _second--;
+                        _streamController.sink.add(_second);
+                        if (_second == 0) {
+                          timer.cancel();
+                        }
+                      });
+                    }
                   });
             } else {
               return ElevatedButton(
                   child: Text('重新获取(${second}s)'),
                   style: ButtonStyle(
-                      minimumSize:
-                          MaterialStateProperty.all(Size(133.0, 48.0))),
+                    minimumSize: MaterialStateProperty.all(
+                      Size(133.0, 48.0),
+                    ),
+                  ),
                   onPressed: null);
             }
           },
@@ -196,8 +202,8 @@ class _PasswordInputState extends State<PasswordInput> {
   }
 }
 
-class SecCodeInput extends StatefulWidget {
-  final SecCode secCode;
+class SecCodeInput extends StatelessWidget {
+  final Uint8List secCode;
   final TextEditingController secCodeController;
 
   const SecCodeInput(
@@ -205,55 +211,33 @@ class SecCodeInput extends StatefulWidget {
       : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => _SecCodeInputState();
-}
-
-class _SecCodeInputState extends State<SecCodeInput> {
-  late String update;
-  String? idHash;
-
-  @override
-  void initState() {
-    super.initState();
-
-    update = widget.secCode.update;
-    idHash = widget.secCode.getIdHash();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final future = KeylolClient().fetchSecCode(update, idHash!);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Expanded(
-            child: TextFormField(
-          controller: widget.secCodeController,
-          decoration: InputDecoration(labelText: '验证码'),
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp('[a-zA-Z]|[0-9]')),
-            LengthLimitingTextInputFormatter(4)
-          ],
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return '验证码不能为空';
-            }
-            return null;
-          },
-        )),
+          child: TextFormField(
+            controller: secCodeController,
+            decoration: InputDecoration(labelText: '验证码'),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp('[a-zA-Z]|[0-9]')),
+              LengthLimitingTextInputFormatter(4)
+            ],
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return '验证码不能为空';
+              }
+              return null;
+            },
+          ),
+        ),
         InkWell(
-          child: ThrowableFutureBuilder(
-              future: future,
-              builder: (context, Uint8List data) {
-                return Image.memory(
-                  data,
-                  height: 40.0,
-                );
-              }),
+          child: Image.memory(
+            secCode,
+            height: 40.0,
+          ),
           onTap: () {
-            setState(() {
-              idHash = widget.secCode.getIdHash();
-            });
+            // TODO
           },
         )
       ],

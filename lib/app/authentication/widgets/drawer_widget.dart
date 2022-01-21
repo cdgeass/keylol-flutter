@@ -19,7 +19,9 @@ class DrawerWidget extends StatelessWidget {
             login = ListTile(
               leading: Icon(Icons.login),
               title: Text('登录'),
-              onTap: () {},
+              onTap: () {
+                Navigator.of(context).pushNamed('/login');
+              },
             );
             break;
           case AuthenticationStatus.authenticated:

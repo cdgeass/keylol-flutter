@@ -141,6 +141,16 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     if (state.status != LoginStatus.needSecCode) {
       return;
     }
+
+    final secCodeParam = state.secCodeParam!;
+    try {
+      final secCode =
+          await _fetchSecCode(secCodeParam.update, secCodeParam.getIdHash());
+      emit(state.copyWith(secCode: secCode));
+    } catch (error) {
+      _logger.e('获取图形验证码错误', error);
+      emit(state.copyWith(status: LoginStatus.failure));
+    }
   }
 
   Future<SecCode> _fetchSecCodeParam(String auth, String formHash) async {
@@ -159,7 +169,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     return secCode;
   }
 
-  Future<Uint8List> fetchSecCode(String update, String idHash) async {
+  Future<Uint8List> _fetchSecCode(String update, String idHash) async {
     final res = await client.get('/misc.php',
         options: Options(responseType: ResponseType.bytes, headers: {
           'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',

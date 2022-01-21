@@ -160,7 +160,7 @@ class KeylolClient {
     dio.interceptors.add(CookieManager(_cj));
 
     // 日志
-    dio.interceptors.add(_LoggerInterceptor());
+    // dio.interceptors.add(_LoggerInterceptor());
     // 缓存
     dio.interceptors.add(
         DioCacheManager(CacheConfig(baseUrl: 'https://keylol.com'))

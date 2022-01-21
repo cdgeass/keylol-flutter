@@ -5,13 +5,15 @@ abstract class LoginEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class LoginRequested extends LoginEvent {}
+class LoginSmsRequested extends LoginEvent {}
 
 class LoginSmsFetched extends LoginEvent {
   final String cellphone;
   final String secCodeVerify;
 
-  LoginSmsFetched(this.cellphone, this.secCodeVerify);
+  LoginSmsFetched({required this.cellphone, required this.secCodeVerify});
 }
+
+class LoginPasswordRequested extends LoginEvent {}
 
 class LoginSecCodeFetched extends LoginEvent {}
