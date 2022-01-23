@@ -6,6 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:html/parser.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/common/log.dart';
+import 'package:keylol_flutter/common/provider.dart';
+import 'package:keylol_flutter/models/profile.dart';
 import 'package:keylol_flutter/models/sec_code.dart';
 
 part 'login_sms_event.dart';
@@ -20,7 +22,7 @@ class LoginSmsBloc extends Bloc<LoginSmsEvent, LoginSmsState> {
     on<LoginSmsSecCodeParamFetched>(_onSecCodeParamFetched);
     on<LoginSmsSecCodeFetched>(_onSmsSecCodeFetched);
     on<LoginSmsSent>(_onSmsSent);
-    on<LoginSmsSubmitted>(_onSmsRequested);
+    on<LoginSmsSubmitted>(_onSmsSubmitted);
   }
 
   Future<void> _onSecCodeParamFetched(
@@ -40,6 +42,7 @@ class LoginSmsBloc extends Bloc<LoginSmsEvent, LoginSmsState> {
       ));
     } catch (error) {
       _logger.e('获取图形验证码参数错误', error);
+      // TODO
     }
   }
 
@@ -111,6 +114,7 @@ class LoginSmsBloc extends Bloc<LoginSmsEvent, LoginSmsState> {
       ));
     } catch (error) {
       _logger.e('获取图形验证码错误', error);
+      // TODO
     }
   }
 
@@ -147,6 +151,7 @@ class LoginSmsBloc extends Bloc<LoginSmsEvent, LoginSmsState> {
       emit(state.copyWith(status: LoginSmsStatus.smsSent));
     } catch (error) {
       _logger.e('发送验证码错误', error);
+      // TODO
     }
   }
 
@@ -175,19 +180,21 @@ class LoginSmsBloc extends Bloc<LoginSmsEvent, LoginSmsState> {
     _logger.d('${res.data}');
   }
 
-  Future<void> _onSmsRequested(
+  Future<void> _onSmsSubmitted(
     LoginSmsSubmitted event,
     Emitter<LoginSmsState> emit,
   ) async {
     try {
       final secCodeParam = state.secCodeParam!;
-      await _login(secCodeParam, event.cellphone, event.sms);
+      final profile = await _login(secCodeParam, event.cellphone, event.sms);
+      emit(state.copyWith(status: LoginSmsStatus.succeed, profile: profile));
     } catch (error) {
       _logger.e('短信登录错误', error);
+      // TODO
     }
   }
 
-  Future<void> _login(
+  Future<Profile> _login(
       SecCode secCodeParam, String cellphone, String sms) async {
     final res = await client.post('/plugin.php',
         queryParameters: {
@@ -209,10 +216,12 @@ class LoginSmsBloc extends Bloc<LoginSmsEvent, LoginSmsState> {
 
     final data = res.data as String;
     if (data.contains('succeedhandle_login')) {
-      await KeylolClient().fetchProfile();
       // TODO 登录成功
-      return;
+      return KeylolClient()
+          .fetchProfile()
+          .then((_) => ProfileProvider().profile!);
     }
     // TODO 登录失败
+    return Future.error('登录失败');
   }
 }

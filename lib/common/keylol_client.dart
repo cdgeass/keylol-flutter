@@ -155,8 +155,9 @@ class KeylolClient {
     final appDocPath = appDocDir.path;
 
     // cookie持久化
-    _cj = PersistCookieJar(
-        ignoreExpires: false, storage: FileStorage(appDocPath + "/.cookies/"));
+    // _cj = PersistCookieJar(
+    //     ignoreExpires: false, storage: FileStorage(appDocPath + "/.cookies/"));
+    _cj = DefaultCookieJar();
     dio.interceptors.add(CookieManager(_cj));
 
     // 日志

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:keylol_flutter/app/authentication/authentication.dart';
 import 'package:keylol_flutter/app/login/bloc/sms/login_sms_bloc.dart';
 import 'package:keylol_flutter/app/login/widgets/widgets.dart';
 
@@ -10,17 +11,29 @@ class LoginSmsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<LoginSmsBloc, LoginSmsState>(
+    return BlocConsumer<LoginSmsBloc, LoginSmsState>(
+      listener: (context, state) {
+        if (state.status == LoginSmsStatus.succeed) {
+          context
+              .read<AuthenticationBloc>()
+              .add(AuthenticationSucceed(state.profile!));
+
+          Navigator.of(context).pop();
+        }
+      },
       builder: (context, state) {
         return Form(
           child: Column(
             children: [
+              // 手机号
               CellphoneInput(cellphoneController: _cellphoneController),
+              // 图形验证码
               if (state.secCode != null)
                 SecCodeInput(
                   secCode: state.secCode!,
                   secCodeController: _secCodeController,
                 ),
+              // 短信验证码
               SmsInput(
                 smsController: _smsController,
                 sendSms: () {
@@ -35,6 +48,7 @@ class LoginSmsView extends StatelessWidget {
                   }
                 },
               ),
+              // 登录框
               ElevatedButton(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
