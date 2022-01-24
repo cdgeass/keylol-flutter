@@ -14,7 +14,7 @@ import 'package:keylol_flutter/common/provider.dart';
 import 'package:keylol_flutter/models/allow_perm.dart';
 import 'package:keylol_flutter/app/forum/models/cat.dart';
 import 'package:keylol_flutter/models/favorite_thread.dart';
-import 'package:keylol_flutter/models/forum_display.dart';
+import 'package:keylol_flutter/app/forum/models/forum_display.dart';
 import 'package:keylol_flutter/models/guide.dart';
 import 'package:keylol_flutter/models/index.dart';
 import 'package:keylol_flutter/models/notice.dart';

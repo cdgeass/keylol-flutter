@@ -25,7 +25,7 @@ class ForumDisplay {
     if (threadTypesMap != null) {
       threadTypes = new List.empty(growable: true);
       threadTypesMap.forEach((key, value) {
-        threadTypes!.add(ForumDisplayThreadType(int.parse(key), value));
+        threadTypes!.add(ForumDisplayThreadType(key, value));
       });
     }
   }
@@ -217,7 +217,7 @@ class ForumDisplayThread {
 }
 
 class ForumDisplayThreadType {
-  final int id;
+  final String id;
   final String name;
 
   ForumDisplayThreadType(this.id, this.name);

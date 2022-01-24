@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keylol_flutter/app/authentication/authentication.dart';
 import 'package:keylol_flutter/app/forum/bloc/forum_bloc.dart';
+import 'package:keylol_flutter/app/forum/view/forum_page.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 
 class ForumIndexPage extends StatelessWidget {
@@ -67,8 +68,12 @@ class ForumIndexPage extends StatelessWidget {
                                       ? null
                                       : Text(forum.description!),
                                   onTap: () {
-                                    Navigator.of(context).pushNamed('/forum',
-                                        arguments: forum.fid);
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            ForumPage(fid: forum.fid),
+                                      ),
+                                    );
                                   },
                                 ),
                             ],

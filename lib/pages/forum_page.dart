@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/components/thread_card.dart';
 import 'package:keylol_flutter/components/throwable_future_builder.dart';
-import 'package:keylol_flutter/models/forum_display.dart';
+import 'package:keylol_flutter/app/forum/models/forum_display.dart';
 import 'package:keylol_flutter/models/thread.dart';
 
 class ForumPage extends StatefulWidget {
@@ -57,7 +57,8 @@ class _ForumPageState extends State<ForumPage>
               children: [
                 _ForumThreadList(fid: forum.fid!),
                 for (final threadType in threadTypes)
-                  _ForumThreadList(fid: forum.fid!, typeId: threadType.id)
+                  _ForumThreadList(
+                      fid: forum.fid!, typeId: int.parse(threadType.id))
               ],
             ));
       },
