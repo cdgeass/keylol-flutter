@@ -4,7 +4,7 @@ import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/components/noticeable_leading.dart';
 import 'package:keylol_flutter/components/throwable_future_builder.dart';
 import 'package:keylol_flutter/components/user_account_drawer.dart';
-import 'package:keylol_flutter/models/cat.dart';
+import 'package:keylol_flutter/app/forum/models/cat.dart';
 
 class ForumIndexPage extends StatefulWidget {
   @override

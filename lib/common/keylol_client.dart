@@ -12,7 +12,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:keylol_flutter/common/log.dart';
 import 'package:keylol_flutter/common/provider.dart';
 import 'package:keylol_flutter/models/allow_perm.dart';
-import 'package:keylol_flutter/models/cat.dart';
+import 'package:keylol_flutter/app/forum/models/cat.dart';
 import 'package:keylol_flutter/models/favorite_thread.dart';
 import 'package:keylol_flutter/models/forum_display.dart';
 import 'package:keylol_flutter/models/guide.dart';

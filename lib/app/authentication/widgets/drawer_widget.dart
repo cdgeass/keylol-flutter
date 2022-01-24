@@ -43,10 +43,30 @@ class DrawerWidget extends StatelessWidget {
             break;
         }
 
+        // 聚焦
+        final index = ListTile(
+          leading: Icon(Icons.home),
+          title: Text('聚焦'),
+          onTap: () {
+            Navigator.of(context).pushNamed('/index');
+          },
+        );
+
+        // 版块
+        final forumIndex = ListTile(
+          leading: Icon(Icons.dashboard),
+          title: Text('版块'),
+          onTap: () {
+            Navigator.of(context).pushNamed('/forum');
+          },
+        );
+
         return Drawer(
           child: ListView(
             children: [
               header,
+              index,
+              forumIndex,
               login,
             ],
           ),

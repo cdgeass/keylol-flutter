@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'authentication/authentication.dart';
+import 'forum/view/view.dart';
 import 'index/index.dart';
 import 'login/view/view.dart';
 
@@ -12,10 +13,11 @@ class KeylolApp extends StatelessWidget {
       create: (_) => AuthenticationBloc(),
       child: MaterialApp(
         routes: {
-          '/': (context) => IndexPage(),
+          '/index': (context) => IndexPage(),
+          '/forum': (context) => ForumIndexPage(),
           '/login': (context) => LoginPage(),
         },
-        initialRoute: '/',
+        initialRoute: '/index',
       ),
     );
   }
