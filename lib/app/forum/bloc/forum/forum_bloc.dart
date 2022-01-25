@@ -27,6 +27,7 @@ class ForumBloc extends Bloc<ForumEvent, ForumState> {
 
       emit(state.copyWith(
         status: ForumStatus.success,
+        forum: forumDisplay.forum,
         types: forumDisplay.threadTypes,
       ));
     } catch (error) {

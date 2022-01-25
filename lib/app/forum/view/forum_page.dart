@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keylol_flutter/app/forum/bloc/forum/forum_bloc.dart';
 import 'package:keylol_flutter/app/forum/bloc/forum/thread_list_bloc.dart';
-import 'package:keylol_flutter/app/forum/widgets/forum_thread_list.dart';
+import 'package:keylol_flutter/app/forum/widgets/widgets.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 
 class ForumPage extends StatelessWidget {
@@ -24,12 +24,15 @@ class ForumPage extends StatelessWidget {
                 body: Center(child: Text('出错啦!!!')),
               );
             case ForumStatus.success:
+              final forum = state.forum!;
               final types = state.types;
 
               return DefaultTabController(
                 length: types.length + 1,
                 child: Scaffold(
                   appBar: AppBar(
+                    title: Text(forum.name!),
+                    centerTitle: true,
                     bottom: TabBar(
                       isScrollable: true,
                       tabs: [
