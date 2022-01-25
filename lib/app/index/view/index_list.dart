@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keylol_flutter/app/index/bloc/index_bloc.dart';
 import 'package:keylol_flutter/app/index/models/models.dart';
 import 'package:keylol_flutter/app/index/widgets/widgets.dart';
+import 'package:keylol_flutter/components/sliver_tab_bar_delegate.dart';
 import 'package:keylol_flutter/components/thread_card.dart';
 
 class IndexList extends StatefulWidget {
@@ -41,19 +42,25 @@ class _IndexListState extends State<IndexList> with TickerProviderStateMixin {
               onRefresh: () async {
                 context.read<IndexBloc>().add(IndexFetched());
               },
-              child: NestedScrollView(
-                headerSliverBuilder: (context, value) {
-                  return [
-                    SliverAppBar(
-                      expandedHeight: 275.0,
-                      flexibleSpace: slideView,
-                      bottom: tabBar,
-                      pinned: true,
-                      forceElevated: value,
-                    ),
-                  ];
-                },
-                body: tabBarView,
+              child: CustomScrollView(
+                slivers: [
+                  SliverAppBar(
+                    elevation: 0.0,
+                    forceElevated: false,
+                    pinned: true,
+                    title: Text('聚焦'),
+                    centerTitle: true,
+                    expandedHeight: 275.0,
+                    flexibleSpace: slideView,
+                  ),
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: SliverTabBarDelegate(tabBar: tabBar),
+                  ),
+                  SliverFillRemaining(
+                    child: tabBarView,
+                  )
+                ],
               ),
             );
           default:
@@ -65,35 +72,16 @@ class _IndexListState extends State<IndexList> with TickerProviderStateMixin {
 
   // 轮播图
   Widget _buildSlidView(Index index) {
-    // 参照 FlexibleSpaceBar
-    return LayoutBuilder(
-      builder: (context, c) {
-        final settings = context
-            .dependOnInheritedWidgetOfExactType<FlexibleSpaceBarSettings>()!;
-        final deltaExtent = settings.maxExtent - settings.minExtent;
-        final t =
-            (1.0 - (settings.currentExtent - settings.minExtent) / deltaExtent)
-                .clamp(0.0, 1.0);
-        final fadeStart = max(0.0, 1.0 - kToolbarHeight / deltaExtent);
-        const fadeEnd = 1.0;
-        final opacity = 1.0 - Interval(fadeStart, fadeEnd).transform(t);
-
-        return Opacity(
-          opacity: opacity,
-          child: CarouselSlider(
-            options: CarouselOptions(
-              height: 300.0,
-              enableInfiniteScroll: true,
-              viewportFraction: 1.0,
-              autoPlay: true,
-            ),
-            items: index.slideViewItems
-                .map((slideViewItem) =>
-                    SlideViewItem(slideViewItem: slideViewItem))
-                .toList(),
-          ),
-        );
-      },
+    return CarouselSlider(
+      options: CarouselOptions(
+        height: 275.0,
+        enableInfiniteScroll: true,
+        viewportFraction: 1.0,
+        autoPlay: true,
+      ),
+      items: index.slideViewItems
+          .map((slideViewItem) => SlideViewItem(slideViewItem: slideViewItem))
+          .toList(),
     );
   }
 
@@ -117,6 +105,7 @@ class _IndexListState extends State<IndexList> with TickerProviderStateMixin {
     final children = index.tabThreadsMap.keys.map((key) {
       final threads = index.tabThreadsMap[key]!;
       return ListView(
+        physics: NeverScrollableScrollPhysics(),
         padding: EdgeInsets.only(top: 4.0, bottom: 4.0),
         children: threads.map((thread) => ThreadCard(thread: thread)).toList(),
       );

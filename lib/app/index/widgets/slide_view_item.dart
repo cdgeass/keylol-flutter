@@ -38,12 +38,9 @@ class SlideViewItem extends StatelessWidget {
           Navigator.of(context)
               .pushNamed("/thread", arguments: slideViewItem.tid);
         },
-        child: Padding(
-          padding: EdgeInsets.only(bottom: 46.0),
-          child: GridTile(
-            footer: footer,
-            child: img,
-          ),
+        child: GridTile(
+          footer: footer,
+          child: img,
         ),
       ),
     );
