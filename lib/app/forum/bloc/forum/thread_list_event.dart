@@ -5,6 +5,11 @@ abstract class ThreadListEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class ThreadListReloaded extends ThreadListEvent {}
+class ThreadListReloaded extends ThreadListEvent {
+  final String? filter;
+  final Map<String, String>? param;
+
+  ThreadListReloaded({this.filter, this.param});
+}
 
 class ThreadListLoaded extends ThreadListEvent {}

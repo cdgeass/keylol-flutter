@@ -21,23 +21,72 @@ class ThreadListBloc extends Bloc<ThreadListEvent, ThreadListState> {
     this.typeId,
   }) : super(ThreadListState(status: ThreadListStatus.initial)) {
     on<ThreadListReloaded>(_onReloaded);
+    on<ThreadListLoaded>(_onLoaded);
   }
 
   Future<void> _onReloaded(
-    ThreadListEvent event,
+    ThreadListReloaded event,
     Emitter<ThreadListState> emit,
   ) async {
     try {
-      final threads = await _fetch(1);
+      final filter = event.filter;
+      final param = event.param;
+
+      final threads = await _fetch(1, filter: filter, param: param);
 
       emit(state.copyWith(
-        status: ThreadListStatus.loaded,
+        status: ThreadListStatus.success,
         page: 1,
         threads: threads,
         hasReachedMax: false,
+        filter: filter,
+        param: param,
       ));
     } catch (error) {
       _logger.e('初始化获取版块帖子错误', error);
+    }
+  }
+
+  Future<void> _onLoaded(
+    ThreadListEvent event,
+    Emitter<ThreadListState> emit,
+  ) async {
+    if (state.hasReachedMax) {
+      return;
+    }
+
+    try {
+      final page = state.page;
+      final filter = state.filter;
+      final param = state.param;
+
+      final threads = await _fetch(page + 1, filter: filter, param: param);
+
+      if (threads.isEmpty) {
+        emit(state.copyWith(
+          status: ThreadListStatus.success,
+          hasReachedMax: true,
+          filter: filter,
+          param: param,
+        ));
+      } else {
+        final finalThreads = state.threads;
+        threads.forEach((thread) {
+          if (!finalThreads.any((t) => t.tid == thread.tid)) {
+            finalThreads.add(thread);
+          }
+        });
+
+        emit(state.copyWith(
+          status: ThreadListStatus.success,
+          page: page + 1,
+          threads: finalThreads,
+          filter: filter,
+          param: param,
+        ));
+      }
+    } catch (error) {
+      _logger.e('加载更多版块帖子错误', error);
     }
   }
 
@@ -57,7 +106,10 @@ class ThreadListBloc extends Bloc<ThreadListEvent, ThreadListState> {
         'filter': 'typeid',
         'typeid': typeId!,
       });
-    } else {}
+    } else if (filter != null && param != null) {
+      queryParameters.addAll({'filter': filter});
+      queryParameters.addAll(param);
+    }
 
     var res = await client.get("/api/mobile/index.php",
         queryParameters: queryParameters);

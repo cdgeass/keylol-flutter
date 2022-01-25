@@ -3,7 +3,41 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keylol_flutter/app/forum/bloc/forum/thread_list_bloc.dart';
 import 'package:keylol_flutter/app/forum/widgets/forum_thread_item.dart';
 
-class DefaultForumThreadList extends StatelessWidget {
+import 'bottom_loader.dart';
+
+class DefaultForumThreadList extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => _DefaultForumThreadListState();
+}
+
+class _DefaultForumThreadListState extends State<DefaultForumThreadList> {
+  final _controller = ScrollController();
+
+  @override
+  void initState() {
+    _controller.addListener(_onScroll);
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller
+      ..removeListener(_onScroll)
+      ..dispose();
+
+    super.dispose();
+  }
+
+  void _onScroll() {
+    final maxScroll = _controller.position.maxScrollExtent;
+    final pixels = _controller.position.pixels;
+
+    if (maxScroll == pixels) {
+      context.read<ThreadListBloc>().add(ThreadListLoaded());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
@@ -15,17 +49,20 @@ class DefaultForumThreadList extends StatelessWidget {
           switch (state.status) {
             case ThreadListStatus.failure:
               return Center(child: Text('出错啦!!!'));
-            case ThreadListStatus.loaded:
-              final threads = state.threads;
+            case ThreadListStatus.success:
               return ListView.builder(
-                itemCount: threads.length + 1,
+                padding: EdgeInsets.only(top: 4.0, bottom: 4.0),
+                controller: _controller,
+                itemCount: state.hasReachedMax
+                    ? state.threads.length + 1
+                    : state.threads.length + 2,
                 itemBuilder: (context, index) {
                   if (index == 0) {
-                    return Row(
-                      children: _builderFilterButtons(''),
-                    );
+                    return _builderFilterButtons(context, state.filter);
                   }
-                  return ForumThreadItem(thread: threads[index - 1]);
+                  return index >= state.threads.length + 1
+                      ? BottomLoader()
+                      : ForumThreadItem(thread: state.threads[index - 1]);
                 },
               );
             default:
@@ -36,34 +73,88 @@ class DefaultForumThreadList extends StatelessWidget {
     );
   }
 
-  List<Widget> _builderFilterButtons(String filter) {
-    // TODO
-    return [
-      ElevatedButton(
-        child: Text('默认'),
-        onPressed: () {},
-      ),
-      ElevatedButton(
-        child: Text('最新'),
-        onPressed: () {},
-      ),
-      ElevatedButton(
-        child: Text('热门'),
-        onPressed: () {},
-      ),
-      ElevatedButton(
-        child: Text('热帖'),
-        onPressed: () {},
-      ),
-      ElevatedButton(
-        child: Text('精华'),
-        onPressed: () {},
-      ),
-    ];
+  Widget _builderFilterButtons(BuildContext context, String? filter) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        ElevatedButton(
+          child: Text('默认'),
+          autofocus: filter == null || filter == 'typeid',
+          onPressed: () {
+            context.read<ThreadListBloc>().add(ThreadListReloaded());
+          },
+        ),
+        ElevatedButton(
+          child: Text('最新'),
+          autofocus: filter == 'dateline',
+          onPressed: () {
+            context.read<ThreadListBloc>().add(ThreadListReloaded(
+                filter: 'dateline', param: {'orderby': 'dateline'}));
+          },
+        ),
+        ElevatedButton(
+          child: Text('热门'),
+          autofocus: filter == 'heat',
+          onPressed: () {
+            context.read<ThreadListBloc>().add(ThreadListReloaded(
+                filter: 'heat', param: {'orderby': 'heats'}));
+          },
+        ),
+        ElevatedButton(
+          child: Text('热帖'),
+          autofocus: filter == 'hot',
+          onPressed: () {
+            context
+                .read<ThreadListBloc>()
+                .add(ThreadListReloaded(filter: 'hot'));
+          },
+        ),
+        ElevatedButton(
+          child: Text('精华'),
+          autofocus: filter == 'digest',
+          onPressed: () {
+            context.read<ThreadListBloc>().add(
+                ThreadListReloaded(filter: 'digest', param: {'digest': '1'}));
+          },
+        ),
+      ],
+    );
   }
 }
 
-class TypedForumThreadList extends StatelessWidget {
+class TypedForumThreadList extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => _TypedForumThreadList();
+}
+
+class _TypedForumThreadList extends State<TypedForumThreadList> {
+  final _controller = ScrollController();
+
+  @override
+  void initState() {
+    _controller.addListener(_onScroll);
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller
+      ..removeListener(_onScroll)
+      ..dispose();
+
+    super.dispose();
+  }
+
+  void _onScroll() {
+    final maxScroll = _controller.position.maxScrollExtent;
+    final pixels = _controller.position.pixels;
+
+    if (maxScroll == pixels) {
+      context.read<ThreadListBloc>().add(ThreadListLoaded());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
@@ -75,12 +166,17 @@ class TypedForumThreadList extends StatelessWidget {
           switch (state.status) {
             case ThreadListStatus.failure:
               return Center(child: Text('出错啦!!!'));
-            case ThreadListStatus.loaded:
-              final threads = state.threads;
+            case ThreadListStatus.success:
               return ListView.builder(
-                itemCount: threads.length,
+                padding: EdgeInsets.only(top: 4.0, bottom: 4.0),
+                controller: _controller,
+                itemCount: state.hasReachedMax
+                    ? state.threads.length
+                    : state.threads.length + 1,
                 itemBuilder: (context, index) {
-                  return ForumThreadItem(thread: threads[index]);
+                  return index >= state.threads.length
+                      ? BottomLoader()
+                      : ForumThreadItem(thread: state.threads[index]);
                 },
               );
             default:
