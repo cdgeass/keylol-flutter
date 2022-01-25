@@ -74,19 +74,29 @@ class _DefaultForumThreadListState extends State<DefaultForumThreadList> {
   }
 
   Widget _builderFilterButtons(BuildContext context, String? filter) {
+    final selectedStyle = ButtonStyle(
+        backgroundColor:
+            MaterialStateProperty.all<Color>(Theme.of(context).primaryColor));
+
+    final unselectedStyle = ButtonStyle(
+        backgroundColor: MaterialStateProperty.all<Color>(
+            Theme.of(context).backgroundColor));
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         ElevatedButton(
           child: Text('默认'),
-          autofocus: filter == null || filter == 'typeid',
+          style: (filter == null || filter == 'typeid')
+              ? selectedStyle
+              : unselectedStyle,
           onPressed: () {
             context.read<ThreadListBloc>().add(ThreadListReloaded());
           },
         ),
         ElevatedButton(
           child: Text('最新'),
-          autofocus: filter == 'dateline',
+          style: filter == 'dateline' ? selectedStyle : unselectedStyle,
           onPressed: () {
             context.read<ThreadListBloc>().add(ThreadListReloaded(
                 filter: 'dateline', param: {'orderby': 'dateline'}));
@@ -94,7 +104,7 @@ class _DefaultForumThreadListState extends State<DefaultForumThreadList> {
         ),
         ElevatedButton(
           child: Text('热门'),
-          autofocus: filter == 'heat',
+          style: filter == 'heat' ? selectedStyle : unselectedStyle,
           onPressed: () {
             context.read<ThreadListBloc>().add(ThreadListReloaded(
                 filter: 'heat', param: {'orderby': 'heats'}));
@@ -102,7 +112,7 @@ class _DefaultForumThreadListState extends State<DefaultForumThreadList> {
         ),
         ElevatedButton(
           child: Text('热帖'),
-          autofocus: filter == 'hot',
+          style: filter == 'hot' ? selectedStyle : unselectedStyle,
           onPressed: () {
             context
                 .read<ThreadListBloc>()
@@ -111,7 +121,7 @@ class _DefaultForumThreadListState extends State<DefaultForumThreadList> {
         ),
         ElevatedButton(
           child: Text('精华'),
-          autofocus: filter == 'digest',
+          style: filter == 'digest' ? selectedStyle : unselectedStyle,
           onPressed: () {
             context.read<ThreadListBloc>().add(
                 ThreadListReloaded(filter: 'digest', param: {'digest': '1'}));
