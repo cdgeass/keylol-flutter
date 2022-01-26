@@ -3,7 +3,7 @@ import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/components/avatar.dart';
 import 'package:keylol_flutter/components/throwable_future_builder.dart';
 import 'package:keylol_flutter/models/space.dart';
-import 'package:keylol_flutter/models/thread.dart';
+import 'package:keylol_flutter/app/thread/models/thread.dart';
 
 class SpaceThreadPage extends StatelessWidget {
   final Space space;

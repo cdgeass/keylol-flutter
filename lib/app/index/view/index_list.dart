@@ -44,18 +44,13 @@ class _IndexListState extends State<IndexList> with TickerProviderStateMixin {
               },
               child: CustomScrollView(
                 slivers: [
-                  SliverAppBar(
-                    elevation: 0.0,
-                    forceElevated: false,
-                    pinned: true,
-                    title: Text('聚焦'),
-                    centerTitle: true,
-                    expandedHeight: 275.0,
-                    flexibleSpace: slideView,
-                  ),
                   SliverPersistentHeader(
                     pinned: true,
-                    delegate: SliverTabBarDelegate(tabBar: tabBar),
+                    delegate: IndexAppBar(
+                      expandedHeight: 275.0,
+                      slideView: slideView,
+                      tabBar: tabBar,
+                    ),
                   ),
                   SliverFillRemaining(
                     child: tabBarView,

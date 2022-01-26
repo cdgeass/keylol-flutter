@@ -5,7 +5,7 @@ import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/components/thread_card.dart';
 import 'package:keylol_flutter/components/throwable_future_builder.dart';
 import 'package:keylol_flutter/app/forum/models/forum_display.dart';
-import 'package:keylol_flutter/models/thread.dart';
+import 'package:keylol_flutter/app/thread/models/thread.dart';
 
 class ForumPage extends StatefulWidget {
   final String fid;

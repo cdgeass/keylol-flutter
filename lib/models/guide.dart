@@ -1,5 +1,5 @@
 import 'package:html/dom.dart';
-import 'package:keylol_flutter/models/thread.dart';
+import 'package:keylol_flutter/app/thread/models/thread.dart';
 
 class Guide {
   int totalPage = 1;

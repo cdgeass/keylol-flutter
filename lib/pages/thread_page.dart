@@ -10,7 +10,7 @@ import 'package:keylol_flutter/components/rich_text.dart';
 import 'package:keylol_flutter/components/throwable_future_builder.dart';
 import 'package:keylol_flutter/models/favorite_thread.dart';
 import 'package:keylol_flutter/models/post.dart';
-import 'package:keylol_flutter/models/thread.dart';
+import 'package:keylol_flutter/app/thread/models/thread.dart';
 import 'package:keylol_flutter/models/view_thread.dart';
 import 'package:provider/provider.dart';
 import 'package:scroll_to_index/scroll_to_index.dart';

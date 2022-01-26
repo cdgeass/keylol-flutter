@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:html/dom.dart';
 import 'package:html_unescape/html_unescape.dart';
-import 'package:keylol_flutter/models/thread.dart';
+import 'package:keylol_flutter/app/thread/models/thread.dart';
 
 class Space {
   final String uid;
