@@ -16,16 +16,8 @@ class IndexAppBar extends SliverPersistentHeaderDelegate {
     double toolbarOpacity =
         ((maxExtent - minExtent - shrinkOffset).round() / minExtent)
             .clamp(0.0, 1.0);
-    final isScrolledUnder =
-        overlapsContent || (shrinkOffset > maxExtent - minExtent);
 
     final title = toolbarOpacity == 0.0 ? Text('聚焦') : null;
-    final flexibleSpace = toolbarOpacity == 0.0
-        ? null
-        : Semantics(
-            header: true,
-            child: slideView,
-          );
 
     return AppBar(
       title: title,

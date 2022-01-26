@@ -42,20 +42,20 @@ class _IndexListState extends State<IndexList> with TickerProviderStateMixin {
               onRefresh: () async {
                 context.read<IndexBloc>().add(IndexFetched());
               },
-              child: CustomScrollView(
-                slivers: [
-                  SliverPersistentHeader(
-                    pinned: true,
-                    delegate: IndexAppBar(
-                      expandedHeight: 275.0,
-                      slideView: slideView,
-                      tabBar: tabBar,
+              child: NestedScrollView(
+                headerSliverBuilder: (context, innerBoxIsScrolled) {
+                  return [
+                    SliverPersistentHeader(
+                      pinned: true,
+                      delegate: IndexAppBar(
+                        expandedHeight: 275.0,
+                        slideView: slideView,
+                        tabBar: tabBar,
+                      ),
                     ),
-                  ),
-                  SliverFillRemaining(
-                    child: tabBarView,
-                  )
-                ],
+                  ];
+                },
+                body: tabBarView,
               ),
             );
           default:
