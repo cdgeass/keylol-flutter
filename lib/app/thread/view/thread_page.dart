@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keylol_flutter/app/thread/bloc/thread_bloc.dart';
+import 'package:keylol_flutter/app/thread/view/thread_list.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 
 class ThreadPage extends StatelessWidget {
@@ -17,7 +18,7 @@ class ThreadPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => ThreadBloc(client: KeylolClient().dio, tid: tid)
-        ..add(ThreadReloaded(pid: pid)),
+        ..add(ThreadReloaded()),
       child: BlocBuilder<ThreadBloc, ThreadState>(
         builder: (context, state) {
           return RefreshIndicator(
@@ -28,6 +29,7 @@ class ThreadPage extends StatelessWidget {
                   case ThreadStatus.failure:
                     return Center(child: Text('出错啦！！！'));
                   case ThreadStatus.success:
+                    return ThreadList();
                   default:
                     return Center(child: CircularProgressIndicator());
                 }

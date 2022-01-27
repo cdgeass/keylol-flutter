@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:keylol_flutter/app/thread/view/view.dart';
 import 'package:keylol_flutter/components/avatar.dart';
 import 'package:keylol_flutter/app/thread/models/thread.dart';
 
@@ -31,7 +32,8 @@ class ThreadCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          Navigator.of(context).pushNamed('/thread', arguments: thread.tid);
+          Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => ThreadPage(tid: thread.tid)));
         },
         child: builder == null ? content : builder!.call(content),
       ),
