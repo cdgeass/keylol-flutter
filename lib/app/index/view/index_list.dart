@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keylol_flutter/app/index/bloc/index_bloc.dart';
 import 'package:keylol_flutter/app/index/models/models.dart';
 import 'package:keylol_flutter/app/index/widgets/widgets.dart';
-import 'package:keylol_flutter/components/sliver_tab_bar_delegate.dart';
 import 'package:keylol_flutter/components/thread_card.dart';
 
 class IndexList extends StatefulWidget {
