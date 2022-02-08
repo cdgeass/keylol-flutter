@@ -2,6 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/app/index/models/models.dart';
 
+import '../../thread/view/view.dart';
+
 class SlideViewItem extends StatelessWidget {
   final IndexSlideViewItem slideViewItem;
 
@@ -35,8 +37,8 @@ class SlideViewItem extends StatelessWidget {
       child: InkWell(
         onTap: () {
           // 跳转到帖子页面
-          Navigator.of(context)
-              .pushNamed("/thread", arguments: slideViewItem.tid);
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => ThreadPage(tid: slideViewItem.tid)));
         },
         child: GridTile(
           footer: footer,

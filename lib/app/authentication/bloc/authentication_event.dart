@@ -5,10 +5,6 @@ abstract class AuthenticationEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class AuthenticationSucceed extends AuthenticationEvent {
-  final Profile profile;
-
-  AuthenticationSucceed(this.profile);
-}
+class AuthenticationLoaded extends AuthenticationEvent {}
 
 class AuthenticationLogoutRequested extends AuthenticationEvent {}

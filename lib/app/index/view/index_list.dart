@@ -30,6 +30,8 @@ class _IndexListState extends State<IndexList> with TickerProviderStateMixin {
             final tabBar = _buildTabBar(index);
             final tabBarView = _buildTabBarView(index);
 
+            final topPadding = MediaQuery.of(context).padding.top;
+
             return RefreshIndicator(
               notificationPredicate: (notification) {
                 if (notification is OverscrollNotification || Platform.isIOS) {
@@ -49,6 +51,7 @@ class _IndexListState extends State<IndexList> with TickerProviderStateMixin {
                         expandedHeight: 275.0,
                         slideView: slideView,
                         tabBar: tabBar,
+                        topPadding: topPadding,
                       ),
                     ),
                   ];

@@ -5,10 +5,13 @@ class IndexAppBar extends SliverPersistentHeaderDelegate {
   final Widget slideView;
   final TabBar tabBar;
 
+  final double? topPadding;
+
   IndexAppBar({
     required this.expandedHeight,
     required this.slideView,
     required this.tabBar,
+    this.topPadding,
   });
 
   @override
@@ -41,10 +44,11 @@ class IndexAppBar extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  double get maxExtent => expandedHeight + 46.0;
+  double get maxExtent => expandedHeight + tabBar.preferredSize.height;
 
   @override
-  double get minExtent => kToolbarHeight + 46.0;
+  double get minExtent =>
+      kToolbarHeight + tabBar.preferredSize.height + (topPadding ?? 0.0);
 
   @override
   bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {

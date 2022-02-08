@@ -45,6 +45,8 @@ class _ThreadListState extends State<ThreadList> {
         final threadActionsIndex = threadIndex + 1;
         final postsIndex = threadActionsIndex + state.posts.length - 1;
 
+        final topPadding = MediaQuery.of(context).padding.top;
+
         return Scaffold(
           body: CustomScrollView(
             controller: _controller,
@@ -55,6 +57,7 @@ class _ThreadListState extends State<ThreadList> {
                   thread: state.thread!,
                   textStyle: Theme.of(context).textTheme.headline6!,
                   width: MediaQuery.of(context).size.width,
+                  topPadding: topPadding,
                 ),
               ),
               SliverList(
@@ -66,13 +69,13 @@ class _ThreadListState extends State<ThreadList> {
                         color: Theme.of(context).cardColor,
                         child: _buildFirstHeader(state.posts[0]),
                       );
-                    } else if (index > authorIndex && index < threadIndex) {
+                    } else if (index > authorIndex && index <= threadIndex) {
                       // 帖子
                       return Material(
                         color: Theme.of(context).cardColor,
                         child: state.threadWidgets[index - 1],
                       );
-                    } else if (index < threadActionsIndex) {
+                    } else if (index <= threadActionsIndex) {
                       // 间隔
                       return Material(
                         color: Theme.of(context).cardColor,
@@ -81,7 +84,7 @@ class _ThreadListState extends State<ThreadList> {
                           height: 16.0,
                         ),
                       );
-                    } else if (index >= threadActionsIndex &&
+                    } else if (index > threadActionsIndex &&
                         index < postsIndex) {
                       // 回复
                       return PostCard(
@@ -116,6 +119,7 @@ class _ThreadListState extends State<ThreadList> {
                         );
                       }
                     }
+                    return Container();
                   },
                   childCount:
                       state.threadWidgets.length + 2 + state.posts.length,

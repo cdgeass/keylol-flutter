@@ -48,17 +48,15 @@ class ForumPage extends StatelessWidget {
                           client: KeylolClient().dio,
                           fid: fid,
                         )..add(ThreadListReloaded()),
-                        lazy: true,
                         child: DefaultForumThreadList(),
                       ),
                       for (final type in types)
                         BlocProvider(
                           create: (_) => ThreadListBloc(
-                            client: KeylolClient().dio,
-                            fid: fid,
-                            typeId: type.id
-                          )..add(ThreadListReloaded()),
-                          lazy: true,
+                              client: KeylolClient().dio,
+                              fid: fid,
+                              typeId: type.id)
+                            ..add(ThreadListReloaded()),
                           child: TypedForumThreadList(),
                         )
                     ],

@@ -15,7 +15,6 @@ class ForumIndexPage extends StatelessWidget {
       body: BlocProvider(
         create: (_) => ForumIndexBloc(client: KeylolClient().dio)
           ..add(ForumIndexFetched()),
-        lazy: true,
         child: BlocBuilder<ForumIndexBloc, ForumIndexState>(
           builder: (context, state) {
             switch (state.status) {

@@ -17,13 +17,11 @@ class LoginPage extends StatelessWidget {
           // 短信登录
           BlocProvider(
             create: (_) => LoginSmsBloc(client: KeylolClient().dio),
-            lazy: true,
             child: LoginSmsView(),
           ),
           // 密码登录
           BlocProvider(
             create: (_) => LoginPasswordBloc(client: KeylolClient().dio),
-            lazy: true,
             child: LoginPasswordView(),
           ),
         ],

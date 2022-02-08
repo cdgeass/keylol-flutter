@@ -18,10 +18,13 @@ class ThreadAppBar extends SliverPersistentHeaderDelegate {
 
   final double _subjectHeight;
 
+  final double? topPadding;
+
   ThreadAppBar({
     required this.thread,
     required this.textStyle,
     required width,
+    this.topPadding,
   })  : width = width - 32.0,
         _subjectHeight =
             boundingTextSize(thread.subject, textStyle, maxWidth: width - 32.0)
@@ -43,7 +46,7 @@ class ThreadAppBar extends SliverPersistentHeaderDelegate {
         child: Stack(
           children: [
             Positioned(
-              top: kToolbarHeight - shrinkOffset,
+              top: kToolbarHeight + (topPadding ?? 0.0) - shrinkOffset,
               child: Container(
                 padding: EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8.0),
                 width: width,
@@ -57,10 +60,11 @@ class ThreadAppBar extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  double get maxExtent => kToolbarHeight + _subjectHeight + 8.0;
+  double get maxExtent =>
+      kToolbarHeight + _subjectHeight + 8.0 + (topPadding ?? 0.0);
 
   @override
-  double get minExtent => kToolbarHeight;
+  double get minExtent => kToolbarHeight + (topPadding ?? 0.0);
 
   @override
   bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {

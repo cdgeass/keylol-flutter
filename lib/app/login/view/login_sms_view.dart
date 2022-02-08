@@ -14,9 +14,7 @@ class LoginSmsView extends StatelessWidget {
     return BlocConsumer<LoginSmsBloc, LoginSmsState>(
       listener: (context, state) {
         if (state.status == LoginSmsStatus.succeed) {
-          context
-              .read<AuthenticationBloc>()
-              .add(AuthenticationSucceed(state.profile!));
+          context.read<AuthenticationBloc>().add(AuthenticationLoaded());
 
           Navigator.of(context).pop();
         }
