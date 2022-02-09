@@ -69,13 +69,13 @@ class _ThreadListState extends State<ThreadList> {
                         color: Theme.of(context).cardColor,
                         child: _buildFirstHeader(state.posts[0]),
                       );
-                    } else if (index > authorIndex && index <= threadIndex) {
+                    } else if (index <= threadIndex) {
                       // 帖子
                       return Material(
                         color: Theme.of(context).cardColor,
                         child: state.threadWidgets[index - 1],
                       );
-                    } else if (index <= threadActionsIndex) {
+                    } else if (index == threadActionsIndex) {
                       // 间隔
                       return Material(
                         color: Theme.of(context).cardColor,
@@ -84,8 +84,7 @@ class _ThreadListState extends State<ThreadList> {
                           height: 16.0,
                         ),
                       );
-                    } else if (index > threadActionsIndex &&
-                        index < postsIndex) {
+                    } else if (index <= postsIndex) {
                       // 回复
                       return PostCard(
                         post: state.posts[index - threadActionsIndex + 1],
@@ -95,14 +94,15 @@ class _ThreadListState extends State<ThreadList> {
                               .build();
                         },
                       );
-                    } else if (index == postsIndex) {
+                    } else if (index > postsIndex) {
                       if (state.status == ThreadStatus.failure) {
                         // 异常
-                        return Material(
-                          color: Theme.of(context).cardColor,
-                          elevation: 1.0,
-                          child: Padding(
-                            padding: EdgeInsets.all(16.0),
+                        return Card(
+                          margin: EdgeInsets.only(top: 8.0),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.zero,
+                          ),
+                          child: Center(
                             child: Text(state.error ?? ''),
                           ),
                         );

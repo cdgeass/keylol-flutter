@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/common/log.dart';
 import 'package:keylol_flutter/models/profile.dart';
 
@@ -17,6 +18,7 @@ class AuthenticationBloc
     required this.client,
   }) : super(AuthenticationState.unauthenticated()) {
     on<AuthenticationLoaded>(_onLoaded);
+    on<AuthenticationLogoutRequested>(_onLogoutRequested);
   }
 
   Future<void> _onLoaded(
@@ -33,6 +35,14 @@ class AuthenticationBloc
       _logger.d('获取用户信息错误', error);
       emit(AuthenticationState.unauthenticated());
     }
+  }
+
+  Future<void> _onLogoutRequested(
+    AuthenticationEvent event,
+    Emitter<AuthenticationState> emit,
+  ) async {
+    KeylolClient().clearCookies();
+    emit(AuthenticationState.unauthenticated());
   }
 
   Future<Profile> _fetchProfile() async {

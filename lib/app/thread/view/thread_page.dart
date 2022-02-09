@@ -27,7 +27,6 @@ class ThreadPage extends StatelessWidget {
               builder: (context) {
                 switch (state.status) {
                   case ThreadStatus.failure:
-                    return Center(child: Text('出错啦！！！'));
                   case ThreadStatus.success:
                     return ThreadList();
                   default:

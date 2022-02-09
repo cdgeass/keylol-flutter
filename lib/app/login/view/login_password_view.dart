@@ -27,7 +27,7 @@ class LoginPasswordView extends StatelessWidget {
               children: [
                 UsernameInput(usernameController: _usernameController),
                 PasswordInput(passwordController: _passwordController),
-                if (state.status != LoginPasswordStatus.withSecCodeParam)
+                if (state.secCode != null)
                   SecCodeInput(
                     secCode: state.secCode!,
                     secCodeController: _secCodeController,

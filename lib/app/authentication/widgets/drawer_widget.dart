@@ -38,7 +38,11 @@ class DrawerWidget extends StatelessWidget {
             login = ListTile(
               leading: Icon(Icons.logout),
               title: Text('退出'),
-              onTap: () {},
+              onTap: () {
+                context
+                    .read<AuthenticationBloc>()
+                    .add(AuthenticationLogoutRequested());
+              },
             );
             break;
         }
