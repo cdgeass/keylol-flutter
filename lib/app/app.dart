@@ -15,6 +15,7 @@ class KeylolApp extends StatelessWidget {
         ..add(AuthenticationLoaded()),
       lazy: false,
       child: MaterialApp(
+        theme: ThemeData(colorSchemeSeed: Colors.blue, useMaterial3: true),
         routes: {
           '/index': (context) => IndexPage(),
           '/forum': (context) => ForumIndexPage(),
