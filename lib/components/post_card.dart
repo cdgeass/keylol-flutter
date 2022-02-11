@@ -28,7 +28,13 @@ class PostCard extends StatelessWidget {
               size: AvatarSize.middle,
               width: 40.0,
             ),
-            title: Text(post.author),
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(post.author),
+                Text('${post.number}楼'),
+              ],
+            ),
             subtitle: Text(post.dateline),
           ),
           builder.call(post),
@@ -37,9 +43,7 @@ class PostCard extends StatelessWidget {
             children: [
               IconButton(
                   onPressed: () {
-                    Navigator.of(context).push(ReplyRoute(null, post, () {
-
-                    }));
+                    Navigator.of(context).push(ReplyRoute(null, post, () {}));
                   },
                   icon: Icon(Icons.reply_outlined)),
               // if (Provider.of<ProfileProvider>(context).profile?.memberUid ==

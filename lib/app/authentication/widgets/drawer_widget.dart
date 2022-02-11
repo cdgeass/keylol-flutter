@@ -56,6 +56,15 @@ class DrawerWidget extends StatelessWidget {
           },
         );
 
+        // 导读
+        final guide = ListTile(
+          leading: Icon(Icons.camera),
+          title: Text('导读'),
+          onTap: () {
+            Navigator.of(context).pushNamed('/guide');
+          },
+        );
+
         // 版块
         final forumIndex = ListTile(
           leading: Icon(Icons.dashboard),
@@ -70,6 +79,7 @@ class DrawerWidget extends StatelessWidget {
             children: [
               header,
               index,
+              guide,
               forumIndex,
               login,
             ],

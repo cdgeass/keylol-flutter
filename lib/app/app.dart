@@ -4,6 +4,7 @@ import 'package:keylol_flutter/common/keylol_client.dart';
 
 import 'authentication/authentication.dart';
 import 'forum/view/view.dart';
+import 'guide/view/view.dart';
 import 'index/index.dart';
 import 'login/view/view.dart';
 
@@ -18,6 +19,7 @@ class KeylolApp extends StatelessWidget {
         theme: ThemeData(colorSchemeSeed: Colors.blue, useMaterial3: true),
         routes: {
           '/index': (context) => IndexPage(),
+          '/guide': (context) => GuidePage(),
           '/forum': (context) => ForumIndexPage(),
           '/login': (context) => LoginPage(),
         },

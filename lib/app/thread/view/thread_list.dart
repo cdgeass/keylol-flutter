@@ -4,6 +4,7 @@ import 'package:keylol_flutter/app/thread/bloc/thread_bloc.dart';
 import 'package:keylol_flutter/app/thread/widgets/widgets.dart';
 import 'package:keylol_flutter/components/avatar.dart';
 import 'package:keylol_flutter/components/post_card.dart';
+import 'package:keylol_flutter/components/reply_modal.dart';
 import 'package:keylol_flutter/components/rich_text.dart';
 import 'package:keylol_flutter/models/post.dart';
 import 'package:scroll_to_index/scroll_to_index.dart';
@@ -48,6 +49,12 @@ class _ThreadListState extends State<ThreadList> {
         final topPadding = MediaQuery.of(context).padding.top;
 
         return Scaffold(
+          floatingActionButton: FloatingActionButton(
+              child: Icon(Icons.add),
+              onPressed: () {
+                Navigator.of(context)
+                    .push(ReplyRoute(state.thread, null, _scrollToEnd));
+              }),
           body: CustomScrollView(
             controller: _controller,
             slivers: [
@@ -87,7 +94,7 @@ class _ThreadListState extends State<ThreadList> {
                     } else if (index <= postsIndex) {
                       // 回复
                       return PostCard(
-                        post: state.posts[index - threadActionsIndex + 1],
+                        post: state.posts[index - threadActionsIndex],
                         builder: (post) {
                           return KRichTextBuilder(post.message,
                                   attachments: post.attachments)
@@ -109,7 +116,7 @@ class _ThreadListState extends State<ThreadList> {
                       } else {
                         // loading
                         return Padding(
-                          padding: EdgeInsets.all(16.0),
+                          padding: EdgeInsets.all(8.0),
                           child: Center(
                             child: Opacity(
                               opacity: state.hasReachedMax ? 0.0 : 1.0,
@@ -143,4 +150,6 @@ class _ThreadListState extends State<ThreadList> {
       subtitle: Text(post.dateline),
     );
   }
+
+  void _scrollToEnd() {}
 }

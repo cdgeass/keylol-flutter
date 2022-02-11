@@ -36,8 +36,10 @@ class _AutoResizeVideoPlayerState extends State<AutoResizeVideoPlayer>
 
   @override
   void dispose() {
+    if (_controller.value.isInitialized) {
+      _chewieController.dispose();
+    }
     _controller.dispose();
-    _chewieController.dispose();
     super.dispose();
   }
 
