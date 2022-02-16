@@ -10,7 +10,10 @@ class ForumIndexPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        title: Text('版块'),
+        centerTitle: true,
+      ),
       drawer: DrawerWidget(),
       body: BlocProvider(
         create: (_) => ForumIndexBloc(client: KeylolClient().dio)
@@ -29,7 +32,7 @@ class ForumIndexPage extends StatelessWidget {
                       destinations: [
                         for (final cat in cats)
                           NavigationRailDestination(
-                            icon: SizedBox.shrink(),
+                            icon: Icon(Icons.abc),
                             label: Text(cat.name),
                           )
                       ],

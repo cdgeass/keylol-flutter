@@ -9,6 +9,7 @@ class DrawerWidget extends StatelessWidget {
     return BlocBuilder<AuthenticationBloc, AuthenticationState>(
       builder: (context, state) {
         late Widget header;
+        late Widget notice;
         late Widget login;
         switch (state.status) {
           case AuthenticationStatus.unauthenticated:
@@ -16,6 +17,7 @@ class DrawerWidget extends StatelessWidget {
               accountName: Text('尚未登录'),
               accountEmail: null,
             );
+            notice = SizedBox.shrink();
             login = ListTile(
               leading: Icon(Icons.login),
               title: Text('登录'),
@@ -34,6 +36,13 @@ class DrawerWidget extends StatelessWidget {
               ),
               accountName: Text(profile.memberUsername!),
               accountEmail: Text(profile.memberUid!),
+            );
+            notice = ListTile(
+              leading: Icon(Icons.notifications_none_outlined),
+              title: Text('提醒'),
+              onTap: () {
+                Navigator.of(context).pushNamed('/notice');
+              },
             );
             login = ListTile(
               leading: Icon(Icons.logout),
@@ -81,6 +90,7 @@ class DrawerWidget extends StatelessWidget {
               index,
               guide,
               forumIndex,
+              notice,
               login,
             ],
           ),
