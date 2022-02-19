@@ -53,7 +53,8 @@ class PcommentCard extends StatelessWidget {
           ),
         ),
         onTap: () {
-          Navigator.of(context).pushNamed('/thread', arguments: [tid, pid]);
+          Navigator.of(context)
+              .pushNamed('/thread', arguments: {'tid': tid, 'pid': pid});
         });
   }
 }
@@ -82,8 +83,8 @@ class PostCard extends StatelessWidget {
           ),
         ),
         onTap: () {
-          Navigator.of(context)
-              .pushNamed('/thread', arguments: [noteVar.tid, noteVar.pid]);
+          Navigator.of(context).pushNamed('/thread',
+              arguments: {'tid': noteVar.tid, 'pid': noteVar.pid});
         },
       );
     } else if (fromIdType == 'quote') {
@@ -101,8 +102,8 @@ class PostCard extends StatelessWidget {
           ),
         ),
         onTap: () {
-          Navigator.of(context)
-              .pushNamed('/thread', arguments: [noteVar.tid, noteVar.pid]);
+          Navigator.of(context).pushNamed('/thread',
+              arguments: {'tid': noteVar.tid, 'pid': noteVar.pid});
         },
       );
     } else if (fromIdType == 'moderate_移动') {
@@ -127,7 +128,7 @@ class PostCard extends StatelessWidget {
           ),
         ),
         onTap: () {
-          Navigator.of(context).pushNamed('/thread', arguments: tid);
+          Navigator.of(context).pushNamed('/thread', arguments: {'tid': tid});
         },
       );
     }
@@ -169,7 +170,8 @@ class SystemCard extends StatelessWidget {
           title: Text(_trim(note.note)),
         )),
         onTap: () {
-          Navigator.of(context).pushNamed('/thread', arguments: [tid, pid]);
+          Navigator.of(context)
+              .pushNamed('/thread', arguments: {'tid': tid, 'pid': pid});
         },
       );
     } else {
@@ -204,7 +206,8 @@ class FavoriteThread extends StatelessWidget {
         ),
       ),
       onTap: () {
-        Navigator.of(context).pushNamed('/thread', arguments: note.fromId);
+        Navigator.of(context)
+            .pushNamed('/thread', arguments: {'tid': note.fromId});
       },
     );
   }

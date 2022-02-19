@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keylol_flutter/app/notice/bloc/notice_bloc.dart';
-import 'package:keylol_flutter/components/note_card.dart';
+import 'package:keylol_flutter/app/notice/widgets/widgets.dart';
 
 class NoticeList extends StatefulWidget {
   @override
