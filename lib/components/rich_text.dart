@@ -9,8 +9,8 @@ import 'package:html_unescape/html_unescape.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/components/auto_resize_video_player.dart';
 import 'package:keylol_flutter/components/auto_resize_webview.dart';
-import 'package:keylol_flutter/models/attachment.dart';
-import 'package:keylol_flutter/models/view_thread.dart';
+import 'package:keylol_flutter/model/attachment.dart';
+import 'package:keylol_flutter/api/models/view_thread.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:video_player/video_player.dart';
 

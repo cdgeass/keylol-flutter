@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/common/theme.dart';
-import 'package:keylol_flutter/models/favorite_thread.dart';
-import 'package:keylol_flutter/models/notice.dart';
-import 'package:keylol_flutter/models/profile.dart';
+import 'package:keylol_flutter/api/models/fav_thread.dart';
+import 'package:keylol_flutter/model/notice.dart';
+import 'package:keylol_flutter/model/profile.dart';
 
 class ThemeProvider extends ChangeNotifier {
   ThemeData? _themeData;
@@ -68,7 +68,7 @@ class NoticeProvider extends ChangeNotifier {
 }
 
 class FavoriteThreadsProvider extends ChangeNotifier {
-  List<FavoriteThread> favoriteThreads = [];
+  List<FavThread> favoriteThreads = [];
 
   FavoriteThreadsProvider._internal();
 
@@ -76,7 +76,7 @@ class FavoriteThreadsProvider extends ChangeNotifier {
 
   factory FavoriteThreadsProvider() => _instance;
 
-  void update(List<FavoriteThread> favoriteThreads) {
+  void update(List<FavThread> favoriteThreads) {
     this.favoriteThreads = favoriteThreads;
 
     notifyListeners();

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:keylol_flutter/app/thread/models/thread.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:keylol_flutter/api/models/thread.dart';
+import 'package:keylol_flutter/app/thread/bloc/thread_bloc.dart';
 
 Size boundingTextSize(String text, TextStyle style,
     {int maxLines = 2 ^ 31, double maxWidth = double.infinity}) {
@@ -16,6 +18,8 @@ class ThreadAppBar extends SliverPersistentHeaderDelegate {
   final TextStyle textStyle;
   final double width;
 
+  final String? favId;
+
   final double _subjectHeight;
 
   final double? topPadding;
@@ -24,6 +28,7 @@ class ThreadAppBar extends SliverPersistentHeaderDelegate {
     required this.thread,
     required this.textStyle,
     required width,
+    this.favId,
     this.topPadding,
   })  : width = width - 32.0,
         _subjectHeight =
@@ -56,6 +61,22 @@ class ThreadAppBar extends SliverPersistentHeaderDelegate {
           ],
         ),
       ),
+      actions: [
+        if (favId != null)
+          IconButton(
+            icon: Icon(Icons.favorite_outlined),
+            onPressed: () {
+              context.read<ThreadBloc>().add(ThreadUnfavored());
+            },
+          ),
+        if (favId == null)
+          IconButton(
+            icon: Icon(Icons.favorite_outline),
+            onPressed: () {
+              _favThread(context);
+            },
+          ),
+      ],
     );
   }
 
@@ -69,5 +90,32 @@ class ThreadAppBar extends SliverPersistentHeaderDelegate {
   @override
   bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
     return true;
+  }
+
+  void _favThread(BuildContext context) {
+    final controller = TextEditingController();
+    final dialog = AlertDialog(
+      title: Text('收藏备注'),
+      content: TextField(
+        controller: controller,
+      ),
+      actions: [
+        ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Text('取消')),
+        ElevatedButton(
+            onPressed: () async {
+              context
+                  .read<ThreadBloc>()
+                  .add(ThreadFavored(description: controller.text));
+              Navigator.pop(context);
+            },
+            child: Text('确认'))
+      ],
+    );
+
+    showDialog(context: context, builder: (context) => dialog);
   }
 }

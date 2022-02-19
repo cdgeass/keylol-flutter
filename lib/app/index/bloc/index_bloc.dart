@@ -1,9 +1,7 @@
 import 'package:bloc_concurrency/bloc_concurrency.dart';
-import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:html/parser.dart' as parser;
-import 'package:keylol_flutter/app/index/models/models.dart';
+import 'package:keylol_flutter/api/keylol_api.dart';
 import 'package:keylol_flutter/common/log.dart';
 import 'package:stream_transform/stream_transform.dart';
 
@@ -21,19 +19,16 @@ EventTransformer<E> throttleDroppable<E>(Duration duration) {
 
 class IndexBloc extends Bloc<IndexEvent, IndexState> {
   final _logger = Log();
-  final Dio client;
+  final KeylolApiClient _client;
 
-  IndexBloc({required this.client}) : super(IndexState()) {
+  IndexBloc({
+    required KeylolApiClient client,
+  })  : _client = client,
+        super(IndexState()) {
     on<IndexFetched>(
       _onIndexFetched,
       transformer: throttleDroppable(throttleDuration),
     );
-  }
-
-  Future<Index> _fetchIndex() async {
-    var res = await client.get("");
-    var document = parser.parse(res.data);
-    return Index.fromDocument(document);
   }
 
   Future<void> _onIndexFetched(
@@ -41,7 +36,7 @@ class IndexBloc extends Bloc<IndexEvent, IndexState> {
     Emitter<IndexState> emit,
   ) async {
     try {
-      final index = await _fetchIndex();
+      final index = await _client.fetchIndex();
       return emit(state.copyWith(
         status: IndexStatus.success,
         index: index,

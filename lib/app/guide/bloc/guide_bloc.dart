@@ -2,8 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:html/parser.dart';
-import 'package:keylol_flutter/app/thread/models/thread.dart';
-import 'package:keylol_flutter/models/guide.dart';
+import 'package:keylol_flutter/api/models/thread.dart';
+import 'package:keylol_flutter/model/guide.dart';
 
 import '../../../common/log.dart';
 

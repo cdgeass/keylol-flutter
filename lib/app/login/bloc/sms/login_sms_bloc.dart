@@ -7,8 +7,8 @@ import 'package:html/parser.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/common/log.dart';
 import 'package:keylol_flutter/common/provider.dart';
-import 'package:keylol_flutter/models/profile.dart';
-import 'package:keylol_flutter/models/sec_code.dart';
+import 'package:keylol_flutter/model/profile.dart';
+import 'package:keylol_flutter/model/sec_code.dart';
 
 part 'login_sms_event.dart';
 

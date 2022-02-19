@@ -3,12 +3,11 @@ import 'dart:io';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:keylol_flutter/api/keylol_api.dart';
 import 'package:keylol_flutter/app/authentication/authentication.dart';
 import 'package:keylol_flutter/app/index/bloc/index_bloc.dart';
-import 'package:keylol_flutter/common/keylol_client.dart';
+import 'package:keylol_flutter/components/thread_card.dart';
 
-import '../../../components/thread_card.dart';
-import '../models/index.dart';
 import '../widgets/widgets.dart';
 
 class IndexPage extends StatefulWidget {
@@ -30,7 +29,8 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => IndexBloc(client: KeylolClient().dio)..add(IndexFetched()),
+      create: (_) => IndexBloc(client: context.read<KeylolApiClient>())
+        ..add(IndexFetched()),
       child: BlocConsumer<IndexBloc, IndexState>(
         listener: (context, state) {},
         builder: (context, state) {

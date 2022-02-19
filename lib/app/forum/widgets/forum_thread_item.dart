@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/app/forum/models/models.dart';
 import 'package:keylol_flutter/components/thread_card.dart';
-import 'package:keylol_flutter/app/thread/models/thread.dart';
+import 'package:keylol_flutter/api/models/thread.dart';
 
 class ForumThreadItem extends StatelessWidget {
   final ForumDisplayThread thread;

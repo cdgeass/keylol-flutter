@@ -11,6 +11,8 @@ class ThreadState extends Equatable {
   final List<Post> posts;
   final bool hasReachedMax;
 
+  final String? favId;
+
   final String? error;
 
   ThreadState({
@@ -20,6 +22,7 @@ class ThreadState extends Equatable {
     this.page = 1,
     this.posts = const [],
     this.hasReachedMax = false,
+    this.favId,
     this.error,
   });
 
@@ -30,6 +33,7 @@ class ThreadState extends Equatable {
     int? page,
     List<Post>? posts,
     bool? hasReachedMax,
+    String? favId,
     String? error,
   }) {
     return ThreadState(
@@ -39,11 +43,12 @@ class ThreadState extends Equatable {
       page: page ?? this.page,
       posts: posts ?? this.posts,
       hasReachedMax: hasReachedMax ?? this.hasReachedMax,
+      favId: favId,
       error: error ?? this.error,
     );
   }
 
   @override
   List<Object?> get props =>
-      [status, thread, page, posts, hasReachedMax, error];
+      [status, thread, page, posts, hasReachedMax, favId, error];
 }

@@ -5,7 +5,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:html/parser.dart';
 import 'package:keylol_flutter/common/log.dart';
-import 'package:keylol_flutter/models/sec_code.dart';
+import 'package:keylol_flutter/model/sec_code.dart';
 
 part 'login_password_event.dart';
 

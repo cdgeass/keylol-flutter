@@ -6,23 +6,22 @@ import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:dio_http_cache/dio_http_cache.dart';
-import 'package:flutter/material.dart';
 import 'package:html/parser.dart' as parser;
 import 'package:image_picker/image_picker.dart';
 import 'package:keylol_flutter/common/log.dart';
 import 'package:keylol_flutter/common/provider.dart';
-import 'package:keylol_flutter/models/allow_perm.dart';
+import 'package:keylol_flutter/model/allow_perm.dart';
 import 'package:keylol_flutter/app/forum/models/cat.dart';
-import 'package:keylol_flutter/models/favorite_thread.dart';
+import 'package:keylol_flutter/api/models/fav_thread.dart';
 import 'package:keylol_flutter/app/forum/models/forum_display.dart';
-import 'package:keylol_flutter/models/guide.dart';
-import 'package:keylol_flutter/models/index.dart';
-import 'package:keylol_flutter/models/notice.dart';
-import 'package:keylol_flutter/models/post.dart';
-import 'package:keylol_flutter/models/profile.dart';
-import 'package:keylol_flutter/models/sec_code.dart';
-import 'package:keylol_flutter/models/space.dart';
-import 'package:keylol_flutter/models/view_thread.dart';
+import 'package:keylol_flutter/model/guide.dart';
+import 'package:keylol_flutter/model/index.dart';
+import 'package:keylol_flutter/model/notice.dart';
+import 'package:keylol_flutter/api/models/post.dart';
+import 'package:keylol_flutter/model/profile.dart';
+import 'package:keylol_flutter/model/sec_code.dart';
+import 'package:keylol_flutter/model/space.dart';
+import 'package:keylol_flutter/api/models/view_thread.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pretty_json/pretty_json.dart';
 
@@ -137,7 +136,7 @@ class _NoticeInterceptor extends _KeylolMobileInterceptor {
 // 访问 keylol.com dio 单例
 class KeylolClient {
   Dio dio = Dio();
-  late CookieJar _cj;
+  late CookieJar cj;
 
   KeylolClient._internal();
 
@@ -155,9 +154,9 @@ class KeylolClient {
     final appDocPath = appDocDir.path;
 
     // cookie持久化
-    _cj = PersistCookieJar(
+    cj = PersistCookieJar(
         ignoreExpires: false, storage: FileStorage(appDocPath + "/.cookies/"));
-    dio.interceptors.add(CookieManager(_cj));
+    dio.interceptors.add(CookieManager(cj));
 
     // 日志
     // dio.interceptors.add(_LoggerInterceptor());
@@ -172,11 +171,11 @@ class KeylolClient {
   }
 
   void clearCookies() {
-    _cj.deleteAll();
+    cj.deleteAll();
   }
 
   Future<List<Cookie>> getCookies() {
-    return _cj.loadForRequest(Uri.parse('https://keylol.com'));
+    return cj.loadForRequest(Uri.parse('https://keylol.com'));
   }
 
   // 首页
@@ -706,8 +705,8 @@ extension FavoriteMod on KeylolClient {
   }
 
   // 一次性获取所有收藏帖子
-  Future<List<FavoriteThread>> fetchAllFavoriteThreads() async {
-    List<FavoriteThread> favoriteThreads = [];
+  Future<List<FavThread>> fetchAllFavoriteThreads() async {
+    List<FavThread> favoriteThreads = [];
 
     var page = 1;
     while (true) {
@@ -723,7 +722,7 @@ extension FavoriteMod on KeylolClient {
   }
 
   // 收藏的帖子
-  Future<List<FavoriteThread>> fetchFavoriteThreads(int page) async {
+  Future<List<FavThread>> fetchFavoriteThreads(int page) async {
     final res = await dio.post('/api/mobile/index.php',
         queryParameters: {'module': 'myfavthread', 'page': page});
 
@@ -732,7 +731,7 @@ extension FavoriteMod on KeylolClient {
     }
 
     return (res.data['Variables']['list'] as List)
-        .map((e) => FavoriteThread.fromJson(e))
+        .map((e) => FavThread.fromJson(e))
         .toList();
   }
 

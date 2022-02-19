@@ -1,5 +1,5 @@
-import 'package:keylol_flutter/models/post.dart';
-import 'package:keylol_flutter/app/thread/models/thread.dart';
+import 'package:keylol_flutter/api/models/post.dart';
+import 'package:keylol_flutter/api/models/thread.dart';
 
 class ViewThread {
   final String fid;

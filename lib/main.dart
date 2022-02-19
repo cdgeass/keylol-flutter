@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:keylol_flutter/api/keylol_api.dart';
 import 'package:keylol_flutter/app/app.dart';
 import 'package:keylol_flutter/common/log.dart';
 
@@ -8,9 +9,12 @@ import 'common/keylol_client.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await KeylolClient().init();
+  final client = await KeylolApiClient.create();
 
-  BlocOverrides.runZoned(() => runApp(KeylolApp()),
-      blocObserver: SimpleObserver());
+  BlocOverrides.runZoned(
+    () => runApp(KeylolApp(client: client)),
+    blocObserver: SimpleObserver(),
+  );
 }
 
 class SimpleObserver extends BlocObserver {

@@ -12,3 +12,11 @@ class ThreadReloaded extends ThreadEvent {
 }
 
 class ThreadLoaded extends ThreadEvent {}
+
+class ThreadFavored extends ThreadEvent {
+  final String description;
+
+  ThreadFavored({required this.description});
+}
+
+class ThreadUnfavored extends ThreadEvent {}

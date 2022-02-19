@@ -1,5 +1,5 @@
 import 'package:html/dom.dart';
-import 'package:keylol_flutter/app/thread/models/thread.dart';
+import 'package:keylol_flutter/api/models/thread.dart';
 
 // 首页
 class Index {
@@ -15,15 +15,15 @@ class Index {
       var slideShow = portalContent.getElementsByClassName('slideshow')[0];
       slideViewItems =
           slideShow.getElementsByTagName('li').map((slideShowItem) {
-            final title = slideShowItem.getElementsByClassName('title')[0].text;
-            final content = slideShowItem.getElementsByTagName('a')[0];
-            final tid = content.attributes['href']
-                ?.replaceAll('https://keylol.com/', '')
-                .split('-')[0]
-                .replaceFirst('t', '');
-            final img = content.getElementsByTagName('img')[0].attributes['src'];
-            return IndexSlideViewItem(tid!, title, img!);
-          }).toList();
+        final title = slideShowItem.getElementsByClassName('title')[0].text;
+        final content = slideShowItem.getElementsByTagName('a')[0];
+        final tid = content.attributes['href']
+            ?.replaceAll('https://keylol.com/', '')
+            .split('-')[0]
+            .replaceFirst('t', '');
+        final img = content.getElementsByTagName('img')[0].attributes['src'];
+        return IndexSlideViewItem(tid!, title, img!);
+      }).toList();
     }
 
     // tab 列表
@@ -53,7 +53,7 @@ class Index {
 
           var tInfo = aTags[aTags.length - 1];
           final tid =
-          tInfo.attributes['href']!.replaceFirst('t', '').split('-')[0];
+              tInfo.attributes['href']!.replaceFirst('t', '').split('-')[0];
           var fonts = tInfo.getElementsByTagName('font');
           String title;
           if (tInfo.innerHtml.contains('data-yjshash')) {
@@ -64,7 +64,7 @@ class Index {
             title = fonts[0].text;
           }
           final titleInfo =
-          tInfo.attributes['title']!.split('\n')[1].split(' ');
+              tInfo.attributes['title']!.split('\n')[1].split(' ');
           final author = titleInfo[1];
           final dateline = titleInfo[2].substring(1, titleInfo[2].length - 1);
 

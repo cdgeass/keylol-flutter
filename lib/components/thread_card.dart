@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:keylol_flutter/app/thread/view/view.dart';
 import 'package:keylol_flutter/components/avatar.dart';
-import 'package:keylol_flutter/app/thread/models/thread.dart';
+import 'package:keylol_flutter/api/models/thread.dart';
 
 typedef ThreadBuilder = Widget Function(Widget child);
 

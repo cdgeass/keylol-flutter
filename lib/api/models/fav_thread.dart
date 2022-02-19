@@ -1,4 +1,4 @@
-class FavoriteThread {
+class FavThread {
   final String favId;
   final String uid;
   final String id;
@@ -12,7 +12,7 @@ class FavoriteThread {
   final int replies;
   final String author;
 
-  FavoriteThread.fromJson(Map<String, dynamic> json)
+  FavThread.fromJson(Map<String, dynamic> json)
       : favId = json['favid'] ?? '',
         uid = json['uid'] ?? '',
         id = json['id'] ?? '',

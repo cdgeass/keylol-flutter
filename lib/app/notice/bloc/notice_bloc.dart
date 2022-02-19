@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keylol_flutter/common/log.dart';
-import 'package:keylol_flutter/models/notice.dart';
+import 'package:keylol_flutter/model/notice.dart';
 
 part './notice_event.dart';
 

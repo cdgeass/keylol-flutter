@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/common/log.dart';
-import 'package:keylol_flutter/models/profile.dart';
+import 'package:keylol_flutter/model/profile.dart';
 
 part 'authentication_event.dart';
 
