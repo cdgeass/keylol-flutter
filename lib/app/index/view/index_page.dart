@@ -106,7 +106,9 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin {
         .map((key) => Tab(child: Text(key.name)))
         .toList();
 
-    _controller = TabController(length: tabs.length, vsync: this);
+    if (_controller == null) {
+      _controller = TabController(length: tabs.length, vsync: this);
+    }
 
     return TabBar(
       controller: _controller,
