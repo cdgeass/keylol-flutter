@@ -45,7 +45,6 @@ class ThreadAppBar extends SliverPersistentHeaderDelegate {
 
     return AppBar(
       title: title,
-      centerTitle: true,
       flexibleSpace: Opacity(
         opacity: toolbarOpacity,
         child: Stack(

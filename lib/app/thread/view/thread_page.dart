@@ -26,7 +26,7 @@ class ThreadPage extends StatelessWidget {
         client: context.read<KeylolApiClient>(),
         favThreadRepository: context.read<FavThreadRepository>(),
         tid: tid,
-      )..add(ThreadReloaded()),
+      )..add(ThreadReloaded(pid: pid)),
       child: ThreadPageView(),
     );
   }
@@ -76,6 +76,12 @@ class _ThreadPageViewState extends State<ThreadPageView> {
             ),
           );
         }
+        // 跳转指定回复
+        if (state.scrollTo != null) {
+          WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+            _scrollTo(state.scrollTo!);
+          });
+        }
 
         final authorIndex = 0;
         final threadIndex = authorIndex + state.threadWidgets.length;
@@ -86,8 +92,9 @@ class _ThreadPageViewState extends State<ThreadPageView> {
           floatingActionButton: FloatingActionButton(
               child: Icon(Icons.add),
               onPressed: () {
-                Navigator.of(context)
-                    .push(ReplyRoute(state.thread, null, () {}));
+                Navigator.of(context).push(
+                  ReplyRoute(context.read<ThreadBloc>(), state.thread, null),
+                );
               }),
           body: RefreshIndicator(
             onRefresh: () async {
@@ -213,5 +220,19 @@ class _ThreadPageViewState extends State<ThreadPageView> {
       title: Text(post.author),
       subtitle: Text(post.dateline),
     );
+  }
+
+  void _scrollTo(String pid) {
+    final state = context.read<ThreadBloc>().state;
+    final posts = state.posts;
+    int index = 0;
+    for (final post in posts) {
+      if (post.pid == pid) {
+        break;
+      }
+      index++;
+    }
+
+    _controller.scrollToIndex(2 + state.threadWidgets.length + index);
   }
 }

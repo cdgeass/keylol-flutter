@@ -20,3 +20,11 @@ class ThreadFavored extends ThreadEvent {
 }
 
 class ThreadUnfavored extends ThreadEvent {}
+
+class ThreadReplied extends ThreadEvent {
+  final Post? post;
+  final String message;
+  final List<String> aIds;
+
+  ThreadReplied({this.post, required this.message, this.aIds = const []});
+}

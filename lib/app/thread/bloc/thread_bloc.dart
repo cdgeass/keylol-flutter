@@ -7,7 +7,6 @@ import 'package:keylol_flutter/components/rich_text.dart';
 import 'package:keylol_flutter/repository/fav_thread_repository.dart';
 
 part './thread_event.dart';
-
 part './thread_state.dart';
 
 class ThreadBloc extends Bloc<ThreadEvent, ThreadState> {
@@ -28,10 +27,11 @@ class ThreadBloc extends Bloc<ThreadEvent, ThreadState> {
     on<ThreadLoaded>(_onThreadLoaded);
     on<ThreadFavored>(_onFavored);
     on<ThreadUnfavored>(_onUnfavored);
+    on<ThreadReplied>(_onReplied);
   }
 
   Future<void> _onThreadReloaded(
-    ThreadEvent event,
+    ThreadReloaded event,
     Emitter<ThreadState> emit,
   ) async {
     try {
@@ -48,13 +48,31 @@ class ThreadBloc extends Bloc<ThreadEvent, ThreadState> {
 
       final favId = _favThreadRepository.fetchFavId(tid: _tid);
 
+      var page = 1;
+      if (event.pid != null && !posts.any((post) => post.pid == event.pid)) {
+        while (true) {
+          final tViewThread =
+              await _client.fetchThread(tid: _tid, page: ++page);
+          final tPosts = tViewThread.postList;
+          tPosts.forEach((tPost) {
+            if (!posts.any((post) => post.pid == tPost.pid)) {
+              posts.add(tPost);
+            }
+          });
+          if (tPosts.any((post) => post.pid == event.pid)) {
+            break;
+          }
+        }
+      }
+
       emit(state.copyWith(
         status: ThreadStatus.success,
         thread: thread,
         threadWidgets: threadWidgets,
-        page: 1,
+        page: page,
         posts: posts,
         hasReachedMax: hasReachedMax,
+        scrollTo: event.pid,
         favId: favId,
       ));
     } catch (error) {
@@ -139,6 +157,50 @@ class ThreadBloc extends Bloc<ThreadEvent, ThreadState> {
       ));
     } catch (error) {
       _logger.e('删除收藏帖子错误', error);
+    }
+  }
+
+  Future<void> _onReplied(
+    ThreadReplied event,
+    Emitter<ThreadState> emit,
+  ) async {
+    try {
+      if (event.post == null) {
+        await _client.sendReply(
+          tid: _tid,
+          message: event.message,
+          aids: event.aIds,
+        );
+      } else {
+        await _client.sendReplyForPost(
+          post: event.post!,
+          message: event.message,
+          aids: event.aIds,
+        );
+      }
+
+      final page = state.page + 1;
+
+      final viewThread = await _client.fetchThread(tid: _tid, page: page);
+      final posts = viewThread.postList;
+
+      final finalPosts = state.posts;
+      posts.forEach((post) {
+        if (!finalPosts.any((p) => p.pid == post.pid)) {
+          finalPosts.add(post);
+        }
+      });
+      final hasReachedMax = finalPosts.length == viewThread.thread.replies + 1;
+      emit(state.copyWith(
+        status: ThreadStatus.success,
+        page: page,
+        posts: finalPosts,
+        hasReachedMax: hasReachedMax,
+        scrollTo: posts[posts.length - 1].pid,
+        favId: state.favId,
+      ));
+    } catch (error) {
+      _logger.e('回复帖子错误', error);
     }
   }
 }

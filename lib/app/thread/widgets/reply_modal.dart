@@ -1,20 +1,22 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:keylol_flutter/api/models/post.dart';
+import 'package:keylol_flutter/api/models/thread.dart';
+import 'package:keylol_flutter/app/thread/bloc/thread_bloc.dart';
 import 'package:keylol_flutter/common/constants.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/components/sliver_tab_bar_delegate.dart';
-import 'package:keylol_flutter/api/models/post.dart';
-import 'package:keylol_flutter/api/models/thread.dart';
 
 typedef ReplyCallback = void Function();
 
 class ReplyRoute extends PopupRoute {
+  final ThreadBloc bloc;
   final Thread? thread;
   final Post? post;
-  final ReplyCallback? callback;
 
-  ReplyRoute(this.thread, this.post, this.callback);
+  ReplyRoute(this.bloc, this.thread, this.post);
 
   @override
   Color? get barrierColor => null;
@@ -28,7 +30,13 @@ class ReplyRoute extends PopupRoute {
   @override
   Widget buildPage(BuildContext context, Animation<double> animation,
       Animation<double> secondaryAnimation) {
-    return ReplyModal(thread: thread, post: post, callback: callback);
+    return BlocProvider.value(
+      value: bloc,
+      child: ReplyModal(
+        thread: thread,
+        post: post,
+      ),
+    );
   }
 
   @override
@@ -38,10 +46,12 @@ class ReplyRoute extends PopupRoute {
 class ReplyModal extends StatefulWidget {
   final Thread? thread;
   final Post? post;
-  final ReplyCallback? callback;
 
-  const ReplyModal({Key? key, this.thread, this.post, this.callback})
-      : super(key: key);
+  const ReplyModal({
+    Key? key,
+    this.thread,
+    this.post,
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _ReplyModalState();
@@ -157,37 +167,19 @@ class _ReplyModalState extends State<ReplyModal> {
   }
 
   void _sendReply(BuildContext context) {
-    late Future<void> future;
     if (widget.thread != null) {
-      future = KeylolClient()
-          .sendReply(widget.thread!.tid, _controller.text, aidList: _aidList);
+      context.read<ThreadBloc>().add(ThreadReplied(
+            message: _controller.text,
+            aIds: _aidList,
+          ));
     } else if (widget.post != null) {
-      future = KeylolClient()
-          .sendReplyForPost(widget.post!, _controller.text, aidList: _aidList);
-    } else {
-      future = Future.error('不知道怎么了。。。');
+      context.read<ThreadBloc>().add(ThreadReplied(
+            post: widget.post,
+            message: _controller.text,
+            aIds: _aidList,
+          ));
     }
-
-    future.then((value) {
-      widget.callback?.call();
-      Navigator.of(context).pop();
-    }).onError((error, stackTrace) {
-      showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: Text('出错了'),
-              content: Text(error.toString()),
-              actions: [
-                ElevatedButton(
-                    onPressed: () async {
-                      Navigator.of(context).pop();
-                    },
-                    child: Text('确认'))
-              ],
-            );
-          });
-    });
+    Navigator.of(context).pop();
   }
 }
 

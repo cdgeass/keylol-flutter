@@ -186,4 +186,62 @@ class KeylolApiClient {
     }
     return ViewThread.fromJson(res.data['Variables']);
   }
+
+  // 回复
+  Future<void> sendReply({
+    required String tid,
+    required String message,
+    List<String> aids = const [],
+  }) async {
+    final res = await _dio.post("/api/mobile/index.php",
+        queryParameters: {
+          'module': 'sendreply',
+          'replysubmit': 'yes',
+          'action': 'reply',
+          'tid': tid
+        },
+        data: FormData.fromMap({
+          'formhash': _profileRepository.profile?.formHash,
+          'message': message,
+          'posttime': '${DateTime.now().millisecondsSinceEpoch}',
+          'usesig': 1,
+          for (final aid in aids) 'attachnew[$aid][description]': aid,
+        }));
+    if (res.data['Message']?['messageval'] != 'post_reply_succeed') {
+      final error = res.data['Message']?['messagestr'];
+      return Future.error(error);
+    }
+  }
+
+  // 回复回复
+  Future<void> sendReplyForPost({
+    required Post post,
+    required String message,
+    List<String> aids = const [],
+  }) async {
+    final dateTime = DateTime.now();
+
+    final res = await _dio.post('/api/mobile/index.php',
+        queryParameters: {
+          'module': 'sendreply',
+          'replysubmit': 'yes',
+          'action': 'reply',
+          'tid': post.tid,
+          'reppid': post.pid,
+        },
+        data: FormData.fromMap({
+          'formhash': _profileRepository.profile?.formHash,
+          'message': message,
+          'noticetrimstr':
+              '[quote][size=2][url=forum.php?mod=redirect&goto=findpost&pid=${post.pid}&ptid=${post.tid}][color=#999999]${post.author} 发表于 ${dateTime.year}-${dateTime.month}-${dateTime.day} ${dateTime.hour}:${dateTime.minute}[/color][/url][/size]${post.pureMessage()}[/quote]',
+          'posttime': '${dateTime.millisecondsSinceEpoch}',
+          'usesig': 1,
+          for (final aid in aids) 'attachnew[$aid][description]': aid,
+        }));
+
+    if (res.data['Message']?['messageval'] != 'post_reply_succeed') {
+      final error = res.data['Message']?['messagestr'];
+      return Future.error(error);
+    }
+  }
 }

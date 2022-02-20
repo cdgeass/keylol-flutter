@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:keylol_flutter/app/thread/bloc/thread_bloc.dart';
 import 'package:keylol_flutter/components/avatar.dart';
 import 'package:keylol_flutter/app/thread/widgets/reply_modal.dart';
 import 'package:keylol_flutter/api/models/post.dart';
@@ -43,7 +45,9 @@ class PostCard extends StatelessWidget {
             children: [
               IconButton(
                   onPressed: () {
-                    Navigator.of(context).push(ReplyRoute(null, post, () {}));
+                    Navigator.of(context).push(
+                      ReplyRoute(context.read<ThreadBloc>(), null, post),
+                    );
                   },
                   icon: Icon(Icons.reply_outlined)),
               // if (Provider.of<ProfileProvider>(context).profile?.memberUid ==
