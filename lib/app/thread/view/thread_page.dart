@@ -81,7 +81,6 @@ class _ThreadPageViewState extends State<ThreadPageView> {
         final threadIndex = authorIndex + state.threadWidgets.length;
         final threadActionsIndex = threadIndex + 1;
         final postsIndex = threadActionsIndex + state.posts.length - 1;
-        final topPadding = MediaQuery.of(context).padding.top;
 
         return Scaffold(
           floatingActionButton: FloatingActionButton(
@@ -103,7 +102,8 @@ class _ThreadPageViewState extends State<ThreadPageView> {
                     thread: state.thread!,
                     textStyle: Theme.of(context).textTheme.headline6!,
                     width: MediaQuery.of(context).size.width,
-                    topPadding: topPadding,
+                    favId: state.favId,
+                    topPadding: MediaQuery.of(context).padding.top,
                   ),
                 ),
                 SliverList(

@@ -3,20 +3,73 @@ import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:html/parser.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
-import 'package:keylol_flutter/common/provider.dart';
+import 'package:keylol_flutter/model/profile.dart';
+import 'package:keylol_flutter/repository/repository.dart';
 import 'package:path_provider/path_provider.dart';
 
 import './models/models.dart';
 
+// 统一拦截 keylol mobile 请求
+abstract class _KeylolMobileInterceptor extends Interceptor {
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    if (isSupported(response)) {
+      doIntercept(response);
+    }
+    handler.next(response);
+  }
+
+  bool isSupported(Response response) {
+    final uri = response.realUri;
+    if (!uri.path.contains('/api/mobile/index.php')) {
+      return false;
+    }
+
+    final queryParameters = response.requestOptions.queryParameters;
+    if (queryParameters['module'] == 'profile' &&
+        queryParameters['uid'] != null) {
+      return false;
+    }
+    return true;
+  }
+
+  void doIntercept(Response response);
+}
+
+// profile 拦截器, 获取 profile 信息
+class _ProfileInterceptor extends _KeylolMobileInterceptor {
+  _ProfileInterceptor({required ProfileRepository profileRepository})
+      : _profileRepository = profileRepository;
+
+  final ProfileRepository _profileRepository;
+
+  @override
+  void doIntercept(Response<dynamic> response) {
+    if (response.statusCode == 200) {
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        final profileJson = data['Variables'];
+        if (profileJson != null) {
+          final profile = Profile.fromJson(profileJson);
+          _profileRepository.profile = profile;
+        }
+      }
+    }
+  }
+}
+
 class KeylolApiClient {
   final CookieJar _cj;
   final Dio _dio;
+  final ProfileRepository _profileRepository;
 
   static const _baseUrl = 'https://keylol.com';
 
-  KeylolApiClient._internal(this._cj, this._dio);
+  KeylolApiClient._internal(this._cj, this._dio, this._profileRepository);
 
-  static Future<KeylolApiClient> create() async {
+  static Future<KeylolApiClient> create({
+    required ProfileRepository profileRepository,
+  }) async {
     // 初始化 dio client
     final dio = Dio(BaseOptions(
       baseUrl: _baseUrl,
@@ -35,7 +88,13 @@ class KeylolApiClient {
     final cj = KeylolClient().cj;
     dio.interceptors.add(CookieManager(cj));
 
-    return KeylolApiClient._internal(cj, dio);
+    // 解析返回里profile信息
+    final profileInterceptor = _ProfileInterceptor(
+      profileRepository: profileRepository,
+    );
+    dio.interceptors.add(profileInterceptor);
+
+    return KeylolApiClient._internal(cj, dio, profileRepository);
   }
 
   /// 获取首页信息
@@ -52,10 +111,10 @@ class KeylolApiClient {
     var page = 1;
     while (true) {
       final list = await _fetchFavThreads(page++);
+      favoriteThreads.addAll(list);
       if (list.isEmpty || list.length < 20) {
         break;
       }
-      favoriteThreads.addAll(list);
     }
     return favoriteThreads;
   }
@@ -86,11 +145,11 @@ class KeylolApiClient {
           'module': 'favthread',
           'type': 'thread',
           'id': tid,
-          'formhash': ProfileProvider().profile?.formHash,
+          'formhash': _profileRepository.profile?.formHash,
         },
         data: FormData.fromMap({'description': description}));
 
-    if (res.data['Message']?['messageval'] != 'do_success') {
+    if (res.data['Message']?['messageval'] != 'favorite_do_success') {
       final error = res.data['Message']?['messagestr'];
       return Future.error(error);
     }
@@ -103,7 +162,7 @@ class KeylolApiClient {
       'op': 'delete',
       'deletesubmit': 'true',
       'favid': favId,
-      'formhash': ProfileProvider().profile?.formHash
+      'formhash': _profileRepository.profile?.formHash
     });
 
     if (res.data['Message']?['messageval'] != 'do_success') {

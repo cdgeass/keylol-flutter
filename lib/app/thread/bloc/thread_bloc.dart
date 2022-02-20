@@ -115,7 +115,7 @@ class ThreadBloc extends Bloc<ThreadEvent, ThreadState> {
       if (state.favId != null || state.thread == null) {
         return;
       }
-      _favThreadRepository.add(
+      await _favThreadRepository.add(
           thread: state.thread!, description: event.description);
       emit(state.copyWith(
         favId: _favThreadRepository.fetchFavId(tid: state.thread!.tid),
@@ -133,12 +133,12 @@ class ThreadBloc extends Bloc<ThreadEvent, ThreadState> {
       if (state.favId == null) {
         return;
       }
-      _favThreadRepository.delete(favId: state.favId!);
+      await _favThreadRepository.delete(favId: state.favId!);
       emit(state.copyWith(
         favId: null,
       ));
     } catch (error) {
-      _logger.e('收藏帖子错误', error);
+      _logger.e('删除收藏帖子错误', error);
     }
   }
 }

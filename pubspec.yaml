@@ -60,6 +60,8 @@ dependencies:
   pull_to_refresh: ^2.0.0
   flutter_markdown: ^0.6.9
   html2md: ^1.2.5
+  sqflite: ^2.0.2
+  path: ^1.8.0
 
 dev_dependencies:
   flutter_test:

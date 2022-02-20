@@ -23,6 +23,9 @@ class FavThreadRepository {
     required Thread thread,
     required String description,
   }) async {
+    if (fetchFavId(tid: thread.tid) != null) {
+      return _favThreads;
+    }
     await _client.favThread(thread.tid, description);
     _favThreads = await _client.fetchFavThreads();
     return _favThreads;
