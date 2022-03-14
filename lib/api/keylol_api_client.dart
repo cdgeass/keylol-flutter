@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
@@ -102,6 +104,20 @@ class KeylolApiClient {
     var res = await _dio.get("");
     var document = parse(res.data);
     return Index.fromDocument(document);
+  }
+
+  // 获取个人信息
+  Future<Profile> fetchProfile() async {
+    final res = await _dio.get(
+      "/api/mobile/index.php",
+      queryParameters: {
+        'module': 'profile',
+      },
+    );
+    if (res.data['Message'] != null) {
+      return Future.error(res.data['Message']?['messagestr']);
+    }
+    return Profile.fromJson(res.data['Variables']);
   }
 
   // 一次性获取所有收藏帖子
@@ -233,7 +249,7 @@ class KeylolApiClient {
           'formhash': _profileRepository.profile?.formHash,
           'message': message,
           'noticetrimstr':
-              '[quote][size=2][url=forum.php?mod=redirect&goto=findpost&pid=${post.pid}&ptid=${post.tid}][color=#999999]${post.author} 发表于 ${dateTime.year}-${dateTime.month}-${dateTime.day} ${dateTime.hour}:${dateTime.minute}[/color][/url][/size]${post.pureMessage()}[/quote]',
+          '[quote][size=2][url=forum.php?mod=redirect&goto=findpost&pid=${post.pid}&ptid=${post.tid}][color=#999999]${post.author} 发表于 ${dateTime.year}-${dateTime.month}-${dateTime.day} ${dateTime.hour}:${dateTime.minute}[/color][/url][/size]${post.pureMessage()}[/quote]',
           'posttime': '${dateTime.millisecondsSinceEpoch}',
           'usesig': 1,
           for (final aid in aids) 'attachnew[$aid][description]': aid,
@@ -242,6 +258,281 @@ class KeylolApiClient {
     if (res.data['Message']?['messageval'] != 'post_reply_succeed') {
       final error = res.data['Message']?['messagestr'];
       return Future.error(error);
+    }
+  }
+}
+
+extension LoginWithSms on KeylolApiClient {
+  // 获取图形验证码参数
+  Future<SecCode> fetchSmsSecCodeParam(String cellphone) async {
+    var res = await _dio.get('/member.php',
+        queryParameters: {'mod': 'logging', 'action': 'login'});
+
+    var document = parse(res.data);
+    final inputs = document.getElementsByTagName('input');
+    late String formHash;
+    for (var input in inputs) {
+      if (input.attributes['name'] == 'formhash') {
+        formHash = input.attributes['value'] ?? '';
+        break;
+      }
+    }
+    late String loginHash;
+    final pwLoginTypes = document.getElementsByClassName('pwLogintype');
+    final actionExp = pwLoginTypes.first
+            .getElementsByTagName('li')
+            .first
+            .attributes['_action'] ??
+        '';
+    if (actionExp.isNotEmpty) {
+      final lastIndexOfEqual = actionExp.lastIndexOf('=');
+      loginHash = actionExp.substring(lastIndexOfEqual + 1);
+    }
+
+    res = await _dio.post('/plugin.php',
+        queryParameters: {
+          'id': 'duceapp_smsauth',
+          'ac': 'sendcode',
+          'handlekey': 'sendsmscode',
+          'smscodesubmit': 'login',
+          'inajax': 1,
+          'loginhash': loginHash
+        },
+        data: FormData.fromMap({
+          'duceapp': 'yes',
+          'formhash': formHash,
+          'referer': 'https://keylol.com',
+          'lssubmit': 'yes',
+          'loginfield': 'auto',
+          'cellphone': cellphone,
+        }));
+
+    document = parse(res.data);
+    final secCode = SecCode.fromDocument(document);
+    secCode.formHash = formHash;
+    return secCode;
+  }
+
+  // 获取图形验证码
+  Future<Uint8List> fetchSmsSecCode({
+    required String update,
+    required String idHash,
+  }) async {
+    final res = await _dio.get('/misc.php',
+        options: Options(responseType: ResponseType.bytes, headers: {
+          'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Accept-Language': 'zh-CN,zh;q=0.9',
+          'Connection': 'keep-alive',
+          'hostname': 'https://keylol.com',
+          'Referer': 'https://keylol.com/member.php?mod=logging&action=login',
+          'Sec-Fetch-Mode': 'no-cors',
+          'Sec-Fetch-Site': 'same-origin',
+          'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36'
+        }),
+        queryParameters: {
+          'mod': 'seccode',
+          'update': update,
+          'idhash': idHash
+        });
+
+    return Uint8List.fromList(res.data);
+  }
+
+  // 发送登录短信
+  Future<void> sendSms(
+    SecCode secCodeParam,
+    String cellphone,
+    String secCodeVerify,
+  ) async {
+    await _dio.post('/plugin.php',
+        queryParameters: {
+          'id': 'duceapp_smsauth',
+          'ac': 'sendcode',
+          'handlekey': 'sendsmscode',
+          'smscodesubmit': 'login',
+          'inajax': 1,
+          'loginhash': secCodeParam.loginHash
+        },
+        data: FormData.fromMap({
+          'formhash': secCodeParam.formHash,
+          'smscodesubmit': 'login',
+          'cellphone': cellphone,
+          'smsauth': 'yes',
+          'seccodehash': secCodeParam.currentIdHash,
+          'seccodeverify': secCodeVerify
+        }));
+  }
+
+  // 登录
+  Future<Profile> loginWithSms({
+    required SecCode secCodeParam,
+    required String cellphone,
+    required String sms,
+  }) async {
+    final res = await _dio.post('/plugin.php',
+        queryParameters: {
+          'id': 'duceapp_smsauth',
+          'ac': 'login',
+          'loginsubmit': 'yes',
+          'loginhash': secCodeParam.loginHash,
+          'inajax': 1
+        },
+        data: FormData.fromMap({
+          'duceapp': 'yes',
+          'formhash': secCodeParam.formHash,
+          'referer': 'https://keylol.com',
+          'lssubmit': 'yes',
+          'loginfield': 'auto',
+          'cellphone': cellphone,
+          'smscode': sms
+        }));
+
+    final data = res.data as String;
+    if (data.contains('succeedhandle_login')) {
+      // 登录成功
+      return KeylolClient()
+          .fetchProfile()
+          .then((_) => _profileRepository.profile!);
+    }
+    // 登录失败
+    return Future.error('登录失败');
+  }
+}
+
+extension LoginWithPassword on KeylolApiClient {
+  // 登录
+  Future<SecCode?> loginWithPassword({
+    required String username,
+    required String password,
+  }) async {
+    final res = await _dio.post("/api/mobile/index.php",
+        queryParameters: {
+          'module': 'login',
+          'action': 'login',
+          'loginsubmit': 'yes',
+        },
+        data: FormData.fromMap({
+          'username': username,
+          'password': password,
+          'answer': '',
+          'questionid': '0'
+        }));
+
+    if (res.data['Message']?['messageval'] == 'login_succeed') {
+      return Future.value(null);
+    } else if (res.data['Message']?['messageval'] == 'login_seccheck2') {
+      // 需要验证码 走网页验证码登录
+      final auth = res.data['Variables']!['auth'];
+      final formHash = res.data['Variables']!['formhash'];
+      return fetchPasswordSecCodeParam(auth: auth, formHash: formHash);
+    } else {
+      // 登录失败
+      return Future.error(res.data['Message']?['messagestr']);
+    }
+  }
+
+  // 验证码页面
+  Future<SecCode> fetchPasswordSecCodeParam({
+    String? auth,
+    required String formHash,
+  }) async {
+    final res = await _dio.get('/member.php', queryParameters: {
+      'mod': 'logging',
+      'action': 'login',
+      'auth': auth,
+      'refer': 'https://keylol.com',
+      'cookietime': 1
+    });
+
+    final document = parse(res.data);
+    final secCode = SecCode.fromDocument(document);
+    if (auth != null) {
+      secCode.auth = auth;
+    }
+    secCode.formHash = formHash;
+    return secCode;
+  }
+
+  // 获取验证码
+  Future<Uint8List> fetchPasswordSecCode({
+    required String update,
+    required String idHash,
+  }) async {
+    final res = await _dio.get('/misc.php',
+        options: Options(responseType: ResponseType.bytes, headers: {
+          'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Accept-Language': 'zh-CN,zh;q=0.9',
+          'Connection': 'keep-alive',
+          'hostname': 'https://keylol.com',
+          'Referer': 'https://keylol.com/member.php?mod=logging&action=login',
+          'Sec-Fetch-Mode': 'no-cors',
+          'Sec-Fetch-Site': 'same-origin',
+          'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36'
+        }),
+        queryParameters: {
+          'mod': 'seccode',
+          'update': update,
+          'idhash': idHash
+        });
+
+    return Uint8List.fromList(res.data);
+  }
+
+  // 验证码校验
+  Future<void> checkSecCode({
+    required String auth,
+    required String idHash,
+    required String secVerify,
+  }) async {
+    final res = await _dio.get('/misc.php', queryParameters: {
+      'mod': 'seccode',
+      'action': 'check',
+      'inajax': 1,
+      'idhash': idHash,
+      'secverify': secVerify
+    });
+
+    if (!(res.data as String).contains('succeed')) {
+      return Future.error('验证码错误');
+    }
+  }
+
+  // 验证码登录
+  Future<void> loginWithPasswordSecCode({
+    required String auth,
+    required String formHash,
+    required String loginHash,
+    required String idHash,
+    required String secVerify,
+  }) async {
+    final res = await _dio.post('/member.php',
+        queryParameters: {
+          'mod': 'logging',
+          'action': 'login',
+          'loginsubmit': 'yes',
+          'loginhash': loginHash,
+          'inajax': 1
+        },
+        data: FormData.fromMap({
+          'duceapp': 'yes',
+          'formhash': formHash,
+          'referer': 'https://keylol.com/',
+          'handlekey': 'login',
+          'auth': auth,
+          'seccodehash': idHash,
+          'seccodeverify': secVerify,
+          'cookietime': 2592000
+        }));
+
+    final data = res.data as String;
+    if (data.contains('succeedhandle_login')) {
+      return;
+    } else {
+      return Future.error('登录出错');
     }
   }
 }

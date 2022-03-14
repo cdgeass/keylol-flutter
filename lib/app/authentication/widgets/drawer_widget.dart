@@ -9,14 +9,23 @@ class DrawerWidget extends StatelessWidget {
     return BlocBuilder<AuthenticationBloc, AuthenticationState>(
       builder: (context, state) {
         late Widget header;
+
+        // 收藏
+        late Widget favThread;
+
+        // 提醒
         late Widget notice;
+
+        // 登录/退出
         late Widget login;
+
         switch (state.status) {
           case AuthenticationStatus.unauthenticated:
             header = UserAccountsDrawerHeader(
               accountName: Text('尚未登录'),
               accountEmail: null,
             );
+            favThread = SizedBox.shrink();
             notice = SizedBox.shrink();
             login = ListTile(
               leading: Icon(Icons.login),
@@ -37,8 +46,15 @@ class DrawerWidget extends StatelessWidget {
               accountName: Text(profile.memberUsername!),
               accountEmail: Text(profile.memberUid!),
             );
+            favThread = ListTile(
+              leading: Icon(Icons.favorite),
+              title: Text('收藏'),
+              onTap: () {
+                Navigator.of(context).pushNamed('/favThread');
+              },
+            );
             notice = ListTile(
-              leading: Icon(Icons.notifications_none_outlined),
+              leading: Icon(Icons.notifications),
               title: Text('提醒'),
               onTap: () {
                 Navigator.of(context).pushNamed('/notice');
@@ -90,6 +106,7 @@ class DrawerWidget extends StatelessWidget {
               index,
               guide,
               forumIndex,
+              favThread,
               notice,
               login,
             ],

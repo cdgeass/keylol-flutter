@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:keylol_flutter/api/keylol_api.dart';
 import 'package:keylol_flutter/app/notice/view/notice_page.dart';
 import 'package:keylol_flutter/app/thread/view/view.dart';
-import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/repository/fav_thread_repository.dart';
 import 'package:keylol_flutter/theme/cubit/theme_cubit.dart';
 
 import 'authentication/authentication.dart';
+import 'fav/view/view.dart';
 import 'forum/view/view.dart';
 import 'guide/view/view.dart';
 import 'index/index.dart';
@@ -36,8 +37,9 @@ class KeylolApp extends StatelessWidget {
       child: MultiBlocProvider(
         providers: [
           BlocProvider<AuthenticationBloc>(
-            create: (_) => AuthenticationBloc(client: KeylolClient().dio)
+            create: (_) => AuthenticationBloc(client: _client)
               ..add(AuthenticationLoaded()),
+            lazy: false,
           ),
           BlocProvider<ThemeCubit>(
             create: (_) => ThemeCubit(),
@@ -56,6 +58,7 @@ class KeylolAppView extends StatelessWidget {
       builder: (context, color) {
         return MaterialApp(
           theme: ThemeData(colorSchemeSeed: color, useMaterial3: true),
+          darkTheme: ThemeData.dark(),
           routes: {
             '/index': (context) => IndexPage(),
             '/guide': (context) => GuidePage(),
@@ -68,6 +71,13 @@ class KeylolAppView extends StatelessWidget {
               return ThreadPage(
                 tid: arguments['tid'],
                 pid: arguments['pid'],
+              );
+            },
+            '/favThread': (context) => FavThreadPage(),
+            '/webView': (context) {
+              final uri = ModalRoute.of(context)!.settings.arguments as String;
+              return InAppWebView(
+                initialUrlRequest: URLRequest(url: Uri.parse(uri)),
               );
             }
           },

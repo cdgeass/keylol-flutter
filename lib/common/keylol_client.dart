@@ -9,7 +9,6 @@ import 'package:dio_http_cache/dio_http_cache.dart';
 import 'package:html/parser.dart' as parser;
 import 'package:image_picker/image_picker.dart';
 import 'package:keylol_flutter/common/log.dart';
-import 'package:keylol_flutter/common/provider.dart';
 import 'package:keylol_flutter/model/allow_perm.dart';
 import 'package:keylol_flutter/app/forum/models/cat.dart';
 import 'package:keylol_flutter/api/models/fav_thread.dart';
@@ -19,7 +18,7 @@ import 'package:keylol_flutter/model/index.dart';
 import 'package:keylol_flutter/model/notice.dart';
 import 'package:keylol_flutter/api/models/post.dart';
 import 'package:keylol_flutter/model/profile.dart';
-import 'package:keylol_flutter/model/sec_code.dart';
+import 'package:keylol_flutter/api/models/sec_code.dart';
 import 'package:keylol_flutter/model/space.dart';
 import 'package:keylol_flutter/api/models/view_thread.dart';
 import 'package:path_provider/path_provider.dart';
@@ -105,8 +104,6 @@ class _ProfileInterceptor extends _KeylolMobileInterceptor {
         final profileJson = data['Variables'];
         if (profileJson != null) {
           final profile = Profile.fromJson(profileJson);
-
-          ProfileProvider().update(profile);
         }
       }
     }
@@ -125,8 +122,6 @@ class _NoticeInterceptor extends _KeylolMobileInterceptor {
         final noticeJson = data['Variables']?['notice'];
         if (noticeJson != null) {
           final notice = Notice.fromJson(noticeJson);
-
-          NoticeProvider().update(notice);
         }
       }
     }
@@ -570,7 +565,7 @@ extension ThreadMod on KeylolClient {
           'tid': tid
         },
         data: FormData.fromMap({
-          'formhash': ProfileProvider().profile!.formHash,
+          // 'formhash': ProfileProvider().profile!.formHash,
           'message': message,
           'posttime': '${DateTime.now().millisecondsSinceEpoch}',
           'usesig': 1,
@@ -596,7 +591,7 @@ extension ThreadMod on KeylolClient {
           'reppid': post.pid,
         },
         data: FormData.fromMap({
-          'formhash': ProfileProvider().profile!.formHash,
+          // 'formhash': ProfileProvider().profile!.formHash,
           'message': message,
           'noticetrimstr':
               '[quote][size=2][url=forum.php?mod=redirect&goto=findpost&pid=${post.pid}&ptid=${post.tid}][color=#999999]${post.author} 发表于 ${dateTime.year}-${dateTime.month}-${dateTime.day} ${dateTime.hour}:${dateTime.minute}[/color][/url][/size]${post.pureMessage()}[/quote]',
@@ -634,7 +629,7 @@ extension ThreadMod on KeylolClient {
       'module': 'recommend',
       'do': 'add',
       'tid': tid,
-      'hash': ProfileProvider().profile?.formHash
+      // 'hash': ProfileProvider().profile?.formHash
     });
     if (res.data['Message']?['messageval'] != 'recommend_succeed') {
       final error = res.data['Message']?['messagestr'];
@@ -656,7 +651,7 @@ extension ThreadMod on KeylolClient {
           'tid': tid,
           'pid': pid,
           'handlekey': 'rate',
-          'formhash': ProfileProvider().profile!.formHash,
+          // 'formhash': ProfileProvider().profile!.formHash,
           'referer':
               'https://keylol.com/forum.php?mod=viewthread&tid=$tid&page=0#pid$pid',
           'score1': score,
@@ -670,7 +665,7 @@ extension ThreadMod on KeylolClient {
       final res = await dio.post('/api/mobile/index.php',
           queryParameters: {'module': 'forumupload', 'type': 'image'},
           data: FormData.fromMap({
-            'uid': ProfileProvider().profile!.memberUid,
+            // 'uid': ProfileProvider().profile!.memberUid,
             'hash': allowPerm.uploadHash,
             'Filedata':
                 await MultipartFile.fromFile(image.path, filename: image.name)
@@ -688,7 +683,7 @@ extension FavoriteMod on KeylolClient {
           'module': 'favthread',
           'type': 'thread',
           'id': tid,
-          'formhash': ProfileProvider().profile?.formHash,
+          // 'formhash': ProfileProvider().profile?.formHash,
         },
         data: FormData.fromMap({'description': description}));
 
@@ -717,7 +712,7 @@ extension FavoriteMod on KeylolClient {
       favoriteThreads.addAll(list);
     }
 
-    FavoriteThreadsProvider().update(favoriteThreads);
+    // FavoriteThreadsProvider().update(favoriteThreads);
     return favoriteThreads;
   }
 
@@ -742,7 +737,7 @@ extension FavoriteMod on KeylolClient {
       'op': 'delete',
       'deletesubmit': 'true',
       'favid': favId,
-      'formhash': ProfileProvider().profile?.formHash
+      // 'formhash': ProfileProvider().profile?.formHash
     });
 
     if (res.data['Message']?['messageval'] != 'do_success') {

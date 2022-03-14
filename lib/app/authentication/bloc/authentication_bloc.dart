@@ -1,18 +1,17 @@
-import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:keylol_flutter/api/keylol_api.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/common/log.dart';
 import 'package:keylol_flutter/model/profile.dart';
 
 part 'authentication_event.dart';
-
 part 'authentication_state.dart';
 
 class AuthenticationBloc
     extends Bloc<AuthenticationEvent, AuthenticationState> {
   final _logger = Log();
-  final Dio client;
+  final KeylolApiClient client;
 
   AuthenticationBloc({
     required this.client,
@@ -26,7 +25,7 @@ class AuthenticationBloc
     Emitter<AuthenticationState> emit,
   ) async {
     try {
-      final profile = await _fetchProfile();
+      final profile = await client.fetchProfile();
 
       _logger.d('${profile.memberUsername} 已登录');
 
@@ -43,18 +42,5 @@ class AuthenticationBloc
   ) async {
     KeylolClient().clearCookies();
     emit(AuthenticationState.unauthenticated());
-  }
-
-  Future<Profile> _fetchProfile() async {
-    final res = await client.get(
-      "/api/mobile/index.php",
-      queryParameters: {
-        'module': 'profile',
-      },
-    );
-    if (res.data['Message'] != null) {
-      return Future.error(res.data['Message']?['messagestr']);
-    }
-    return Profile.fromJson(res.data['Variables']);
   }
 }

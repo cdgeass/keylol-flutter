@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keylol_flutter/api/models/thread.dart';
 import 'package:keylol_flutter/app/thread/bloc/thread_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 Size boundingTextSize(String text, TextStyle style,
     {int maxLines = 2 ^ 31, double maxWidth = double.infinity}) {
@@ -38,10 +39,19 @@ class ThreadAppBar extends SliverPersistentHeaderDelegate {
   @override
   Widget build(context, shrinkOffset, overlapsContent) {
     double toolbarOpacity =
-        ((maxExtent - minExtent - shrinkOffset).round() / minExtent)
+        ((maxExtent - minExtent - shrinkOffset) / (maxExtent - minExtent))
             .clamp(0.0, 1.0);
 
     final title = toolbarOpacity == 0.0 ? Text(thread.subject) : null;
+
+    final appBarTheme = Theme.of(context).appBarTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    final foregroundColor = appBarTheme.foregroundColor ??
+        (colorScheme.brightness == Brightness.dark
+            ? colorScheme.onSurface
+            : colorScheme.onPrimary);
+    final titleTextStyle = appBarTheme.titleTextStyle ??
+        Theme.of(context).textTheme.headline6?.copyWith(color: foregroundColor);
 
     return AppBar(
       title: title,
@@ -54,7 +64,7 @@ class ThreadAppBar extends SliverPersistentHeaderDelegate {
               child: Container(
                 padding: EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8.0),
                 width: width,
-                child: Text(thread.subject, style: textStyle),
+                child: Text(thread.subject, style: titleTextStyle),
               ),
             )
           ],
@@ -75,6 +85,19 @@ class ThreadAppBar extends SliverPersistentHeaderDelegate {
               _favThread(context);
             },
           ),
+        PopupMenuButton(
+          icon: Icon(Icons.more_vert_outlined),
+          itemBuilder: (context) {
+            return [
+              PopupMenuItem(
+                child: Text('在浏览器中打开'),
+                onTap: () {
+                  launch('https://keylol.com/t${thread.tid}-1-1');
+                },
+              )
+            ];
+          },
+        ),
       ],
     );
   }
