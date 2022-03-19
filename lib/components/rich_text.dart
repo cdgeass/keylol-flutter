@@ -6,11 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html_unescape/html_unescape.dart';
+import 'package:keylol_flutter/api/models/view_thread.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/components/auto_resize_video_player.dart';
 import 'package:keylol_flutter/components/auto_resize_webview.dart';
 import 'package:keylol_flutter/model/attachment.dart';
-import 'package:keylol_flutter/api/models/view_thread.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:video_player/video_player.dart';
 
@@ -147,7 +147,7 @@ class KRichTextBuilder {
         final beforeIframe = message.substring(lastIndex, index);
         if (beforeIframe != '\n' && beforeIframe.isNotEmpty) {
           widgets.add(_richText(
-            message,
+            beforeIframe,
             attachments,
           ));
         }
@@ -185,7 +185,9 @@ class KRichTextBuilder {
   }
 
   bool _canSplit(String message) {
-    return !message.startsWith('<spoil') && !message.startsWith('<collapse');
+    return !(message.contains('spoil') ||
+        message.contains('collapse') ||
+        message.contains('blockquote'));
   }
 
   KRichText _richText(String message, Map<String, Attachment> attachments) {

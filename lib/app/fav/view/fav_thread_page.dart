@@ -2,7 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keylol_flutter/api/keylol_api.dart';
+import 'package:keylol_flutter/app/authentication/authentication.dart';
 import 'package:keylol_flutter/app/fav/bloc/fav_thread_bloc.dart';
+import 'package:keylol_flutter/app/notice/widgets/widgets.dart';
 import 'package:keylol_flutter/components/thread_card.dart';
 import 'package:keylol_flutter/repository/repository.dart';
 
@@ -77,9 +79,11 @@ class FavThreadPage extends StatelessWidget {
 
           return Scaffold(
             appBar: AppBar(
+              leading: NoticeLeading(),
               title: Text('收藏'),
               centerTitle: true,
             ),
+            drawer: DrawerWidget(),
             body: RefreshIndicator(
               onRefresh: () async {
                 context.read<FavThreadBloc>().add(FavThreadReloaded());

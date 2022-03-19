@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'package:keylol_flutter/components/avatar.dart';
-import 'package:keylol_flutter/model/notice.dart';
+import 'package:keylol_flutter/api/models/notice.dart';
 
 String _trim(String note) {
   var str = note.replaceAllMapped(RegExp(r'<[^>]+>'), (match) => '').trim();

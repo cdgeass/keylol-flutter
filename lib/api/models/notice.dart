@@ -1,4 +1,6 @@
-class Notice {
+import 'package:equatable/equatable.dart';
+
+class Notice extends Equatable {
   final int newPush;
   final int newPm;
   final int newPrompt;
@@ -22,6 +24,9 @@ class Notice {
   int count() {
     return newPush + newPm + newPrompt + newMyPost;
   }
+
+  @override
+  List<Object?> get props => [newPush, newPm, newPrompt, newMyPost];
 }
 
 class NoteList {

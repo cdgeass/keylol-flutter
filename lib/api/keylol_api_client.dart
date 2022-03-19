@@ -5,7 +5,8 @@ import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:html/parser.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
-import 'package:keylol_flutter/model/profile.dart';
+import 'package:keylol_flutter/api/models/notice.dart';
+import 'package:keylol_flutter/api/models/profile.dart';
 import 'package:keylol_flutter/repository/repository.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -53,7 +54,29 @@ class _ProfileInterceptor extends _KeylolMobileInterceptor {
         final profileJson = data['Variables'];
         if (profileJson != null) {
           final profile = Profile.fromJson(profileJson);
-          _profileRepository.profile = profile;
+          _profileRepository.update(profile);
+        }
+      }
+    }
+  }
+}
+
+// 通知拦截器, 获取 notice 信息
+class _NoticeInterceptor extends _KeylolMobileInterceptor {
+  _NoticeInterceptor({required NoticeRepository noticeRepository})
+      : _noticeRepository = noticeRepository;
+
+  final NoticeRepository _noticeRepository;
+
+  @override
+  void doIntercept(Response<dynamic> response) {
+    if (response.statusCode == 200) {
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        final noticeJson = data['Variables']?['notice'];
+        if (noticeJson != null) {
+          final notice = Notice.fromJson(noticeJson);
+          _noticeRepository.update(notice);
         }
       }
     }
@@ -67,10 +90,15 @@ class KeylolApiClient {
 
   static const _baseUrl = 'https://keylol.com';
 
-  KeylolApiClient._internal(this._cj, this._dio, this._profileRepository);
+  KeylolApiClient._internal(
+    this._cj,
+    this._dio,
+    this._profileRepository,
+  );
 
   static Future<KeylolApiClient> create({
     required ProfileRepository profileRepository,
+    required NoticeRepository noticeRepository,
   }) async {
     // 初始化 dio client
     final dio = Dio(BaseOptions(
@@ -95,6 +123,12 @@ class KeylolApiClient {
       profileRepository: profileRepository,
     );
     dio.interceptors.add(profileInterceptor);
+
+    // 解析返回里notice信息
+    final noticeInterceptor = _NoticeInterceptor(
+      noticeRepository: noticeRepository,
+    );
+    dio.interceptors.add(noticeInterceptor);
 
     return KeylolApiClient._internal(cj, dio, profileRepository);
   }

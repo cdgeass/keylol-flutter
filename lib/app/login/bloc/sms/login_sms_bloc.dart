@@ -4,7 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keylol_flutter/api/keylol_api.dart';
 import 'package:keylol_flutter/common/log.dart';
-import 'package:keylol_flutter/model/profile.dart';
+import 'package:keylol_flutter/api/models/profile.dart';
 
 part 'login_sms_event.dart';
 part 'login_sms_state.dart';

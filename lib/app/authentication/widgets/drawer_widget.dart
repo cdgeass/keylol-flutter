@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keylol_flutter/app/authentication/authentication.dart';
+import 'package:keylol_flutter/app/notice/widgets/notice_badge.dart';
 import 'package:keylol_flutter/components/avatar.dart';
 
 class DrawerWidget extends StatelessWidget {
@@ -54,7 +55,9 @@ class DrawerWidget extends StatelessWidget {
               },
             );
             notice = ListTile(
-              leading: Icon(Icons.notifications),
+              leading: NoticeBadge(
+                child: Icon(Icons.notifications),
+              ),
               title: Text('提醒'),
               onTap: () {
                 Navigator.of(context).pushNamed('/notice');

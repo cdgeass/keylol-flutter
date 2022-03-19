@@ -5,6 +5,8 @@ import 'package:keylol_flutter/app/guide/bloc/guide_bloc.dart';
 import 'package:keylol_flutter/app/guide/view/guide_list.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 
+import '../../notice/widgets/widgets.dart';
+
 class GuidePage extends StatelessWidget {
   final _tabs = [
     Tab(text: '最新热门'),
@@ -20,6 +22,7 @@ class GuidePage extends StatelessWidget {
       length: _tabs.length,
       child: Scaffold(
         appBar: AppBar(
+          leading: NoticeLeading(),
           title: Text('导读'),
           centerTitle: true,
           bottom: TabBar(

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keylol_flutter/app/authentication/authentication.dart';
 import 'package:keylol_flutter/app/forum/bloc/forum_bloc.dart';
 import 'package:keylol_flutter/app/forum/view/forum_page.dart';
+import 'package:keylol_flutter/app/notice/widgets/widgets.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 
 class ForumIndexPage extends StatelessWidget {
@@ -11,6 +12,7 @@ class ForumIndexPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: NoticeLeading(),
         title: Text('版块'),
         centerTitle: true,
       ),

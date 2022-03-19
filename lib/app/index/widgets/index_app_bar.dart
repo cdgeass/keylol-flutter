@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../notice/widgets/widgets.dart';
+
 class IndexAppBar extends SliverPersistentHeaderDelegate {
   final double expandedHeight;
   final Widget slideView;
@@ -23,6 +25,7 @@ class IndexAppBar extends SliverPersistentHeaderDelegate {
     final title = toolbarOpacity == 0.0 ? Text('聚焦') : null;
 
     return AppBar(
+      leading: NoticeLeading(),
       title: title,
       centerTitle: true,
       flexibleSpace: Opacity(

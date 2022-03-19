@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keylol_flutter/app/authentication/authentication.dart';
 import 'package:keylol_flutter/app/notice/bloc/notice_bloc.dart';
+import 'package:keylol_flutter/app/notice/widgets/widgets.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 
 import 'notice_list.dart';
@@ -15,6 +16,7 @@ class NoticePage extends StatelessWidget {
         builder: (context, state) {
           return Scaffold(
             appBar: AppBar(
+              leading: NoticeLeading(),
               title: Text('提醒'),
               centerTitle: true,
             ),

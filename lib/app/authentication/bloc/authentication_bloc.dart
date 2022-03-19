@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keylol_flutter/api/keylol_api.dart';
 import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/common/log.dart';
-import 'package:keylol_flutter/model/profile.dart';
+import 'package:keylol_flutter/api/models/profile.dart';
 
 part 'authentication_event.dart';
 part 'authentication_state.dart';
