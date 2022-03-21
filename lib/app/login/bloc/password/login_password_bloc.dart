@@ -3,11 +3,9 @@ import 'dart:typed_data';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keylol_flutter/api/keylol_api.dart';
-import 'package:keylol_flutter/api/models/sec_code.dart';
 import 'package:keylol_flutter/common/log.dart';
 
 part 'login_password_event.dart';
-
 part 'login_password_state.dart';
 
 class LoginPasswordBloc extends Bloc<LoginPasswordEvent, LoginPasswordState> {
@@ -62,7 +60,7 @@ class LoginPasswordBloc extends Bloc<LoginPasswordEvent, LoginPasswordState> {
       }
     } catch (error) {
       _logger.e('密码登录错误', error);
-      emit(state.copyWith(status: LoginPasswordStatus.failure));
+      emit(state.copyWith(error: error.toString()));
     }
   }
 
@@ -86,7 +84,7 @@ class LoginPasswordBloc extends Bloc<LoginPasswordEvent, LoginPasswordState> {
       ));
     } catch (error) {
       _logger.e('密码登录获取验证码错误', error);
-      emit(state.copyWith(status: LoginPasswordStatus.failure));
+      emit(state.copyWith(error: error.toString()));
     }
   }
 }

@@ -7,6 +7,7 @@ import 'package:keylol_flutter/app/notice/view/notice_page.dart';
 import 'package:keylol_flutter/app/thread/view/view.dart';
 import 'package:keylol_flutter/repository/repository.dart';
 import 'package:keylol_flutter/theme/cubit/theme_cubit.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'authentication/authentication.dart';
 import 'fav/view/view.dart';
@@ -91,8 +92,27 @@ class KeylolAppView extends StatelessWidget {
             '/favThread': (context) => FavThreadPage(),
             '/webView': (context) {
               final uri = ModalRoute.of(context)!.settings.arguments as String;
-              return InAppWebView(
-                initialUrlRequest: URLRequest(url: Uri.parse(uri)),
+              return Scaffold(
+                appBar: AppBar(
+                  actions: [
+                    PopupMenuButton(
+                      icon: Icon(Icons.more_vert_outlined),
+                      itemBuilder: (context) {
+                        return [
+                          PopupMenuItem(
+                            child: Text('在浏览器中打开'),
+                            onTap: () {
+                              launch(uri);
+                            },
+                          )
+                        ];
+                      },
+                    )
+                  ],
+                ),
+                body: InAppWebView(
+                  initialUrlRequest: URLRequest(url: Uri.parse(uri)),
+                ),
               );
             }
           },

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:keylol_flutter/app/thread/view/view.dart';
-import 'package:keylol_flutter/components/avatar.dart';
 import 'package:keylol_flutter/api/models/thread.dart';
+import 'package:keylol_flutter/components/avatar.dart';
 
 typedef ThreadBuilder = Widget Function(Widget child);
 
@@ -32,8 +31,10 @@ class ThreadCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => ThreadPage(tid: thread.tid)));
+          Navigator.of(context).pushNamed(
+            '/thread',
+            arguments: {'tid': thread.tid},
+          );
         },
         child: builder == null ? content : builder!.call(content),
       ),

@@ -6,6 +6,7 @@ import 'package:keylol_flutter/components/avatar.dart';
 import 'package:keylol_flutter/components/rich_text.dart';
 import 'package:keylol_flutter/repository/fav_thread_repository.dart';
 import 'package:scroll_to_index/scroll_to_index.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../widgets/widgets.dart';
 
@@ -27,12 +28,16 @@ class ThreadPage extends StatelessWidget {
         favThreadRepository: context.read<FavThreadRepository>(),
         tid: tid,
       )..add(ThreadReloaded(pid: pid)),
-      child: ThreadPageView(),
+      child: ThreadPageView(tid: tid),
     );
   }
 }
 
 class ThreadPageView extends StatefulWidget {
+  final String tid;
+
+  const ThreadPageView({Key? key, required this.tid}) : super(key: key);
+
   @override
   State<StatefulWidget> createState() => _ThreadPageViewState();
 }
@@ -65,14 +70,43 @@ class _ThreadPageViewState extends State<ThreadPageView> {
     return BlocConsumer<ThreadBloc, ThreadState>(
       listener: (context, state) {},
       builder: (context, state) {
-        if (state.status != ThreadStatus.success) {
+        if (state.status == ThreadStatus.initial || state.thread == null) {
           return Scaffold(
-            appBar: AppBar(),
+            appBar: AppBar(
+              actions: [
+                PopupMenuButton(
+                  icon: Icon(Icons.more_vert_outlined),
+                  itemBuilder: (context) {
+                    return [
+                      PopupMenuItem(
+                        child: Text('在浏览器中打开'),
+                        onTap: () {
+                          launch('https://keylol.com/t${widget.tid}-1-1');
+                        },
+                      )
+                    ];
+                  },
+                )
+              ],
+            ),
             body: RefreshIndicator(
               onRefresh: () async {
                 context.read<ThreadBloc>().add(ThreadReloaded());
               },
-              child: Center(child: CircularProgressIndicator()),
+              child: state.error == null
+                  ? Center(child: CircularProgressIndicator())
+                  : Card(
+                      margin: EdgeInsets.only(top: 8.0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.zero,
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 8.0),
+                        child: Center(
+                          child: Text(state.error ?? ''),
+                        ),
+                      ),
+                    ),
             ),
           );
         }
@@ -178,8 +212,11 @@ class _ThreadPageViewState extends State<ThreadPageView> {
       return PostCard(
         post: state.posts[index - threadActionsIndex],
         builder: (post) {
-          return KRichTextBuilder(post.message, attachments: post.attachments)
-              .build();
+          return KRichTextBuilder(
+            post.message,
+            attachments: post.attachments,
+            scrollTo: _scrollTo,
+          ).build();
         },
       );
     } else if (index > postsIndex) {
@@ -190,8 +227,11 @@ class _ThreadPageViewState extends State<ThreadPageView> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.zero,
           ),
-          child: Center(
-            child: Text(state.error ?? ''),
+          child: Padding(
+            padding: EdgeInsets.only(top: 8.0),
+            child: Center(
+              child: Text(state.error ?? ''),
+            ),
           ),
         );
       } else {
@@ -233,6 +273,6 @@ class _ThreadPageViewState extends State<ThreadPageView> {
       index++;
     }
 
-    _controller.scrollToIndex(2 + state.threadWidgets.length + index);
+    _controller.scrollToIndex(1 + state.threadWidgets.length + index);
   }
 }

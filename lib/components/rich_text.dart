@@ -251,15 +251,18 @@ class _KRichTextState extends State<KRichText> {
               widget.scrollTo?.call(pid);
             } else if (subUrl.startsWith('t') && subUrl.endsWith('-1')) {
               final tid = subUrl.split('-')[0].replaceFirst('t', '');
-              Navigator.of(context).pushNamed('/thread', arguments: tid);
+              Navigator.of(context).pushNamed(
+                '/thread',
+                arguments: {'tid': tid},
+              );
             } else if (subUrl.startsWith('f') && subUrl.endsWith('-1')) {
               final fid = subUrl.split('-')[0].replaceFirst('f', '');
               Navigator.of(context).pushNamed('/forum', arguments: fid);
             } else {
-              Navigator.of(context).pushNamed('/webview', arguments: url);
+              Navigator.of(context).pushNamed('/webView', arguments: url);
             }
           } else {
-            Navigator.of(context).pushNamed('/webview', arguments: url);
+            Navigator.of(context).pushNamed('/webView', arguments: url);
           }
         },
         tagsList: Html.tags

@@ -9,11 +9,14 @@ class LoginSmsState extends Equatable {
 
   final Profile? profile;
 
+  final String? error;
+
   LoginSmsState({
     this.status = LoginSmsStatus.initial,
     this.secCodeParam,
     this.secCode,
     this.profile,
+    this.error,
   });
 
   LoginSmsState copyWith({
@@ -21,12 +24,14 @@ class LoginSmsState extends Equatable {
     SecCode? secCodeParam,
     Uint8List? secCode,
     Profile? profile,
+    String? error,
   }) {
     return LoginSmsState(
       status: status ?? this.status,
       secCodeParam: secCodeParam ?? this.secCodeParam,
       secCode: secCode ?? this.secCode,
       profile: profile ?? this.profile,
+      error: error ?? this.error,
     );
   }
 

@@ -3,8 +3,8 @@ import 'dart:typed_data';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keylol_flutter/api/keylol_api.dart';
-import 'package:keylol_flutter/common/log.dart';
 import 'package:keylol_flutter/api/models/profile.dart';
+import 'package:keylol_flutter/common/log.dart';
 
 part 'login_sms_event.dart';
 part 'login_sms_state.dart';
@@ -37,6 +37,7 @@ class LoginSmsBloc extends Bloc<LoginSmsEvent, LoginSmsState> {
       ));
     } catch (error) {
       _logger.e('获取图形验证码参数错误', error);
+      emit(state.copyWith(error: error.toString()));
     }
   }
 
@@ -60,6 +61,7 @@ class LoginSmsBloc extends Bloc<LoginSmsEvent, LoginSmsState> {
       ));
     } catch (error) {
       _logger.e('获取图形验证码错误', error);
+      emit(state.copyWith(error: error.toString()));
     }
   }
 
@@ -73,6 +75,7 @@ class LoginSmsBloc extends Bloc<LoginSmsEvent, LoginSmsState> {
       emit(state.copyWith(status: LoginSmsStatus.smsSent));
     } catch (error) {
       _logger.e('发送验证码错误', error);
+      emit(state.copyWith(error: error.toString()));
     }
   }
 
@@ -90,6 +93,7 @@ class LoginSmsBloc extends Bloc<LoginSmsEvent, LoginSmsState> {
       emit(state.copyWith(status: LoginSmsStatus.succeed, profile: profile));
     } catch (error) {
       _logger.e('短信登录错误', error);
+      emit(state.copyWith(error: error.toString()));
     }
   }
 }

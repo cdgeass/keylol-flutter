@@ -46,7 +46,10 @@ class ThreadBloc extends Bloc<ThreadEvent, ThreadState> {
               attachments: threadPost.attachments, poll: viewThread.specialPoll)
           .splitBuild();
 
-      final favId = _favThreadRepository.fetchFavId(tid: _tid);
+      String? favId;
+      try {
+        favId = _favThreadRepository.fetchFavId(tid: _tid);
+      } catch (_) {}
 
       var page = 1;
       if (event.pid != null && !posts.any((post) => post.pid == event.pid)) {
