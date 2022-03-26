@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keylol_flutter/api/models/thread.dart';
@@ -23,23 +25,24 @@ class ThreadAppBar extends SliverPersistentHeaderDelegate {
 
   final double _subjectHeight;
 
-  final double? topPadding;
+  final double topPadding;
 
   ThreadAppBar({
     required this.thread,
     required this.textStyle,
-    required width,
+    required this.width,
     this.favId,
-    this.topPadding,
-  })  : width = width - 32.0,
-        _subjectHeight =
-            boundingTextSize(thread.subject, textStyle, maxWidth: width - 32.0)
-                .height;
+    double? topPadding,
+  })  : _subjectHeight =
+            boundingTextSize(thread.subject, textStyle, maxWidth: width - 184.0)
+                .height,
+        this.topPadding = topPadding ?? 0.0;
 
   @override
   Widget build(context, shrinkOffset, overlapsContent) {
-    double toolbarOpacity =
-        ((maxExtent - minExtent - shrinkOffset) / (maxExtent - minExtent))
+    double toolbarOpacity = maxExtent == minExtent
+        ? 0.0
+        : ((maxExtent - minExtent - shrinkOffset) / (maxExtent - minExtent))
             .clamp(0.0, 1.0);
 
     final title = toolbarOpacity == 0.0 ? Text(thread.subject) : null;
@@ -60,9 +63,9 @@ class ThreadAppBar extends SliverPersistentHeaderDelegate {
         child: Stack(
           children: [
             Positioned(
-              top: kToolbarHeight + (topPadding ?? 0.0) - shrinkOffset,
+              top: 13.5 + topPadding - shrinkOffset,
               child: Container(
-                padding: EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8.0),
+                padding: EdgeInsets.only(left: 72.0, right: 112.0, bottom: 8.0),
                 width: width,
                 child: Text(thread.subject, style: titleTextStyle),
               ),
@@ -104,10 +107,10 @@ class ThreadAppBar extends SliverPersistentHeaderDelegate {
 
   @override
   double get maxExtent =>
-      kToolbarHeight + _subjectHeight + 8.0 + (topPadding ?? 0.0);
+      max(kToolbarHeight + topPadding, _subjectHeight + 27.0 + topPadding);
 
   @override
-  double get minExtent => kToolbarHeight + (topPadding ?? 0.0);
+  double get minExtent => kToolbarHeight + topPadding;
 
   @override
   bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {

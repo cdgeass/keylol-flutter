@@ -4,9 +4,9 @@ import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:html/parser.dart';
-import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/api/models/notice.dart';
 import 'package:keylol_flutter/api/models/profile.dart';
+import 'package:keylol_flutter/common/keylol_client.dart';
 import 'package:keylol_flutter/repository/repository.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -380,7 +380,7 @@ extension LoginWithSms on KeylolApiClient {
     String cellphone,
     String secCodeVerify,
   ) async {
-    await _dio.post('/plugin.php',
+    final res = await _dio.post('/plugin.php',
         queryParameters: {
           'id': 'duceapp_smsauth',
           'ac': 'sendcode',
@@ -397,6 +397,11 @@ extension LoginWithSms on KeylolApiClient {
           'seccodehash': secCodeParam.currentIdHash,
           'seccodeverify': secCodeVerify
         }));
+
+    final data = res.data as String;
+    if (data.contains('errorhandle_sendsmscode')) {
+      return Future.error('抱歉，验证码填写错误');
+    }
   }
 
   // 登录

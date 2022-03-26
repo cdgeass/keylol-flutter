@@ -18,6 +18,16 @@ class LoginPasswordView extends StatelessWidget {
           context.read<AuthenticationBloc>().add(AuthenticationLoaded());
 
           Navigator.of(context).pop();
+        } else if (state.error != null) {
+          showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: Text('登录出错'),
+                content: Text(state.error!),
+              );
+            },
+          );
         }
       },
       builder: (context, state) {
