@@ -58,7 +58,7 @@ class Avatar extends StatelessWidget {
     }
     return InkWell(
         onTap: () {
-          Navigator.of(context).pushNamed('/profile', arguments: uid);
+          Navigator.of(context).pushNamed('/space', arguments: uid);
         },
         child: child);
   }

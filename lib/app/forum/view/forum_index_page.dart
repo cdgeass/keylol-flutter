@@ -34,7 +34,7 @@ class ForumIndexPage extends StatelessWidget {
                       destinations: [
                         for (final cat in cats)
                           NavigationRailDestination(
-                            icon: Icon(Icons.abc),
+                            icon: SizedBox.shrink(),
                             label: Text(cat.name),
                           )
                       ],

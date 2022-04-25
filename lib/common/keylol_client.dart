@@ -82,7 +82,7 @@ abstract class _KeylolMobileInterceptor extends Interceptor {
     }
 
     final queryParameters = response.requestOptions.queryParameters;
-    if (queryParameters['module'] == 'profile' &&
+    if (queryParameters['module'] == 'space' &&
         queryParameters['uid'] != null) {
       return false;
     }
@@ -92,7 +92,7 @@ abstract class _KeylolMobileInterceptor extends Interceptor {
   void doIntercept(Response response);
 }
 
-// profile 拦截器, 获取 profile 信息
+// space 拦截器, 获取 space 信息
 class _ProfileInterceptor extends _KeylolMobileInterceptor {
   _ProfileInterceptor();
 
@@ -208,7 +208,7 @@ class KeylolClient {
 extension SpaceMod on KeylolClient {
   // 用户信息
   Future<Space> fetchProfile({String? uid, bool cached = true}) async {
-    final queryParameters = {'module': 'profile'};
+    final queryParameters = {'module': 'space'};
     if (uid != null) {
       queryParameters['uid'] = uid;
     }

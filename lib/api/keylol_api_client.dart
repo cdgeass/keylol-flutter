@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
+import 'package:dio_http_cache/dio_http_cache.dart';
 import 'package:html/parser.dart';
 import 'package:keylol_flutter/api/models/notice.dart';
 import 'package:keylol_flutter/api/models/profile.dart';
@@ -29,7 +30,7 @@ abstract class _KeylolMobileInterceptor extends Interceptor {
     }
 
     final queryParameters = response.requestOptions.queryParameters;
-    if (queryParameters['module'] == 'profile' &&
+    if (queryParameters['module'] == 'space' &&
         queryParameters['uid'] != null) {
       return false;
     }
@@ -39,7 +40,7 @@ abstract class _KeylolMobileInterceptor extends Interceptor {
   void doIntercept(Response response);
 }
 
-// profile 拦截器, 获取 profile 信息
+// space 拦截器, 获取 space 信息
 class _ProfileInterceptor extends _KeylolMobileInterceptor {
   _ProfileInterceptor({required ProfileRepository profileRepository})
       : _profileRepository = profileRepository;
@@ -133,7 +134,7 @@ class KeylolApiClient {
     return KeylolApiClient._internal(cj, dio, profileRepository);
   }
 
-  /// 获取首页信息
+  // 获取首页信息
   Future<Index> fetchIndex() async {
     var res = await _dio.get("");
     var document = parse(res.data);
@@ -296,7 +297,7 @@ class KeylolApiClient {
   }
 }
 
-extension LoginWithSms on KeylolApiClient {
+extension LoginModuleWithSms on KeylolApiClient {
   // 获取图形验证码参数
   Future<SecCode> fetchSmsSecCodeParam(String cellphone) async {
     var res = await _dio.get('/member.php',
@@ -440,7 +441,7 @@ extension LoginWithSms on KeylolApiClient {
   }
 }
 
-extension LoginWithPassword on KeylolApiClient {
+extension LoginModuleWithPassword on KeylolApiClient {
   // 登录
   Future<SecCode?> loginWithPassword({
     required String username,
@@ -573,5 +574,70 @@ extension LoginWithPassword on KeylolApiClient {
     } else {
       return Future.error('登录出错');
     }
+  }
+}
+
+extension SpaceModule on KeylolApiClient {
+  // 用户信息
+  Future<Space> fetchSpace({String? uid, bool cached = true}) async {
+    final res = await _dio.get("/api/mobile/index.php",
+        queryParameters: {
+          'module': 'profile',
+          'uid': uid,
+        },
+        options: uid != null && cached
+            ? buildCacheOptions(Duration(days: 1))
+            : null);
+    if (res.data['Message'] != null) {
+      return Future.error(res.data['Message']?['messagestr']);
+    }
+    return Space.fromJson(res.data['Variables']?['space']);
+  }
+
+  // 好友
+  Future<SpaceFriend> fetchFriend(String uid, {int page = 1}) async {
+    final res = await _dio.get('/api/mobile/index.php',
+        queryParameters: {'module': 'friend', 'uid': uid, 'page': page});
+
+    if (res.data['Message'] != null) {
+      return Future.error(res.data['Message']?['messagestr']);
+    }
+
+    return SpaceFriend.fromJson(res.data['Variables']);
+  }
+
+  // 主题
+  Future<SpaceThread> fetchSpaceThread(String uid, {int page = 1}) async {
+    final res = await _dio.get('/home.php', queryParameters: {
+      'mod': 'space',
+      'uid': uid,
+      'do': 'thread',
+      'view': 'me',
+      'from': 'space',
+      'type': 'thread',
+      'page': page
+    });
+
+    final document = parse(res.data);
+
+    return SpaceThread.fromDocument(document);
+  }
+
+  // 回复
+  Future<SpaceReply> fetchSpaceReply(String uid, {int page = 1}) async {
+    final res = await _dio.get('/home.php', queryParameters: {
+      'mod': 'space',
+      'uid': uid,
+      'do': 'thread',
+      'view': 'me',
+      'from': 'space',
+      'type': 'reply',
+      'order': 'dateline',
+      'page': page
+    });
+
+    final document = parse(res.data);
+
+    return SpaceReply.fromDocument(document);
   }
 }
