@@ -183,7 +183,7 @@ class _SpaceThreadListState extends State<_SpaceThreadList> {
                 title: Text(thread.subject),
                 onTap: () {
                   Navigator.of(context)
-                      .pushNamed('/thread', arguments: thread.tid);
+                      .pushNamed('/thread', arguments: {'tid': thread.tid});
                 },
               );
             },
@@ -257,8 +257,10 @@ class _SpaceReplyListState extends State<_SpaceReplyList> {
                 title: Text(reply.message),
                 subtitle: Text(reply.subject),
                 onTap: () {
-                  Navigator.of(context)
-                      .pushNamed('/thread', arguments: [reply.tid, reply.pid]);
+                  Navigator.of(context).pushNamed('/thread', arguments: {
+                    'tid': reply.tid,
+                    'pid': reply.pid,
+                  });
                 },
               );
             },
