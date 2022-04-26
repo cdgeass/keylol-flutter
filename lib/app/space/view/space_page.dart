@@ -138,7 +138,7 @@ class _SpacePageViewState extends State<_SpacePageView>
                 child: Label(label: '好友数', value: '${space.friends}'),
                 onTap: () {
                   Navigator.of(context)
-                      .pushNamed('/space/thread', arguments: [space, 0]);
+                      .pushNamed('/space/friend', arguments: space.uid);
                 },
               ),
               SizedBox(width: 8.0),
@@ -146,14 +146,14 @@ class _SpacePageViewState extends State<_SpacePageView>
                   child: Label(label: '主题数', value: '${space.threads}'),
                   onTap: () {
                     Navigator.of(context)
-                        .pushNamed('/space/thread', arguments: [space, 1]);
+                        .pushNamed('/space/thread', arguments: space.uid);
                   }),
               SizedBox(width: 8.0),
               InkWell(
                   child: Label(label: '回复数', value: '${space.posts}'),
                   onTap: () {
                     Navigator.of(context)
-                        .pushNamed('/space/thread', arguments: [space, 2]);
+                        .pushNamed('/space/reply', arguments: space.uid);
                   }),
               Expanded(child: Container()),
               // ElevatedButton(onPressed: () {}, child: Text('关注')),

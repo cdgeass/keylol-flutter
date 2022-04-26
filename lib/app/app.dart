@@ -4,6 +4,7 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:keylol_flutter/api/keylol_api.dart';
 import 'package:keylol_flutter/app/notice/bloc/notice_count_bloc.dart';
 import 'package:keylol_flutter/app/notice/view/notice_page.dart';
+import 'package:keylol_flutter/app/space/view/space_list_page.dart';
 import 'package:keylol_flutter/app/space/view/space_page.dart';
 import 'package:keylol_flutter/app/thread/view/view.dart';
 import 'package:keylol_flutter/repository/repository.dart';
@@ -94,6 +95,18 @@ class KeylolAppView extends StatelessWidget {
             '/space': (context) {
               final uid = ModalRoute.of(context)!.settings.arguments as String;
               return SpacePage(uid: uid);
+            },
+            '/space/friend': (context) {
+              final uid = ModalRoute.of(context)!.settings.arguments as String;
+              return SpaceListPage(uid: uid, initialIndex: 0);
+            },
+            '/space/thread': (context) {
+              final uid = ModalRoute.of(context)!.settings.arguments as String;
+              return SpaceListPage(uid: uid, initialIndex: 1);
+            },
+            '/space/reply': (context) {
+              final uid = ModalRoute.of(context)!.settings.arguments as String;
+              return SpaceListPage(uid: uid, initialIndex: 2);
             },
             '/webView': (context) {
               final uri = ModalRoute.of(context)!.settings.arguments as String;
