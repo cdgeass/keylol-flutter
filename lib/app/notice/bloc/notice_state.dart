@@ -16,7 +16,7 @@ class NoticeState extends Equatable {
     this.notes = const [],
   });
 
-  NoticeState copyWity({
+  NoticeState copyWith({
     NoticeStatus? status,
     int? page,
     int? total,

@@ -1,28 +1,30 @@
 import 'dart:async';
 
-import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:keylol_flutter/app/forum/bloc/forum/forum_bloc.dart';
-import 'package:keylol_flutter/app/forum/models/models.dart';
-import 'package:keylol_flutter/common/log.dart';
+import 'package:keylol_flutter/api/keylol_api.dart';
+import 'package:logger/logger.dart';
 
-part './thread_list_event.dart';
+part 'thread_list_event.dart';
 
-part './thread_list_state.dart';
+part 'thread_list_state.dart';
 
 class ThreadListBloc extends Bloc<ThreadListEvent, ThreadListState> {
-  final _logger = Log();
-  final Dio client;
+  final _logger = Logger();
 
-  final String fid;
-  final String? typeId;
+  final KeylolApiClient _client;
+
+  final String _fid;
+  final String? _typeId;
 
   ThreadListBloc({
-    required this.client,
-    required this.fid,
-    this.typeId,
-  }) : super(ThreadListState(status: ThreadListStatus.initial)) {
+    required KeylolApiClient client,
+    required String fid,
+    String? typeId,
+  })  : _client = client,
+        _fid = fid,
+        _typeId = typeId,
+        super(ThreadListState(status: ThreadListStatus.initial)) {
     on<ThreadListReloaded>(_onReloaded);
     on<ThreadListLoaded>(_onLoaded);
   }
@@ -35,7 +37,14 @@ class ThreadListBloc extends Bloc<ThreadListEvent, ThreadListState> {
       final filter = event.filter;
       final param = event.param;
 
-      final threads = await _fetch(1, filter: filter, param: param);
+      final forumDisplay = await _client.fetchForum(
+        fid: _fid,
+        page: 0,
+        typeId: _typeId,
+        filter: filter,
+        param: param,
+      );
+      final threads = forumDisplay.threads ?? const [];
 
       emit(state.copyWith(
         status: ThreadListStatus.success,
@@ -46,7 +55,7 @@ class ThreadListBloc extends Bloc<ThreadListEvent, ThreadListState> {
         param: param,
       ));
     } catch (error) {
-      _logger.e('初始化获取版块帖子错误', error);
+      _logger.e('[版块] 获取版块帖子出错', error);
     }
   }
 
@@ -63,7 +72,14 @@ class ThreadListBloc extends Bloc<ThreadListEvent, ThreadListState> {
       final filter = state.filter;
       final param = state.param;
 
-      final threads = await _fetch(page + 1, filter: filter, param: param);
+      final forumDisplay = await _client.fetchForum(
+        fid: _fid,
+        page: page + 1,
+        typeId: _typeId,
+        filter: filter,
+        param: param,
+      );
+      final threads = forumDisplay.threads ?? const [];
 
       if (threads.isEmpty) {
         emit(state.copyWith(
@@ -89,37 +105,7 @@ class ThreadListBloc extends Bloc<ThreadListEvent, ThreadListState> {
         ));
       }
     } catch (error) {
-      _logger.e('加载更多版块帖子错误', error);
+      _logger.e('[版块] 加载版块帖子出错', error);
     }
-  }
-
-  Future<List<ForumDisplayThread>> _fetch(
-    int page, {
-    String? filter,
-    Map<String, String>? param,
-  }) async {
-    final queryParameters = {
-      'module': 'forumdisplay',
-      'fid': fid,
-      'page': page,
-    };
-
-    if (typeId != null) {
-      queryParameters.addAll({
-        'filter': 'typeid',
-        'typeid': typeId!,
-      });
-    } else if (filter != null && param != null) {
-      queryParameters.addAll({'filter': filter});
-      queryParameters.addAll(param);
-    }
-
-    var res = await client.get("/api/mobile/index.php",
-        queryParameters: queryParameters);
-
-    if (res.data['Message'] != null) {
-      return Future.error(res.data['Message']!['messagestr']);
-    }
-    return ForumDisplay.fromJson(res.data['Variables']).threads ?? [];
   }
 }

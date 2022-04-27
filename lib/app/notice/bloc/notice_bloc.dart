@@ -1,20 +1,21 @@
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:keylol_flutter/common/log.dart';
-import 'package:keylol_flutter/api/models/notice.dart';
+import 'package:keylol_flutter/api/keylol_api.dart';
+import 'package:logger/logger.dart';
 
-part './notice_event.dart';
+part 'notice_event.dart';
 
-part './notice_state.dart';
+part 'notice_state.dart';
 
 class NoticeBloc extends Bloc<NoticeEvent, NoticeState> {
-  final _logger = Log();
-  final Dio client;
+  final _logger = Logger();
+  final KeylolApiClient _client;
 
   NoticeBloc({
-    required this.client,
-  }) : super(NoticeState(status: NoticeStatus.initial)) {
+    required KeylolApiClient client,
+  })  : _client = client,
+        super(NoticeState(status: NoticeStatus.initial)) {
     on<NoticeReloaded>(_onReloaded);
     on<NoticeLoaded>(_onLoaded);
   }
@@ -24,20 +25,21 @@ class NoticeBloc extends Bloc<NoticeEvent, NoticeState> {
     Emitter<NoticeState> emit,
   ) async {
     try {
-      final noteList = await _fetchNoteList(page: 1);
+      final noteList = await _client.fetchNoteList(page: 1);
 
       final total = noteList.count;
       final notes = noteList.list;
 
-      emit(state.copyWity(
+      emit(state.copyWith(
         status: NoticeStatus.success,
         page: 1,
         total: total,
         notes: notes,
       ));
     } catch (error) {
-      _logger.e('', error);
-      emit(state.copyWity(status: NoticeStatus.failure));
+      _logger.e('[提醒] 获取提醒出错', error);
+
+      emit(state.copyWith(status: NoticeStatus.failure));
     }
   }
 
@@ -52,7 +54,7 @@ class NoticeBloc extends Bloc<NoticeEvent, NoticeState> {
     try {
       final page = state.page + 1;
 
-      final noteList = await _fetchNoteList(page: page);
+      final noteList = await _client.fetchNoteList(page: page);
       if (noteList.list.isEmpty) {
         return;
       }
@@ -60,26 +62,16 @@ class NoticeBloc extends Bloc<NoticeEvent, NoticeState> {
       final total = noteList.count;
       final notes = state.notes..addAll(noteList.list);
 
-      emit(state.copyWity(
+      emit(state.copyWith(
         status: NoticeStatus.success,
         page: page,
         total: total,
         notes: notes,
       ));
     } catch (error) {
-      _logger.e('', error);
-      emit(state.copyWity(status: NoticeStatus.failure));
-    }
-  }
+      _logger.e('[提醒] 加载提醒出错', error);
 
-  // 提醒列表
-  Future<NoteList> _fetchNoteList({required int page}) async {
-    final res = await client.post('/api/mobile/index.php',
-        queryParameters: {'module': 'mynotelist', 'page': page});
-
-    if (res.data['Message'] != null) {
-      return Future.error(res.data['Message']?['messagestr']);
+      emit(state.copyWith(status: NoticeStatus.failure));
     }
-    return NoteList.fromJson(res.data['Variables']);
   }
 }

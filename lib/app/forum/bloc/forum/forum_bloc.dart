@@ -1,20 +1,21 @@
-import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:keylol_flutter/app/forum/models/models.dart';
-import 'package:keylol_flutter/common/log.dart';
+import 'package:keylol_flutter/api/keylol_api.dart';
+import 'package:logger/logger.dart';
 
-part './forum_event.dart';
+part 'forum_event.dart';
 
-part './forum_state.dart';
+part 'forum_state.dart';
 
 class ForumBloc extends Bloc<ForumEvent, ForumState> {
-  final _logger = Log();
-  final Dio client;
-  final String fid;
+  final _logger = Logger();
+  final KeylolApiClient _client;
+  final String _fid;
 
-  ForumBloc({required this.client, required this.fid})
-      : super(ForumState(status: ForumStatus.initial)) {
+  ForumBloc({required KeylolApiClient client, required String fid})
+      : _client = client,
+        _fid = fid,
+        super(ForumState(status: ForumStatus.initial)) {
     on<ForumDetailFetched>(_onFetched);
   }
 
@@ -23,7 +24,7 @@ class ForumBloc extends Bloc<ForumEvent, ForumState> {
     Emitter<ForumState> emit,
   ) async {
     try {
-      final forumDisplay = await _fetch(1);
+      final forumDisplay = await _client.fetchForum(fid: _fid);
 
       emit(state.copyWith(
         status: ForumStatus.success,
@@ -31,22 +32,7 @@ class ForumBloc extends Bloc<ForumEvent, ForumState> {
         types: forumDisplay.threadTypes,
       ));
     } catch (error) {
-      _logger.e('获取版块详情错误', error);
+      _logger.e('[版块] 获取版块详情出错', error);
     }
-  }
-
-  Future<ForumDisplay> _fetch(int page) async {
-    final queryParameters = {
-      'module': 'forumdisplay',
-      'fid': fid,
-      'page': page,
-    };
-    var res = await client.get("/api/mobile/index.php",
-        queryParameters: queryParameters);
-
-    if (res.data['Message'] != null) {
-      return Future.error(res.data['Message']!['messagestr']);
-    }
-    return ForumDisplay.fromJson(res.data['Variables']);
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter_html/flutter_html.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html_unescape/html_unescape.dart';
-import 'package:keylol_flutter/model/attachment.dart';
+import 'package:keylol_flutter/api/models/attachment.dart';
 
 class Post {
   // pid

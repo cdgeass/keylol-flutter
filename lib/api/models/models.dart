@@ -1,6 +1,13 @@
+export 'allow_perm.dart';
+export 'attachment.dart';
+export 'cat.dart';
 export 'fav_thread.dart';
+export 'forum_display.dart';
+export 'guide.dart';
 export 'index.dart';
+export 'notice.dart';
 export 'post.dart';
+export 'profile.dart';
 export 'sec_code.dart';
 export 'space.dart';
 export 'thread.dart';

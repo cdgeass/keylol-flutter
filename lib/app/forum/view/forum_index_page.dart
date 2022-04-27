@@ -1,11 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:keylol_flutter/api/keylol_api.dart';
 import 'package:keylol_flutter/app/authentication/authentication.dart';
 import 'package:keylol_flutter/app/forum/bloc/forum_bloc.dart';
 import 'package:keylol_flutter/app/forum/view/forum_page.dart';
 import 'package:keylol_flutter/app/notice/widgets/widgets.dart';
-import 'package:keylol_flutter/common/keylol_client.dart';
 
 class ForumIndexPage extends StatelessWidget {
   @override
@@ -18,7 +18,7 @@ class ForumIndexPage extends StatelessWidget {
       ),
       drawer: DrawerWidget(),
       body: BlocProvider(
-        create: (_) => ForumIndexBloc(client: KeylolClient().dio)
+        create: (_) => ForumIndexBloc(client: context.read<KeylolApiClient>())
           ..add(ForumIndexFetched()),
         child: BlocBuilder<ForumIndexBloc, ForumIndexState>(
           builder: (context, state) {

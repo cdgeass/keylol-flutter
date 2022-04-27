@@ -1,3 +1,5 @@
+import 'dart:collection';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cookie_jar/cookie_jar.dart';
@@ -5,9 +7,7 @@ import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:dio_http_cache/dio_http_cache.dart';
 import 'package:html/parser.dart';
-import 'package:keylol_flutter/api/models/notice.dart';
-import 'package:keylol_flutter/api/models/profile.dart';
-import 'package:keylol_flutter/common/keylol_client.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:keylol_flutter/repository/repository.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -114,9 +114,8 @@ class KeylolApiClient {
     final appDocPath = appDocDir.path;
 
     // cookie持久化
-    // final cj = PersistCookieJar(
-    //     ignoreExpires: false, storage: FileStorage(appDocPath + "/.cookies/"));
-    final cj = KeylolClient().cj;
+    final cj = PersistCookieJar(
+        ignoreExpires: false, storage: FileStorage(appDocPath + "/.cookies/"));
     dio.interceptors.add(CookieManager(cj));
 
     // 解析返回里profile信息
@@ -238,6 +237,32 @@ class KeylolApiClient {
     return ViewThread.fromJson(res.data['Variables']);
   }
 
+  // 权限
+  Future<AllowPerm> checkPost() async {
+    final res = await _dio.post('/api/mobile/index.php',
+        queryParameters: {'module': 'checkpost'});
+
+    if (res.data['Message'] != null) {
+      return Future.error(res.data['Message']?['messagestr']);
+    }
+    return AllowPerm.fromJson(res.data['Variables']['allowperm']);
+  }
+
+  // 图片上传
+  Future<String> fileUpload(XFile image) async {
+    return await checkPost().then((allowPerm) async {
+      final res = await _dio.post('/api/mobile/index.php',
+          queryParameters: {'module': 'forumupload', 'type': 'image'},
+          data: FormData.fromMap({
+            // 'uid': ProfileProvider().profile!.memberUid,
+            'hash': allowPerm.uploadHash,
+            'Filedata':
+            await MultipartFile.fromFile(image.path, filename: image.name)
+          }));
+      return res.data;
+    });
+  }
+
   // 回复
   Future<void> sendReply({
     required String tid,
@@ -284,7 +309,7 @@ class KeylolApiClient {
           'formhash': _profileRepository.profile?.formHash,
           'message': message,
           'noticetrimstr':
-          '[quote][size=2][url=forum.php?mod=redirect&goto=findpost&pid=${post.pid}&ptid=${post.tid}][color=#999999]${post.author} 发表于 ${dateTime.year}-${dateTime.month}-${dateTime.day} ${dateTime.hour}:${dateTime.minute}[/color][/url][/size]${post.pureMessage()}[/quote]',
+              '[quote][size=2][url=forum.php?mod=redirect&goto=findpost&pid=${post.pid}&ptid=${post.tid}][color=#999999]${post.author} 发表于 ${dateTime.year}-${dateTime.month}-${dateTime.day} ${dateTime.hour}:${dateTime.minute}[/color][/url][/size]${post.pureMessage()}[/quote]',
           'posttime': '${dateTime.millisecondsSinceEpoch}',
           'usesig': 1,
           for (final aid in aids) 'attachnew[$aid][description]': aid,
@@ -294,6 +319,34 @@ class KeylolApiClient {
       final error = res.data['Message']?['messagestr'];
       return Future.error(error);
     }
+  }
+
+  // 投票
+  Future<void> pollVote(String tid, List<String> pollAnswers) async {
+    final res = await _dio.post('/api/mobile/index.php',
+        queryParameters: {
+          'module': 'pollvote',
+          'pollsubmit': 'yes',
+          'action': 'votepoll',
+          'tid': tid
+        },
+        data: FormData.fromMap({'pollanswers[]': pollAnswers}));
+
+    if (res.data['Message']?['messageval'] != 'thread_poll_succeed') {
+      final error = res.data['Message']?['messagestr'];
+      return Future.error(error);
+    }
+  }
+}
+
+extension CookieModule on KeylolApiClient {
+
+  void clearCookies() {
+    _cj.deleteAll();
+  }
+
+  Future<List<Cookie>> getCookies() async {
+    return await _cj.loadForRequest(Uri.parse('https://keylol.com'));
   }
 }
 
@@ -432,8 +485,7 @@ extension LoginModuleWithSms on KeylolApiClient {
     final data = res.data as String;
     if (data.contains('succeedhandle_login')) {
       // 登录成功
-      return KeylolClient()
-          .fetchProfile()
+      return fetchProfile()
           .then((_) => _profileRepository.profile!);
     }
     // 登录失败
@@ -574,6 +626,84 @@ extension LoginModuleWithPassword on KeylolApiClient {
     } else {
       return Future.error('登录出错');
     }
+  }
+}
+
+extension GuideModule on KeylolApiClient {
+  Future<Guide> fetchGuide({required String type, int page = 1}) async {
+    final res = await _dio.get('/forum.php',
+        queryParameters: {'mod': 'guide', 'view': type, 'page': page});
+    final document = parse(res.data);
+    return Guide.fromDocument(document);
+  }
+}
+
+extension ForumModule on KeylolApiClient {
+  Future<List<Cat>> fetchForumIndex() async {
+    var res = await _dio.get("/api/mobile/index.php",
+        queryParameters: {'module': 'forumindex'});
+
+    var variables = res.data['Variables'];
+
+    var forumMap = new HashMap<String, CatForum>();
+    for (var forumJson in (variables['forumlist'] as List<dynamic>)) {
+      final forum = CatForum.fromJson(forumJson);
+      forumMap[forum.fid] = forum;
+    }
+
+    if (res.data['Message'] != null) {
+      return Future.error(res.data['Message']!['messagestr']);
+    }
+    return (variables['catlist'] as List<dynamic>).map((catJson) {
+      final cat = Cat.fromJson(catJson);
+      List<CatForum> forums = (catJson['forums'] as List<dynamic>)
+          .map((fid) => forumMap[fid]!)
+          .toList();
+      cat.forums = forums;
+      return cat;
+    }).toList();
+  }
+
+  Future<ForumDisplay> fetchForum({
+    required String fid,
+    int page = 0,
+    String? filter,
+    String? typeId,
+    Map<String, String>? param,
+  }) async {
+    final queryParameters = {
+      'module': 'forumdisplay',
+      'fid': fid,
+      'page': page,
+    };
+
+    if (typeId != null) {
+      queryParameters.addAll({'filter': 'typeid', 'typeid': typeId});
+    } else if (filter != null && param != null) {
+      queryParameters['filter'] = filter;
+      queryParameters.addAll(param);
+    }
+
+    var res = await _dio.get("/api/mobile/index.php",
+        queryParameters: queryParameters);
+
+    if (res.data['Message'] != null) {
+      return Future.error(res.data['Message']!['messagestr']);
+    }
+    return ForumDisplay.fromJson(res.data['Variables']);
+  }
+}
+
+extension NoticeModuel on KeylolApiClient {
+
+  Future<NoteList> fetchNoteList({required int page}) async {
+    final res = await _dio.post('/api/mobile/index.php',
+        queryParameters: {'module': 'mynotelist', 'page': page});
+
+    if (res.data['Message'] != null) {
+      return Future.error(res.data['Message']?['messagestr']);
+    }
+    return NoteList.fromJson(res.data['Variables']);
   }
 }
 

@@ -1,2 +1,2 @@
-export './cat.dart';
-export './forum_display.dart';
+export '../../../api/models/cat.dart';
+export '../../../api/models/forum_display.dart';

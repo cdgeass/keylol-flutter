@@ -1,16 +1,18 @@
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keylol_flutter/api/keylol_api.dart';
-import 'package:keylol_flutter/common/log.dart';
 import 'package:keylol_flutter/components/rich_text.dart';
-import 'package:keylol_flutter/repository/fav_thread_repository.dart';
+import 'package:keylol_flutter/repository/repository.dart';
+import 'package:logger/logger.dart';
 
-part './thread_event.dart';
-part './thread_state.dart';
+part 'thread_event.dart';
+
+part 'thread_state.dart';
 
 class ThreadBloc extends Bloc<ThreadEvent, ThreadState> {
-  final _logger = Log();
+  final _logger = Logger();
   final KeylolApiClient _client;
   final FavThreadRepository _favThreadRepository;
   final String _tid;
@@ -79,11 +81,16 @@ class ThreadBloc extends Bloc<ThreadEvent, ThreadState> {
         favId: favId,
       ));
     } catch (error) {
-      _logger.e('获取帖子详情错误', error);
-      emit(state.copyWith(
-        status: ThreadStatus.failure,
-        error: error.toString(),
-      ));
+      _logger.e('[帖子] 获取帖子出错', error);
+
+      if (error is DioError) {
+        emit(state.copyWith(status: ThreadStatus.failure, error: '网络异常, 加载失败'));
+      } else {
+        emit(state.copyWith(
+          status: ThreadStatus.failure,
+          error: error.toString(),
+        ));
+      }
     }
   }
 
@@ -120,11 +127,19 @@ class ThreadBloc extends Bloc<ThreadEvent, ThreadState> {
         ));
       }
     } catch (error) {
-      _logger.e('加载帖子详情错误', error);
-      emit(state.copyWith(
-        status: ThreadStatus.failure,
-        error: error.toString(),
-      ));
+      _logger.e('[帖子] 加载回复出错', error);
+
+      if (error is DioError) {
+        emit(state.copyWith(
+          status: ThreadStatus.failure,
+          error: '网络异常, 加载失败',
+        ));
+      } else {
+        emit(state.copyWith(
+          status: ThreadStatus.failure,
+          error: error.toString(),
+        ));
+      }
     }
   }
 
@@ -142,7 +157,19 @@ class ThreadBloc extends Bloc<ThreadEvent, ThreadState> {
         favId: _favThreadRepository.fetchFavId(tid: state.thread!.tid),
       ));
     } catch (error) {
-      _logger.e('收藏帖子错误', error);
+      _logger.e('[帖子] 收藏帖子出错', error);
+
+      if (error is DioError) {
+        emit(state.copyWith(
+          status: ThreadStatus.failure,
+          error: '网络异常, 收藏失败',
+        ));
+      } else {
+        emit(state.copyWith(
+          status: ThreadStatus.failure,
+          error: error.toString(),
+        ));
+      }
     }
   }
 
@@ -159,7 +186,19 @@ class ThreadBloc extends Bloc<ThreadEvent, ThreadState> {
         favId: null,
       ));
     } catch (error) {
-      _logger.e('删除收藏帖子错误', error);
+      _logger.e('[帖子] 取消收藏出错', error);
+
+      if (error is DioError) {
+        emit(state.copyWith(
+          status: ThreadStatus.failure,
+          error: '网络异常, 取消收藏失败',
+        ));
+      } else {
+        emit(state.copyWith(
+          status: ThreadStatus.failure,
+          error: error.toString(),
+        ));
+      }
     }
   }
 
@@ -203,7 +242,19 @@ class ThreadBloc extends Bloc<ThreadEvent, ThreadState> {
         favId: state.favId,
       ));
     } catch (error) {
-      _logger.e('回复帖子错误', error);
+      _logger.e('[帖子] 回复出错', error);
+
+      if (error is DioError) {
+        emit(state.copyWith(
+          status: ThreadStatus.failure,
+          error: '网络异常, 回复失败',
+        ));
+      } else {
+        emit(state.copyWith(
+          status: ThreadStatus.failure,
+          error: error.toString(),
+        ));
+      }
     }
   }
 }

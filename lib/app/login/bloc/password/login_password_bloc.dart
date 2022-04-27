@@ -1,20 +1,24 @@
 import 'dart:typed_data';
 
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keylol_flutter/api/keylol_api.dart';
-import 'package:keylol_flutter/common/log.dart';
+import 'package:logger/logger.dart';
 
 part 'login_password_event.dart';
+
 part 'login_password_state.dart';
 
 class LoginPasswordBloc extends Bloc<LoginPasswordEvent, LoginPasswordState> {
-  final _logger = Log();
-  final KeylolApiClient client;
+  final _logger = Logger();
+
+  final KeylolApiClient _client;
 
   LoginPasswordBloc({
-    required this.client,
-  }) : super(LoginPasswordState(status: LoginPasswordStatus.initial)) {
+    required KeylolApiClient client,
+  })  : _client = client,
+        super(LoginPasswordState(status: LoginPasswordStatus.initial)) {
     on<LoginPasswordSubmitted>(_onSubmitted);
     on<LoginPasswordSecCodeLoaded>(_onSecCodeLoaded);
   }
@@ -26,14 +30,14 @@ class LoginPasswordBloc extends Bloc<LoginPasswordEvent, LoginPasswordState> {
     try {
       if (state.status == LoginPasswordStatus.initial ||
           state.status == LoginPasswordStatus.failure) {
-        final secCodeParam = await client.loginWithPassword(
+        final secCodeParam = await _client.loginWithPassword(
           username: event.username,
           password: event.password,
         );
         if (secCodeParam == null) {
           emit(state.copyWith(status: LoginPasswordStatus.success));
         } else {
-          final secCode = await client.fetchPasswordSecCode(
+          final secCode = await _client.fetchPasswordSecCode(
             update: secCodeParam.update,
             idHash: secCodeParam.getIdHash(),
           );
@@ -43,13 +47,12 @@ class LoginPasswordBloc extends Bloc<LoginPasswordEvent, LoginPasswordState> {
             secCode: secCode,
           ));
         }
-        return;
       } else {
         final secCodeParam = state.secCodeParam;
         if (secCodeParam == null || event.secCode == null) {
           return;
         }
-        await client.loginWithPasswordSecCode(
+        await _client.loginWithPasswordSecCode(
           auth: secCodeParam.auth,
           formHash: secCodeParam.formHash,
           loginHash: secCodeParam.loginHash,
@@ -59,8 +62,13 @@ class LoginPasswordBloc extends Bloc<LoginPasswordEvent, LoginPasswordState> {
         emit(state.copyWith(status: LoginPasswordStatus.success));
       }
     } catch (error) {
-      _logger.e('密码登录错误', error);
-      emit(state.copyWith(error: error.toString()));
+      _logger.e('[登录] 密码登录出错', error);
+
+      if (error is DioError) {
+        emit(state.copyWith(error: '网络异常, 登录失败'));
+      } else {
+        emit(state.copyWith(error: error.toString()));
+      }
     }
   }
 
@@ -73,7 +81,7 @@ class LoginPasswordBloc extends Bloc<LoginPasswordEvent, LoginPasswordState> {
       if (secCodeParam == null) {
         return;
       }
-      final secCode = await client.fetchPasswordSecCode(
+      final secCode = await _client.fetchPasswordSecCode(
         update: secCodeParam.update,
         idHash: secCodeParam.getIdHash(),
       );
@@ -83,8 +91,13 @@ class LoginPasswordBloc extends Bloc<LoginPasswordEvent, LoginPasswordState> {
         secCode: secCode,
       ));
     } catch (error) {
-      _logger.e('密码登录获取验证码错误', error);
-      emit(state.copyWith(error: error.toString()));
+      _logger.e('[登录] 密码登录获取验证吗出错', error);
+
+      if (error is DioError) {
+        emit(state.copyWith(error: '网络异常, 获取验证码失败'));
+      } else {
+        emit(state.copyWith(error: error.toString()));
+      }
     }
   }
 }

@@ -2,7 +2,7 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keylol_flutter/api/keylol_api.dart';
-import 'package:keylol_flutter/common/log.dart';
+import 'package:logger/logger.dart';
 import 'package:stream_transform/stream_transform.dart';
 
 part 'index_event.dart';
@@ -18,7 +18,7 @@ EventTransformer<E> throttleDroppable<E>(Duration duration) {
 }
 
 class IndexBloc extends Bloc<IndexEvent, IndexState> {
-  final _logger = Log();
+  final _logger = Logger();
   final KeylolApiClient _client;
 
   IndexBloc({
@@ -42,7 +42,8 @@ class IndexBloc extends Bloc<IndexEvent, IndexState> {
         index: index,
       ));
     } catch (error) {
-      _logger.e('获取首页内容出错', error);
+      _logger.e('[首页] 获取首页内容出错', error);
+
       emit(state.copyWith(status: IndexStatus.failure));
     }
   }

@@ -1,25 +1,23 @@
-import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:html/parser.dart';
-import 'package:keylol_flutter/api/models/thread.dart';
-import 'package:keylol_flutter/model/guide.dart';
+import 'package:keylol_flutter/api/keylol_api.dart';
+import 'package:logger/logger.dart';
 
-import '../../../common/log.dart';
+part 'guide_event.dart';
 
-part './guide_event.dart';
-
-part './guide_state.dart';
+part 'guide_state.dart';
 
 class GuideBloc extends Bloc<GuideEvent, GuideState> {
-  final _logger = Log();
-  final Dio client;
-  final String type;
+  final _logger = Logger();
+  final KeylolApiClient _client;
+  final String _type;
 
   GuideBloc({
-    required this.client,
-    required this.type,
-  }) : super(GuideState(status: GuideStatus.initial)) {
+    required KeylolApiClient client,
+    required String type,
+  })  : _client = client,
+        _type = type,
+        super(GuideState(status: GuideStatus.initial)) {
     on<GuideReloaded>(_onReloaded);
     on<GuideLoaded>(_onLoaded);
   }
@@ -29,7 +27,7 @@ class GuideBloc extends Bloc<GuideEvent, GuideState> {
     Emitter<GuideState> emit,
   ) async {
     try {
-      final guide = await _fetchGuide(page: 1);
+      final guide = await _client.fetchGuide(type: _type, page: 1);
       final totalPage = guide.totalPage;
       final threads = guide.threadList;
 
@@ -40,7 +38,8 @@ class GuideBloc extends Bloc<GuideEvent, GuideState> {
         hasReachedMax: 1 == totalPage,
       ));
     } catch (error) {
-      _logger.e('获取导读 $type 错误', error);
+      _logger.e('[导读] 获取 type: $_type 出错', error);
+
       emit(state.copyWith(status: GuideStatus.failure));
     }
   }
@@ -55,7 +54,7 @@ class GuideBloc extends Bloc<GuideEvent, GuideState> {
     try {
       final page = state.page + 1;
 
-      final guide = await _fetchGuide(page: page);
+      final guide = await _client.fetchGuide(type: _type, page: page);
       final totalPage = guide.totalPage;
       final threads = guide.threadList;
 
@@ -73,15 +72,9 @@ class GuideBloc extends Bloc<GuideEvent, GuideState> {
         hasReachedMax: page == totalPage,
       ));
     } catch (error) {
-      _logger.e('加载导读 $type 错误', error);
+      _logger.e('[导读] 加载 type: $_type 出错', error);
+
       emit(state.copyWith(status: GuideStatus.failure));
     }
-  }
-
-  Future<Guide> _fetchGuide({int page = 1}) async {
-    final res = await client.get('/forum.php',
-        queryParameters: {'mod': 'guide', 'view': type, 'page': page});
-    final document = parse(res.data);
-    return Guide.fromDocument(document);
   }
 }

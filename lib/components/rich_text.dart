@@ -3,14 +3,13 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html_unescape/html_unescape.dart';
-import 'package:keylol_flutter/api/models/view_thread.dart';
-import 'package:keylol_flutter/common/keylol_client.dart';
+import 'package:keylol_flutter/api/keylol_api.dart';
 import 'package:keylol_flutter/components/auto_resize_video_player.dart';
 import 'package:keylol_flutter/components/auto_resize_webview.dart';
-import 'package:keylol_flutter/model/attachment.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:video_player/video_player.dart';
 
@@ -676,7 +675,8 @@ class _PollState extends State<Poll> {
           child: Text('投票'),
           onPressed: () {
             if (pollAnswers.isNotEmpty) {
-              KeylolClient()
+              context
+                  .read<KeylolApiClient>()
                   .pollVote(widget.poll.tid!, pollAnswers)
                   .then((value) => widget.callback?.call());
             }
