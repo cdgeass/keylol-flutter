@@ -58,7 +58,7 @@ dependencies:
   stream_transform: ^2.0.0
   bloc_concurrency: ^0.2.0
   pull_to_refresh: ^2.0.0
-  flutter_markdown: ^0.6.9
+  flutter_cache_manager: ^3.3.0
 
 dev_dependencies:
   flutter_test:
