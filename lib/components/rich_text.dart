@@ -67,7 +67,7 @@ class KRichTextBuilder {
 
     // 附件
     if (!message.contains('attach') && attachments.isNotEmpty) {
-      for (var attachment in attachments.values) {
+      for (final attachment in attachments.values) {
         message +=
             '<br /><img src="${attachment.url + attachment.attachment}" />';
       }
@@ -75,6 +75,15 @@ class KRichTextBuilder {
       message = message
           .replaceAll('[attach]', '<attach>')
           .replaceAll('[/attach]', '</attach>');
+
+      // 附件可能缺失
+      for (final attachment in attachments.values) {
+        final attachmentStr = '<attach>${attachment.aid}</attach>';
+
+        if (!message.contains(attachmentStr)) {
+          message += attachmentStr;
+        }
+      }
     }
 
     // 倒计时
