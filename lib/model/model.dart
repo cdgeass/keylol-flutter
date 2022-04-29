@@ -1,1 +1,0 @@
-export '../api/models/fav_thread.dart';

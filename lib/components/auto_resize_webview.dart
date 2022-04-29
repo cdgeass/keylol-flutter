@@ -28,7 +28,8 @@ class _AutoResizeWebViewState extends State<AutoResizeWebView>
     if (url.startsWith('https://store.steampowered.com/widget')) {
       _height = 73.0;
     } else if (url.startsWith('https://player.bilibili.com/player.html')) {
-      _height = 200.0;
+      final width = MediaQuery.of(context).size.width;
+      _height = (width / 1280.0) * 720.0;
     } else if (url.startsWith('https://music.163.com/outchain/player')) {
       url = url.replaceAllMapped(RegExp(r'height=(\d+)'), (match) {
         return 'height=70';
@@ -49,7 +50,7 @@ class _AutoResizeWebViewState extends State<AutoResizeWebView>
             return;
           }
           final scrollHeight = await controller.evaluateJavascript(
-              source: 'document.body.scrollHeight');
+              source: 'document.body.scrollHeight') as double?;
           if (scrollHeight != null) {
             final height = scrollHeight.ceilToDouble();
             setState(() {

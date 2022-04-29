@@ -3,20 +3,24 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:keylol_flutter/api/keylol_api.dart';
+import 'package:logger/logger.dart';
 
 part 'space_reply_event.dart';
 
 part 'space_reply_state.dart';
 
 class SpaceReplyBloc extends Bloc<SpaceReplyEvent, SpaceReplyState> {
-  final KeylolApiClient client;
+  final _logger = Logger();
+  final KeylolApiClient _client;
 
-  final String uid;
+  final String _uid;
 
   SpaceReplyBloc({
-    required this.client,
-    required this.uid,
-  }) : super(SpaceReplyState(status: SpaceReplyStatus.initial)) {
+    required KeylolApiClient client,
+    required String uid,
+  })  : _client = client,
+        _uid = uid,
+        super(SpaceReplyState(status: SpaceReplyStatus.initial)) {
     on<SpaceReplyReloaded>(_onReloaded);
     on<SpaceReplyLoaded>(_onLoaded);
   }
@@ -28,7 +32,7 @@ class SpaceReplyBloc extends Bloc<SpaceReplyEvent, SpaceReplyState> {
     try {
       final int page = 0;
 
-      final spaceReply = await client.fetchSpaceReply(uid, page: page);
+      final spaceReply = await _client.fetchSpaceReply(_uid, page: page);
 
       final replies = spaceReply.replyList;
       final hasReachedMax = replies.isEmpty;
@@ -39,7 +43,9 @@ class SpaceReplyBloc extends Bloc<SpaceReplyEvent, SpaceReplyState> {
         replies: replies,
         hasReachedMax: hasReachedMax,
       ));
-    } catch (error) {}
+    } catch (error) {
+      _logger.e('[空间] 获取用户 $_uid 回复出错', error);
+    }
   }
 
   Future<void> _onLoaded(
@@ -49,7 +55,7 @@ class SpaceReplyBloc extends Bloc<SpaceReplyEvent, SpaceReplyState> {
     try {
       final page = state.page + 1;
 
-      final spaceReply = await client.fetchSpaceReply(uid, page: page);
+      final spaceReply = await _client.fetchSpaceReply(_uid, page: page);
 
       final replies = spaceReply.replyList;
       final hasReachedMax = replies.isEmpty;
@@ -67,6 +73,8 @@ class SpaceReplyBloc extends Bloc<SpaceReplyEvent, SpaceReplyState> {
         replies: finalReplies,
         hasReachedMax: hasReachedMax,
       ));
-    } catch (error) {}
+    } catch (error) {
+      _logger.e('[空间] 加载用户 $_uid 回复出错', error);
+    }
   }
 }

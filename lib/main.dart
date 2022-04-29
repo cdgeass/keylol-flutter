@@ -4,7 +4,6 @@ import 'package:keylol_flutter/api/keylol_api.dart';
 import 'package:keylol_flutter/app/app.dart';
 import 'package:keylol_flutter/repository/notice_repository.dart';
 import 'package:keylol_flutter/repository/profile_repository.dart';
-import 'package:logger/logger.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,15 +20,5 @@ void main() async {
       profileRepository: profileRepository,
       noticeRepository: noticeRepository,
     )),
-    blocObserver: SimpleObserver(),
   );
-}
-
-class SimpleObserver extends BlocObserver {
-  @override
-  void onChange(BlocBase bloc, Change change) {
-    super.onChange(bloc, change);
-
-    Logger().d('${bloc.runtimeType} $change');
-  }
 }

@@ -27,8 +27,8 @@ class _AutoResizeVideoPlayerState extends State<AutoResizeVideoPlayer>
         _chewieController = ChewieController(
             videoPlayerController: _controller, allowFullScreen: false);
         setState(() {
-          final mWidth = MediaQuery.of(context).size.width;
-          _height = (mWidth / _controller.value.size.width) *
+          final width = MediaQuery.of(context).size.width;
+          _height = (width / _controller.value.size.width) *
               _controller.value.size.height;
         });
       });

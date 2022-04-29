@@ -3,30 +3,34 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:keylol_flutter/api/keylol_api.dart';
+import 'package:logger/logger.dart';
 
 part 'space_friend_event.dart';
 
 part 'space_friend_state.dart';
 
 class SpaceFriendBloc extends Bloc<SpaceFriendEvent, SpaceFriendState> {
-  final KeylolApiClient client;
+  final _logger = Logger();
+  final KeylolApiClient _client;
 
-  final String uid;
+  final String _uid;
 
   SpaceFriendBloc({
-    required this.client,
-    required this.uid,
-  }) : super(SpaceFriendState(status: SpaceFriendStatus.initial)) {
+    required KeylolApiClient client,
+    required String uid,
+  })  : _client = client,
+        _uid = uid,
+        super(SpaceFriendState(status: SpaceFriendStatus.initial)) {
     on<SpaceFriendReloaded>(_onReloaded);
     on<SpaceFriendLoaded>(_onLoaded);
   }
- 
+
   Future<void> _onReloaded(
     SpaceFriendEvent event,
     Emitter<SpaceFriendState> emit,
   ) async {
     try {
-      final spaceFriend = await client.fetchFriend(uid);
+      final spaceFriend = await _client.fetchFriend(_uid);
 
       final friends = spaceFriend.friendList;
       final hasReachedMax = spaceFriend.count == friends.length;
@@ -38,18 +42,21 @@ class SpaceFriendBloc extends Bloc<SpaceFriendEvent, SpaceFriendState> {
         hasReachedMax: hasReachedMax,
       ));
     } catch (error) {
-
+      _logger.e('[空间] 获取用户 $_uid 好友出错', error);
     }
   }
 
-  Future<void> _onLoaded(SpaceFriendEvent event, Emitter<SpaceFriendState> emit,) async {
+  Future<void> _onLoaded(
+    SpaceFriendEvent event,
+    Emitter<SpaceFriendState> emit,
+  ) async {
     if (state.hasReachedMax) {
       return;
     }
     try {
       final page = state.page + 1;
 
-      final spaceFriend = await client.fetchFriend(uid, page: page);
+      final spaceFriend = await _client.fetchFriend(_uid, page: page);
 
       final friends = spaceFriend.friendList;
       if (friends.isEmpty) {
@@ -75,7 +82,7 @@ class SpaceFriendBloc extends Bloc<SpaceFriendEvent, SpaceFriendState> {
         ));
       }
     } catch (error) {
-
+      _logger.e('[空间] 加载用户 $_uid 好友出错', error);
     }
   }
 }
