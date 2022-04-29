@@ -31,7 +31,7 @@ class LoginSmsView extends StatelessWidget {
       },
       builder: (context, state) {
         return Form(
-          child: Column(
+          child: ListView(
             children: [
               // 手机号
               CellphoneInput(cellphoneController: _cellphoneController),

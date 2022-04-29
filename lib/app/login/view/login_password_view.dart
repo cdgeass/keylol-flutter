@@ -33,7 +33,7 @@ class LoginPasswordView extends StatelessWidget {
       builder: (context, state) {
         return AutofillGroup(
           child: Form(
-            child: Column(
+            child: ListView(
               children: [
                 UsernameInput(usernameController: _usernameController),
                 PasswordInput(passwordController: _passwordController),
