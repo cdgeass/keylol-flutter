@@ -44,9 +44,13 @@ class ThreadBloc extends Bloc<ThreadEvent, ThreadState> {
       final hasReachedMax = posts.length == thread.replies + 1;
 
       final threadPost = posts[0];
-      final threadWidgets = KRichTextBuilder(threadPost.message,
-              attachments: threadPost.attachments, poll: viewThread.specialPoll)
-          .splitBuild();
+      final threadWidgets = KRichTextBuilder(
+        threadPost.message,
+        attachments: threadPost.attachments,
+        poll: viewThread.specialPoll,
+        pollFallback: (context) =>
+            context.read<ThreadBloc>().add(ThreadReloaded()),
+      ).splitBuild();
 
       String? favId;
       try {
@@ -84,10 +88,15 @@ class ThreadBloc extends Bloc<ThreadEvent, ThreadState> {
       _logger.e('[帖子] 获取帖子出错', error);
 
       if (error is DioError) {
-        emit(state.copyWith(status: ThreadStatus.failure, error: '网络异常, 加载失败'));
+        emit(state.copyWith(
+          status: ThreadStatus.failure,
+          hasReachedMax: true,
+          error: '网络异常, 加载失败',
+        ));
       } else {
         emit(state.copyWith(
           status: ThreadStatus.failure,
+          hasReachedMax: true,
           error: error.toString(),
         ));
       }
@@ -132,11 +141,13 @@ class ThreadBloc extends Bloc<ThreadEvent, ThreadState> {
       if (error is DioError) {
         emit(state.copyWith(
           status: ThreadStatus.failure,
+          hasReachedMax: true,
           error: '网络异常, 加载失败',
         ));
       } else {
         emit(state.copyWith(
           status: ThreadStatus.failure,
+          hasReachedMax: true,
           error: error.toString(),
         ));
       }

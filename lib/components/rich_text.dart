@@ -14,7 +14,7 @@ import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:video_player/video_player.dart';
 
 typedef ScrollToFunction = void Function(String pid);
-typedef PollFallback = void Function();
+typedef PollFallback = void Function(BuildContext context);
 
 class KRichTextBuilder {
   final String message;
@@ -690,7 +690,7 @@ class _PollState extends State<Poll> {
               context
                   .read<KeylolApiClient>()
                   .pollVote(widget.poll.tid!, pollAnswers)
-                  .then((value) => widget.callback?.call());
+                  .then((value) => widget.callback?.call(context));
             }
           },
         ),

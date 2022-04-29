@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:keylol_flutter/common/constants.dart';
+import 'package:logger/logger.dart';
 
 enum AvatarSize {
   small,
@@ -45,7 +46,7 @@ class Avatar extends StatelessWidget {
         future: _isSvg(avatarUrl),
         builder: (context, AsyncSnapshot<bool> snapshot) {
           late Widget avatar;
-          if (snapshot.hasData) {
+          if (snapshot.connectionState == ConnectionState.done) {
             if (!snapshot.data!) {
               avatar = CachedNetworkImage(
                 width: width,
@@ -90,6 +91,10 @@ class Avatar extends StatelessWidget {
   Future<bool> _isSvg(avatarUrl) async {
     final file = await DefaultCacheManager().getFileFromCache(avatarUrl);
     if (file != null) {
+      if (file.file.path.endsWith('.svg')) {
+        await DefaultCacheManager().removeFile(avatarUrl);
+        return true;
+      }
       return false;
     }
 
