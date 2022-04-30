@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:keylol_flutter/api/keylol_api.dart';
+import 'package:keylol_flutter/app/history/view/view.dart';
 import 'package:keylol_flutter/app/notice/bloc/notice_count_bloc.dart';
 import 'package:keylol_flutter/app/notice/view/notice_page.dart';
 import 'package:keylol_flutter/app/space/view/space_list_page.dart';
 import 'package:keylol_flutter/app/space/view/space_page.dart';
 import 'package:keylol_flutter/app/thread/view/view.dart';
+import 'package:keylol_flutter/repository/history_repository.dart';
 import 'package:keylol_flutter/repository/repository.dart';
 import 'package:keylol_flutter/theme/cubit/theme_cubit.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -22,15 +24,18 @@ class KeylolApp extends StatelessWidget {
   final KeylolApiClient _client;
   final ProfileRepository _profileRepository;
   final NoticeRepository _noticeRepository;
+  final HistoryRepository _historyRepository;
 
   const KeylolApp({
     Key? key,
     required KeylolApiClient client,
     required ProfileRepository profileRepository,
     required NoticeRepository noticeRepository,
+    required HistoryRepository historyRepository,
   })  : _client = client,
         _profileRepository = profileRepository,
         _noticeRepository = noticeRepository,
+        _historyRepository = historyRepository,
         super(key: key);
 
   @override
@@ -40,6 +45,7 @@ class KeylolApp extends StatelessWidget {
         RepositoryProvider.value(value: _client),
         RepositoryProvider.value(value: _profileRepository),
         RepositoryProvider.value(value: _noticeRepository),
+        RepositoryProvider.value(value: _historyRepository),
         RepositoryProvider<FavThreadRepository>(
           create: (_) => FavThreadRepository(client: _client)..load(),
         )
@@ -82,6 +88,7 @@ class KeylolAppView extends StatelessWidget {
                   .add(NoticeCountUpdated(EMPTY_NOTICE));
               return NoticePage();
             },
+            '/history': (context) => HistoryPage(),
             '/login': (context) => LoginPage(),
             '/thread': (context) {
               final arguments =

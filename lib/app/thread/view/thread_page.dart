@@ -5,6 +5,7 @@ import 'package:keylol_flutter/app/thread/bloc/thread_bloc.dart';
 import 'package:keylol_flutter/components/avatar.dart';
 import 'package:keylol_flutter/components/rich_text.dart';
 import 'package:keylol_flutter/repository/fav_thread_repository.dart';
+import 'package:keylol_flutter/repository/history_repository.dart';
 import 'package:scroll_to_index/scroll_to_index.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -121,6 +122,9 @@ class _ThreadPageViewState extends State<ThreadPageView> {
         final threadIndex = authorIndex + state.threadWidgets.length;
         final threadActionsIndex = threadIndex + 1;
         final postsIndex = threadActionsIndex + state.posts.length - 1;
+
+        // 记录浏览历史
+        context.read<HistoryRepository>().insertHistory(state.thread!);
 
         return Scaffold(
           floatingActionButton: FloatingActionButton(

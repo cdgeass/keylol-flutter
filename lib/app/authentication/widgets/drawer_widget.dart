@@ -102,6 +102,14 @@ class DrawerWidget extends StatelessWidget {
           },
         );
 
+        final history = ListTile(
+          leading: Icon(Icons.history),
+          title: Text('历史'),
+          onTap: () {
+            Navigator.of(context).pushNamed('/history');
+          },
+        );
+
         return Drawer(
           child: ListView(
             children: [
@@ -111,6 +119,7 @@ class DrawerWidget extends StatelessWidget {
               forumIndex,
               favThread,
               notice,
+              history,
               login,
             ],
           ),
