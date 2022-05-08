@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:keylol_flutter/app/index/bloc/index_bloc.dart';
+import 'package:keylol_flutter/components/searchable_app_bar.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../notice/widgets/widgets.dart';
 
@@ -24,7 +28,7 @@ class IndexAppBar extends SliverPersistentHeaderDelegate {
 
     final title = toolbarOpacity == 0.0 ? Text('聚焦') : null;
 
-    return AppBar(
+    return SearchableAppBar(
       leading: NoticeLeading(),
       title: title,
       centerTitle: true,
@@ -43,6 +47,14 @@ class IndexAppBar extends SliverPersistentHeaderDelegate {
         ),
       ),
       bottom: tabBar,
+      callback: (text) {
+        Navigator.of(context).pushNamed(
+          '/webView',
+          arguments:
+              'https://www.google.com/search?q=site:keylol.com+${text.replaceAll(' ', '+')}',
+        );
+      },
+      isClearAfterCallback: true,
     );
   }
 

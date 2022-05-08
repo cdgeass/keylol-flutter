@@ -5,9 +5,13 @@ abstract class HistoryEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class HistoryReloaded extends HistoryEvent {}
+class HistoryReloaded extends HistoryEvent {
+  final String? text;
 
-class HistoryDeleted extends  HistoryEvent {
+  HistoryReloaded([this.text]);
+}
+
+class HistoryDeleted extends HistoryEvent {
   final String tid;
 
   HistoryDeleted(this.tid);

@@ -33,10 +33,15 @@ class HistoryRepository {
     );
   }
 
-  Future<List<Thread>> histories() async {
+  Future<List<Thread>> histories({String? text}) async {
     final db = await _database;
 
-    final list = await db.query('history', orderBy: 'rowId DESC');
+    final list = await db.query(
+      'history',
+      where: text != null ? 'subject LIKE ?' : null,
+      whereArgs: text != null ? ['%$text%'] : null,
+      orderBy: 'rowId DESC',
+    );
 
     return List.generate(
       list.length,

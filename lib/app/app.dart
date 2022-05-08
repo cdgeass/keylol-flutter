@@ -127,7 +127,7 @@ class KeylolAppView extends StatelessWidget {
                           PopupMenuItem(
                             child: Text('在浏览器中打开'),
                             onTap: () {
-                              launch(uri);
+                              launchUrl(Uri.parse(uri));
                             },
                           )
                         ];

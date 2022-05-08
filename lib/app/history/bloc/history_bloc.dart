@@ -25,7 +25,7 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
     Emitter<HistoryState> emit,
   ) async {
     try {
-      final threads = await _historyRepository.histories();
+      final threads = await _historyRepository.histories(text: event.text);
 
       emit(state.copyWith(
         status: HistoryStatus.success,
@@ -33,7 +33,7 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
       ));
     } catch (error) {
       _logger.e('[历史] 获取历史出错', error);
-     
+
       emit(state.copyWith(status: HistoryStatus.failure));
     }
   }

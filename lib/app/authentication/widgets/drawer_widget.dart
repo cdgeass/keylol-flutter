@@ -110,18 +110,29 @@ class DrawerWidget extends StatelessWidget {
           },
         );
 
+        final menuItems = [
+          header,
+          index,
+          guide,
+          forumIndex,
+          favThread,
+          notice,
+          history,
+          login,
+        ];
+
         return Drawer(
           child: ListView(
             children: [
-              header,
-              index,
-              guide,
-              forumIndex,
-              favThread,
-              notice,
-              history,
-              login,
-            ],
+              for (final menuItem in menuItems)
+                LongPressDraggable(
+                  child: menuItem,
+                  feedback: menuItem,
+                  onDragCompleted: () {
+
+                  },
+                ),
+            ]
           ),
         );
       },
