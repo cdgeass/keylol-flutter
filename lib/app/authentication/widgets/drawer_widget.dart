@@ -23,8 +23,11 @@ class DrawerWidget extends StatelessWidget {
             // 登录/退出
             late Widget login;
 
+            late double height;
+
             switch (state.status) {
               case AuthenticationStatus.unauthenticated:
+                height = 224.0;
                 header = UserAccountsDrawerHeader(
                   accountName: Text('尚未登录'),
                   accountEmail: null,
@@ -40,8 +43,8 @@ class DrawerWidget extends StatelessWidget {
                 );
                 break;
               case AuthenticationStatus.authenticated:
+                height = 336.0;
                 final profile = state.profile!;
-
                 header = UserAccountsDrawerHeader(
                   currentAccountPicture: Avatar(
                     uid: profile.memberUid!,
@@ -120,39 +123,47 @@ class DrawerWidget extends StatelessWidget {
               'favThread': favThread,
               'notice': notice,
               'history': history,
-              'login': login,
             };
 
             return Drawer(
-              child: ReorderableListView(
-                header: header,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  for (final menu in menus)
-                    Container(
-                      key: ValueKey(menuMap[menu]),
-                      child: menuMap[menu],
-                    )
+                  header,
+                  Container(
+                    height: height,
+                    child: ReorderableListView(
+                      children: [
+                        for (final menu in menus)
+                          Container(
+                            key: ValueKey(menuMap[menu]),
+                            child: menuMap[menu],
+                          )
+                      ],
+                      onReorder: (int oldIndex, int newIndex) {
+                        final oldMenu = menus[oldIndex];
+
+                        final beforeMenus = menus
+                            .sublist(0, newIndex)
+                            .where((e) => e != oldMenu)
+                            .toList();
+                        final afterMenus = menus
+                            .sublist(newIndex)
+                            .where((e) => e != oldMenu)
+                            .toList();
+
+                        final newMenus = [
+                          for (final beforeMenu in beforeMenus) beforeMenu,
+                          oldMenu,
+                          for (final afterMenu in afterMenus) afterMenu
+                        ];
+
+                        context.read<MenuCubit>().updateMenus(newMenus);
+                      },
+                    ),
+                  ),
+                  login,
                 ],
-                onReorder: (int oldIndex, int newIndex) {
-                  final oldMenu = menus[oldIndex];
-
-                  final beforeMenus = menus
-                      .sublist(0, newIndex)
-                      .where((e) => e != oldMenu)
-                      .toList();
-                  final afterMenus = menus
-                      .sublist(newIndex)
-                      .where((e) => e != oldMenu)
-                      .toList();
-
-                  final newMenus = [
-                    for (final beforeMenu in beforeMenus) beforeMenu,
-                    oldMenu,
-                    for (final afterMenu in afterMenus) afterMenu
-                  ];
-                 
-                  context.read<MenuCubit>().updateMenus(newMenus);
-                },
               ),
             );
           },

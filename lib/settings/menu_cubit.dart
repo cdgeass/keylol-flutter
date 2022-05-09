@@ -9,7 +9,6 @@ class MenuCubit extends Cubit<List<String>> {
     'favThread',
     'notice',
     'history',
-    'login'
   ];
 
   final SettingsRepository _settingsRepository;
