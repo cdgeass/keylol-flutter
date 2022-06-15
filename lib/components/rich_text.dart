@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,6 +7,7 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html_unescape/html_unescape.dart';
 import 'package:keylol_flutter/api/keylol_api.dart';
+import 'package:keylol_flutter/common/url_utils.dart';
 import 'package:keylol_flutter/components/auto_resize_video_player.dart';
 import 'package:keylol_flutter/components/auto_resize_webview.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
@@ -66,24 +66,19 @@ class KRichTextBuilder {
         .replaceAll('[/media]', '"></video>');
 
     // 附件
-    if (!message.contains('attach') && attachments.isNotEmpty) {
-      for (final attachment in attachments.values) {
-        message +=
-            '<br /><img src="${attachment.url + attachment.attachment}" />';
+    message =
+        message.replaceAllMapped(RegExp(r'\[attach](\d*)\[/attach]'), (match) {
+      final aid = match[1];
+      final attachment = attachments[aid];
+      if (attachment != null) {
+        attachments.remove(aid);
+        return '<img src="${attachment.url + attachment.attachment}" />';
       }
-    } else {
-      message = message
-          .replaceAll('[attach]', '<attach>')
-          .replaceAll('[/attach]', '</attach>');
-
-      // 附件可能缺失
-      for (final attachment in attachments.values) {
-        final attachmentStr = '<attach>${attachment.aid}</attach>';
-
-        if (!message.contains(attachmentStr)) {
-          message += attachmentStr;
-        }
-      }
+      return '';
+    });
+    // 附件可能缺失
+    for (final attachment in attachments.values) {
+      message += '\n<img src="${attachment.url + attachment.attachment}" />';
     }
 
     // 倒计时
@@ -94,6 +89,9 @@ class KRichTextBuilder {
 
     // 使用 https
     message = message.replaceAll('http://', 'https://');
+
+    // TODO br 会导致高度计算异常
+    // message = message.replaceAll('<br />', '\n');
 
     return message;
   }
@@ -244,37 +242,32 @@ class _KRichTextState extends State<KRichText> {
     return Html(
         data: widget.message,
         onLinkTap: (url, _, attributes, element) {
-          if (url != null && url.startsWith('https://keylol.com/')) {
-            url = HtmlUnescape().convert(url);
-            final subUrl = url.replaceFirst('https://keylol.com/', '');
-            if (subUrl.contains('findpost')) {
-              final params = url.split('?')[1].split('&');
-              late String pid;
-              for (var param in params) {
-                if (param.startsWith('pid=')) {
-                  pid = param.replaceAll('pid=', '');
-                  break;
-                }
+          url = HtmlUnescape().convert(url ?? '');
+          final subUrl = url.replaceFirst('https://keylol.com/', '');
+          if (subUrl.contains('findpost')) {
+            // 帖子内楼层跳转
+            final params = url.split('?')[1].split('&');
+            late String pid;
+            for (var param in params) {
+              if (param.startsWith('pid=')) {
+                pid = param.replaceAll('pid=', '');
+                break;
               }
-              widget.scrollTo?.call(pid);
-            } else if (subUrl.startsWith('t') && subUrl.endsWith('-1')) {
-              final tid = subUrl.split('-')[0].replaceFirst('t', '');
-              Navigator.of(context).pushNamed(
-                '/thread',
-                arguments: {'tid': tid},
-              );
-            } else if (subUrl.startsWith('f') && subUrl.endsWith('-1')) {
-              final fid = subUrl.split('-')[0].replaceFirst('f', '');
-              Navigator.of(context).pushNamed('/forum', arguments: fid);
+            }
+            widget.scrollTo?.call(pid);
+          } else {
+            final resolveResult = UrlUtils.resolveUrl(url);
+            if (resolveResult.isNotEmpty) {
+              final router = resolveResult['router'];
+              final arguments = resolveResult['arguments'];
+              Navigator.of(context).pushNamed(router, arguments: arguments);
             } else {
               Navigator.of(context).pushNamed('/webView', arguments: url);
             }
-          } else {
-            Navigator.of(context).pushNamed('/webView', arguments: url);
           }
         },
         tagsList: Html.tags
-          ..addAll(['collapse', 'spoil', 'countdown', 'attach', 'blockquote']),
+          ..addAll(['collapse', 'spoil', 'countdown', 'blockquote']),
         customRender: {
           'iframe': (context, child) {
             final src = context.tree.element!.attributes['src'];
@@ -322,22 +315,6 @@ class _KRichTextState extends State<KRichText> {
                 message: message,
                 attachments: widget.attachments);
           },
-          'attach': (context, child) {
-            final attachmentId = context.tree.element!.innerHtml;
-
-            final attachment = widget.attachments[attachmentId];
-            if (attachment == null) {
-              return Container();
-            }
-
-            return Container(
-                padding: EdgeInsets.only(bottom: 8.0),
-                child: CachedNetworkImage(
-                    placeholder: (context, url) => CircularProgressIndicator(),
-                    errorWidget: (context, url, error) =>
-                        CircularProgressIndicator(),
-                    imageUrl: attachment.url + attachment.attachment));
-          },
           'countdown': (context, child) {
             final date = context.tree.element!.text;
 
@@ -345,6 +322,7 @@ class _KRichTextState extends State<KRichText> {
           },
           'blockquote': (context, child) {
             return Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
                   children: [

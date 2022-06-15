@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:keylol_flutter/api/keylol_api.dart';
 import 'package:keylol_flutter/app/history/view/view.dart';
 import 'package:keylol_flutter/app/notice/bloc/notice_count_bloc.dart';
@@ -8,9 +7,9 @@ import 'package:keylol_flutter/app/notice/view/notice_page.dart';
 import 'package:keylol_flutter/app/space/view/space_list_page.dart';
 import 'package:keylol_flutter/app/space/view/space_page.dart';
 import 'package:keylol_flutter/app/thread/view/view.dart';
+import 'package:keylol_flutter/components/custom_webview.dart';
 import 'package:keylol_flutter/repository/repository.dart';
 import 'package:keylol_flutter/settings/settings.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'authentication/authentication.dart';
 import 'fav/view/view.dart';
@@ -86,12 +85,16 @@ class KeylolAppView extends StatelessWidget {
         return BlocBuilder<ThemeCubit, Color>(
           builder: (context, color) {
             return MaterialApp(
-              theme: ThemeData(colorSchemeSeed: color, useMaterial3: true),
+              theme: ThemeData(colorSchemeSeed: color),
               darkTheme: ThemeData.dark(),
               routes: {
                 '/index': (context) => IndexPage(),
                 '/guide': (context) => GuidePage(),
-                '/forum': (context) => ForumIndexPage(),
+                '/forumIndex': (context) => ForumIndexPage(),
+                '/forum': (context) {
+                  final fid = ModalRoute.of(context)!.settings.arguments as String;
+                  return ForumPage(fid: fid);
+                },
                 '/notice': (context) {
                   context
                       .read<NoticeCountBloc>()
@@ -132,28 +135,7 @@ class KeylolAppView extends StatelessWidget {
                 '/webView': (context) {
                   final uri =
                       ModalRoute.of(context)!.settings.arguments as String;
-                  return Scaffold(
-                    appBar: AppBar(
-                      actions: [
-                        PopupMenuButton(
-                          icon: Icon(Icons.more_vert_outlined),
-                          itemBuilder: (context) {
-                            return [
-                              PopupMenuItem(
-                                child: Text('在浏览器中打开'),
-                                onTap: () {
-                                  launchUrl(Uri.parse(uri));
-                                },
-                              )
-                            ];
-                          },
-                        )
-                      ],
-                    ),
-                    body: InAppWebView(
-                      initialUrlRequest: URLRequest(url: Uri.parse(uri)),
-                    ),
-                  );
+                  return CustomWebView(uri: uri);
                 }
               },
               initialRoute: '/${menus[0]}',

@@ -104,7 +104,7 @@ class DrawerWidget extends StatelessWidget {
               leading: Icon(Icons.dashboard),
               title: Text('版块'),
               onTap: () {
-                Navigator.of(context).pushNamed('/forum');
+                Navigator.of(context).pushNamed('/forumIndex');
               },
             );
 

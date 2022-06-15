@@ -72,12 +72,8 @@ class ForumIndexPage extends StatelessWidget {
                                       ? null
                                       : Text(forum.description!),
                                   onTap: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            ForumPage(fid: forum.fid),
-                                      ),
-                                    );
+                                    Navigator.of(context).pushNamed('/forum',
+                                        arguments: forum.fid);
                                   },
                                 ),
                             ],

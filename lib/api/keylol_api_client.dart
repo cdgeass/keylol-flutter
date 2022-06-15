@@ -309,7 +309,7 @@ class KeylolApiClient {
           'formhash': _profileRepository.profile?.formHash,
           'message': message,
           'noticetrimstr':
-              '[quote][size=2][url=forum.php?mod=redirect&goto=findpost&pid=${post.pid}&ptid=${post.tid}][color=#999999]${post.author} 发表于 ${dateTime.year}-${dateTime.month}-${dateTime.day} ${dateTime.hour}:${dateTime.minute}[/color][/url][/size]${post.pureMessage()}[/quote]',
+              '[quote][size=2][url=forum.php?mod=redirect&goto=findpost&pid=${post.pid}&ptid=${post.tid}][color=#999999]${post.author} 发表于 ${dateTime.year}-${dateTime.month}-${dateTime.day} ${dateTime.hour}:${dateTime.minute}[/color][/url][/size]<br/>${post.pureMessage()}[/quote]',
           'posttime': '${dateTime.millisecondsSinceEpoch}',
           'usesig': 1,
           for (final aid in aids) 'attachnew[$aid][description]': aid,
