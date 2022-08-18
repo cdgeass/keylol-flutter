@@ -249,12 +249,12 @@ class KeylolApiClient {
   }
 
   // 图片上传
-  Future<String> fileUpload(XFile image) async {
+  Future<String> fileUpload(String uid, XFile image) async {
     return await checkPost().then((allowPerm) async {
       final res = await _dio.post('/api/mobile/index.php',
           queryParameters: {'module': 'forumupload', 'type': 'image'},
           data: FormData.fromMap({
-            // 'uid': ProfileProvider().profile!.memberUid,
+            'uid': uid,
             'hash': allowPerm.uploadHash,
             'Filedata':
             await MultipartFile.fromFile(image.path, filename: image.name)

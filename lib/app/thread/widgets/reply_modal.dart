@@ -6,6 +6,7 @@ import 'package:keylol_flutter/api/keylol_api.dart';
 import 'package:keylol_flutter/app/thread/bloc/thread_bloc.dart';
 import 'package:keylol_flutter/common/constants.dart';
 import 'package:keylol_flutter/components/sliver_tab_bar_delegate.dart';
+import 'package:keylol_flutter/repository/repository.dart';
 
 typedef ReplyCallback = void Function();
 
@@ -119,7 +120,16 @@ class _ReplyModalState extends State<ReplyModal> {
                           await picker.pickImage(source: ImageSource.gallery);
 
                       if (image != null) {
-                        final aid = await context.read<KeylolApiClient>().fileUpload(image);
+                        final uid = context
+                            .read<ProfileRepository>()
+                            .profile
+                            ?.memberUid;
+                        if (uid == null) {
+                          return;
+                        }
+                        final aid = await context
+                            .read<KeylolApiClient>()
+                            .fileUpload(uid, image);
                         _insertText('[attachimg]$aid[/attachimg]');
                         _aidList.add(aid);
                       }
