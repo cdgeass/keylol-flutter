@@ -127,6 +127,9 @@ class _ThreadPageViewState extends State<ThreadPageView> {
         context.read<HistoryRepository>().insertHistory(state.thread!);
 
         return Scaffold(
+          appBar: AppBar(
+            title: Text(state.thread!.subject),
+          ),
           floatingActionButton: FloatingActionButton(
               child: Icon(Icons.add),
               onPressed: () {
@@ -138,42 +141,25 @@ class _ThreadPageViewState extends State<ThreadPageView> {
             onRefresh: () async {
               context.read<ThreadBloc>().add(ThreadReloaded());
             },
-            child: CustomScrollView(
+            child: ListView.builder(
               controller: _controller,
-              slivers: [
-                SliverPersistentHeader(
-                  pinned: true,
-                  delegate: ThreadAppBar(
-                    thread: state.thread!,
-                    textStyle: Theme.of(context).textTheme.headline6!,
-                    width: MediaQuery.of(context).size.width,
-                    favId: state.favId,
-                    topPadding: MediaQuery.of(context).padding.top,
+              itemBuilder: (context, index) {
+                return AutoScrollTag(
+                  key: ValueKey(index),
+                  controller: _controller,
+                  index: index,
+                  child: _getListItem(
+                    index,
+                    authorIndex,
+                    threadIndex,
+                    threadActionsIndex,
+                    postsIndex,
+                    context,
+                    state,
                   ),
-                ),
-                SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      return AutoScrollTag(
-                        key: ValueKey(index),
-                        controller: _controller,
-                        index: index,
-                        child: _getListItem(
-                          index,
-                          authorIndex,
-                          threadIndex,
-                          threadActionsIndex,
-                          postsIndex,
-                          context,
-                          state,
-                        ),
-                      );
-                    },
-                    childCount:
-                        state.threadWidgets.length + 2 + state.posts.length,
-                  ),
-                ),
-              ],
+                );
+              },
+              itemCount: state.threadWidgets.length + 2 + state.posts.length,
             ),
           ),
         );

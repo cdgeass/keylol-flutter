@@ -33,7 +33,9 @@ class KRichTextBuilder {
             _formatMessage(HtmlUnescape().convert(message).trim(), attachments);
 
   static String _formatMessage(
-      String message, Map<String, Attachment> attachments) {
+    String message,
+    Map<String, Attachment> attachments,
+  ) {
     if (message.isEmpty) {
       return message;
     }
@@ -65,6 +67,10 @@ class KRichTextBuilder {
         .replaceAll('[media]', '<video src="')
         .replaceAll('[/media]', '"></video>');
 
+    final tempAttachments = {};
+    attachments.forEach((key, value) {
+      tempAttachments[key] = value;
+    });
     // 附件
     message =
         message.replaceAllMapped(RegExp(r'\[attach](\d*)\[/attach]'), (match) {
