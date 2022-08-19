@@ -75,15 +75,15 @@ class KRichTextBuilder {
     message =
         message.replaceAllMapped(RegExp(r'\[attach](\d*)\[/attach]'), (match) {
       final aid = match[1];
-      final attachment = attachments[aid];
+      final attachment = tempAttachments[aid];
       if (attachment != null) {
-        attachments.remove(aid);
+        tempAttachments.remove(aid);
         return '<img src="${attachment.url + attachment.attachment}" />';
       }
       return '';
     });
     // 附件可能缺失
-    for (final attachment in attachments.values) {
+    for (final attachment in tempAttachments.values) {
       message += '\n<img src="${attachment.url + attachment.attachment}" />';
     }
 
