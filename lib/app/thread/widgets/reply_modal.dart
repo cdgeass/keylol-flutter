@@ -82,11 +82,15 @@ class _ReplyModalState extends State<ReplyModal> {
             child: TextField(
               controller: _controller,
               keyboardType: TextInputType.multiline,
+              cursorColor: Theme.of(context).primaryColor,
               decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(4.0)),
-                      borderSide:
-                          BorderSide(color: Theme.of(context).primaryColor))),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(4.0)),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).primaryColor,
+                  ),
+                ),
+              ),
               maxLines: null,
               autofocus: true,
               onTap: () {
