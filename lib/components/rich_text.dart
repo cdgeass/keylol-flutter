@@ -96,8 +96,8 @@ class KRichTextBuilder {
     // 使用 https
     message = message.replaceAll('http://', 'https://');
 
-    // TODO br 会导致高度计算异常
-    // message = message.replaceAll('<br />', '\n');
+    // br 会导致高度计算异常
+    message = message.replaceAll(r'<br\s?/>', '\n');
 
     return message;
   }
