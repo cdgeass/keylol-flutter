@@ -1,4 +1,5 @@
 import 'package:html_unescape/html_unescape.dart';
+import 'package:keylol_flutter/common/date_utils.dart';
 
 class Thread {
   // 帖子 id
@@ -95,7 +96,7 @@ class Thread {
         author = json['author'] ?? '',
         authorId = json['authorid'] ?? '',
         subject = json['subject'] ?? '',
-        dateline = HtmlUnescape().convert(json['dateline'] ?? ''),
+        dateline = DateUtils.format(HtmlUnescape().convert(json['dateline'] ?? '')),
         lastPost = json['lastpost'] ?? '',
         lastPoster = json['lastposter'] ?? '',
         views = int.parse(json['views'] ?? '0'),

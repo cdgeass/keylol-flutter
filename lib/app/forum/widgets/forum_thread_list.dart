@@ -74,13 +74,13 @@ class _DefaultForumThreadListState extends State<DefaultForumThreadList> {
   }
 
   Widget _builderFilterButtons(BuildContext context, String? filter) {
-    final selectedStyle = ButtonStyle(
-        backgroundColor:
-            MaterialStateProperty.all<Color>(Theme.of(context).primaryColor));
+    final selectedStyle = null;
 
     final unselectedStyle = ButtonStyle(
-        backgroundColor: MaterialStateProperty.all<Color>(
-            Theme.of(context).backgroundColor));
+      foregroundColor: MaterialStateProperty.all(Colors.grey),
+      backgroundColor:
+          MaterialStateProperty.all<Color>(Theme.of(context).backgroundColor),
+    );
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
