@@ -365,6 +365,12 @@ class _KRichTextState extends State<KRichText> {
               if (bv.contains("?")) {
                 bv = bv.split('?')[0];
               }
+              if (bv.contains('av')) {
+                final av = bv.replaceAll('av', '');
+                return AutoResizeWebView(
+                    url:
+                    'https://player.bilibili.com/player.html?high_quality=1&aid=$av&as_wide=1');
+              }
               return AutoResizeWebView(
                   url:
                       'https://player.bilibili.com/player.html?high_quality=1&bvid=$bv&as_wide=1');
