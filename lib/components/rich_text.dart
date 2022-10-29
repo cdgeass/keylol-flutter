@@ -42,7 +42,8 @@ class KRichTextBuilder {
     // 转义
     message = HtmlUnescape().convert(message);
 
-    message = message.replaceAll('<br>', '<br />');
+    // 替换所有换行符 方便后续处理
+    message = message.replaceAll(RegExp(r'\r|\n'), '<br />');
 
     // 折叠内容
     message = message.replaceAllMapped(RegExp(r'(?:\[collapse)(?:=?)([^\]]*)]'),
@@ -96,8 +97,57 @@ class KRichTextBuilder {
     // 使用 https
     message = message.replaceAll('http://', 'https://');
 
+    // 表格
+    var tempMessage = ""; // 0196
+    while (tempMessage != message) {
+      tempMessage = message;
+      message = message.replaceAllMapped(
+          RegExp(r'<table>((?!(<table>|</table>)).)+</table>'), (match) {
+        final subMessage =
+            match[0]!.replaceAll('<table>', '').replaceAll('</table>', '');
+
+        final matches =
+            RegExp(r'<tr>((?!(<tr>|</tr>)).)+</tr>').allMatches(subMessage);
+        if (matches.isEmpty) {
+          return subMessage;
+        }
+        if (matches.length == 1) {
+          return matches.first[0]!.replaceAllMapped(
+              RegExp(r'<td>((?!(<td>|</td>)).)+</td>'), (match) {
+            return match[0]!.replaceAll('<td>', '').replaceAll('</td>', '') +
+                '<br/>';
+          });
+        }
+
+        // final titleRowMatch = matches.first;
+        // final titleMatches = RegExp(r'<td>((?!(<td>|</td>)).)+</td>')
+        //     .allMatches(titleRowMatch[0]!);
+        // final titles = titleMatches
+        //     .map((m) => m[0]!.replaceAll('<td>', '').replaceAll('</td>', ''))
+        //     .toList();
+
+        var str = '';
+        for (final match in matches) {
+          final rowMatches =
+          RegExp(r'<td((?!(<td|</td>)).)+</td>').allMatches(match[0]!);
+          for (var rowMatch in rowMatches) {
+            // final title = titles[j]
+            //     .replaceAll(RegExp(r'<td[^>]+>'), '')
+            //     .replaceAll('</td>', '');
+            // str += title + '<br/>';
+            str += rowMatch[0]!
+                .replaceAll(RegExp(r'<td[^>]+>'), '')
+                .replaceAll('</td>', '') +
+                '<br/>';
+          }
+          str += '<br/>';
+        }
+        return str;
+      });
+    }
+
     // br 会导致高度计算异常
-    message = message.replaceAll(r'<br\s?/>', '\n');
+    message = message.replaceAll(RegExp(r'<br\s?/>'), '\n');
 
     return message;
   }
