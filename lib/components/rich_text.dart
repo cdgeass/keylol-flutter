@@ -97,71 +97,6 @@ class KRichTextBuilder {
     // 使用 https
     message = message.replaceAll('http://', 'https://');
 
-    // 表格
-    var tempMessage = "";
-    try {
-      while (tempMessage != message) {
-        tempMessage = message;
-        message = message.replaceAllMapped(
-            RegExp(r'<table>((?!(<table>|</table>)).)+</table>'), (match) {
-          final subMessage =
-              match[0]!.replaceAll('<table>', '').replaceAll('</table>', '');
-
-          final matches =
-              RegExp(r'<tr>((?!(<tr>|</tr>)).)+</tr>').allMatches(subMessage);
-          if (matches.isEmpty) {
-            return subMessage;
-          }
-          if (matches.length == 1) {
-            return matches.first[0]!.replaceAllMapped(
-                RegExp(r'<td>((?!(<td>|</td>)).)+</td>'), (match) {
-              return match[0]!.replaceAll('<td>', '').replaceAll('</td>', '') +
-                  '<br/>';
-            });
-          }
-
-          final titleRowMatch = matches.first;
-          final titleMatches = RegExp(r'<th((?!(<th|</th>)).)+</th>')
-              .allMatches(titleRowMatch[0]!);
-          final titles = titleMatches
-              .map((m) => m[0]!
-                  .replaceAll(RegExp(r'<th[^>]+>'), '')
-                  .replaceAll('</th>', ''))
-              .toList();
-          var start = 0;
-          if (titles.isNotEmpty) {
-            start = 1;
-          }
-
-          var str = '';
-          var i = 0;
-          for (final match in matches) {
-            if (i >= start) {
-              final rowMatches =
-                  RegExp(r'<td((?!(<td|</td>)).)+</td>').allMatches(match[0]!);
-              var j = 0;
-              for (var rowMatch in rowMatches) {
-                if (titles.isNotEmpty) {
-                  final title = titles[j];
-                  str += title + '<br/>';
-                }
-                str += rowMatch[0]!
-                        .replaceAll(RegExp(r'<td[^>]+>'), '')
-                        .replaceAll('</td>', '') +
-                    '<br/>';
-                j++;
-              }
-              str += '<br/>';
-            }
-            i++;
-          }
-          return str;
-        });
-      }
-    } catch (error) {
-      message = tempMessage;
-    }
-
     // br 会导致高度计算异常
     message = message.replaceAll(RegExp(r'(<br\s?/>)+'), '<br/>');
 
@@ -369,7 +304,7 @@ class _KRichTextState extends State<KRichText> {
                 final av = bv.replaceAll('av', '');
                 return AutoResizeWebView(
                     url:
-                    'https://player.bilibili.com/player.html?high_quality=1&aid=$av&as_wide=1');
+                        'https://player.bilibili.com/player.html?high_quality=1&aid=$av&as_wide=1');
               }
               return AutoResizeWebView(
                   url:
@@ -422,6 +357,73 @@ class _KRichTextState extends State<KRichText> {
                   ],
                 )
               ],
+            );
+          },
+          'table': (context, child) {
+            var html = context.tree.element!.innerHtml;
+
+            html = html.replaceAllMapped(
+                RegExp(r'<table>((?!(<table>|</table>)).)+</table>'), (match) {
+              final subMessage = match[0]!
+                  .replaceAll('<table>', '')
+                  .replaceAll('</table>', '');
+
+              final matches = RegExp(r'<tr>((?!(<tr>|</tr>)).)+</tr>')
+                  .allMatches(subMessage);
+              if (matches.isEmpty) {
+                return subMessage;
+              }
+              if (matches.length == 1) {
+                return matches.first[0]!.replaceAllMapped(
+                    RegExp(r'<td>((?!(<td>|</td>)).)+</td>'), (match) {
+                  return match[0]!
+                          .replaceAll('<td>', '')
+                          .replaceAll('</td>', '') +
+                      '<br/>';
+                });
+              }
+
+              final titleRowMatch = matches.first;
+              final titleMatches = RegExp(r'<th((?!(<th|</th>)).)+</th>')
+                  .allMatches(titleRowMatch[0]!);
+              final titles = titleMatches
+                  .map((m) => m[0]!
+                      .replaceAll(RegExp(r'<th[^>]+>'), '')
+                      .replaceAll('</th>', ''))
+                  .toList();
+              var start = 0;
+              if (titles.isNotEmpty) {
+                start = 1;
+              }
+
+              var str = '';
+              var i = 0;
+              for (final match in matches) {
+                if (i >= start) {
+                  final rowMatches = RegExp(r'<td((?!(<td|</td>)).)+</td>')
+                      .allMatches(match[0]!);
+                  var j = 0;
+                  for (var rowMatch in rowMatches) {
+                    if (titles.isNotEmpty) {
+                      final title = titles[j];
+                      str += title + '<br/>';
+                    }
+                    str += rowMatch[0]!
+                            .replaceAll(RegExp(r'<td[^>]+>'), '')
+                            .replaceAll('</td>', '') +
+                        '<br/>';
+                    j++;
+                  }
+                  str += '<br/>';
+                }
+                i++;
+              }
+              return str;
+            });
+            return KRichText(
+              message: html,
+              attachments: widget.attachments,
+              scrollTo: widget.scrollTo,
             );
           }
         },
