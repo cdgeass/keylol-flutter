@@ -95,7 +95,7 @@ class Thread {
         price = int.parse(json['price'] ?? '0'),
         author = json['author'] ?? '',
         authorId = json['authorid'] ?? '',
-        subject = json['subject'] ?? '',
+        subject = HtmlUnescape().convert(json['subject'] ?? ''),
         dateline = DateUtils.format(HtmlUnescape().convert(json['dateline'] ?? '')),
         lastPost = json['lastpost'] ?? '',
         lastPoster = json['lastposter'] ?? '',
