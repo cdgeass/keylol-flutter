@@ -43,7 +43,7 @@ class KRichTextBuilder {
     message = HtmlUnescape().convert(message);
 
     // 替换所有换行符 方便后续处理
-    message = message.replaceAll(RegExp(r'\r|\n'), '<br />');
+    message = message.replaceAll(RegExp(r'[\r\n]'), '<br />');
 
     // 折叠内容
     message = message.replaceAllMapped(RegExp(r'(?:\[collapse)(?:=?)([^\]]*)]'),
@@ -85,7 +85,8 @@ class KRichTextBuilder {
     });
     // 附件可能缺失
     for (final attachment in tempAttachments.values) {
-      message += '\n<img src="${attachment.url + attachment.attachment}" />';
+      message +=
+          '<br /><img src="${attachment.url + attachment.attachment}" />';
     }
 
     // 倒计时
@@ -98,7 +99,9 @@ class KRichTextBuilder {
     message = message.replaceAll('http://', 'https://');
 
     // br 会导致高度计算异常
-    message = message.replaceAll(RegExp(r'(<br\s?/>)+'), '<br/>');
+    message = message
+        .replaceAll(RegExp(r'(<br\s?/>)+'), '<br/>')
+        .replaceAll('<br/>', '\n');
 
     return message;
   }
@@ -112,8 +115,7 @@ class KRichTextBuilder {
   }
 
   List<Widget> splitBuild() {
-    final List<Widget> widgets = [];
-
+    final List<String> contents = [];
     final document = HtmlParser.parseHTML(message);
     var html = '';
     for (var element in document.body!.nodes) {
@@ -124,91 +126,23 @@ class KRichTextBuilder {
       } else {
         final trimmedHtml = html.trim();
         if (trimmedHtml.isNotEmpty) {
-          widgets.addAll(_splitByIframe(trimmedHtml));
+          contents.add(html);
         }
         html = '';
       }
     }
     if (html.isNotEmpty) {
-      widgets.addAll(_splitByIframe(html));
-    }
-    if (poll != null) {
-      widgets.add(Poll(poll: poll!, callback: pollFallback));
+      contents.add(html);
     }
 
-    return widgets;
-  }
-
-  List<Widget> _splitByIframe(String message) {
-    final List<Widget> widgets = [];
-
-    if (!_canSplit(message)) {
-      // 如果在隐藏或折叠内容内则不切分
-      widgets.add(_richText(
-        message,
-        attachments,
-      ));
-    } else {
-      var lastIndex = 0;
-      var index = 0;
-
-      while (message.contains('iframe')) {
-        index = message.indexOf('<iframe');
-        if (index == -1) {
-          break;
-        }
-        final beforeIframe = message.substring(lastIndex, index);
-        if (beforeIframe != '\n' && beforeIframe.isNotEmpty) {
-          widgets.add(_richText(
-            beforeIframe,
-            attachments,
-          ));
-        }
-
-        lastIndex = index;
-
-        index = message.indexOf('</iframe>') + 9;
-        final iframe = message.substring(lastIndex, index);
-        final document = HtmlParser.parseHTML(iframe);
-        final element = document.body!.children[0];
-        var url = element.attributes['src'] ?? '';
-        if (!url.startsWith('http')) {
-          if (url.startsWith('//')) {
-            url = 'https:$url';
-          } else {
-            url = 'https://$url';
-          }
-        }
-        widgets.add(AutoResizeWebView(
-            padding: EdgeInsets.only(left: 16.0, right: 16.0), url: url));
-
-        message = message.substring(index);
-        lastIndex = 0;
-        index = 0;
-      }
-      if (message.isNotEmpty) {
-        widgets.add(_richText(
-          message,
-          attachments,
-        ));
-      }
-    }
-
-    return widgets;
-  }
-
-  bool _canSplit(String message) {
-    return !(message.contains('spoil') ||
-        message.contains('collapse') ||
-        message.contains('blockquote'));
+    final temp = contents
+        .where((it) => it.trim().isNotEmpty)
+        .map((it) => _richText(it, attachments))
+        .toList();
+    return temp;
   }
 
   KRichText _richText(String message, Map<String, Attachment> attachments) {
-    if (_canSplit(message) &&
-        message.startsWith('<p>') &&
-        message.endsWith('</p>')) {
-      message = '<p>$message</p>';
-    }
     return KRichText(
       message: message,
       attachments: attachments,
