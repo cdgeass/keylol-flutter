@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:html/dom.dart';
 import 'package:keylol_flutter/api/models/thread.dart';
 
@@ -23,6 +25,9 @@ class Guide {
       if (tbody.text == '暂时还没有帖子') {
         return;
       }
+      if (tbody.text.contains('data-yjshash')) {
+        log(1);
+      }
 
       // 帖子
       final common = tbody.getElementsByClassName('common')[0];
@@ -45,10 +50,17 @@ class Guide {
       // 作者
       final by2 = tbody.getElementsByClassName('by')[1];
       final by2A = by2.getElementsByTagName('a')[0];
-      final lastSpan = by2.getElementsByTagName('span')[0];
+      Element lastSpan = by2.getElementsByTagName('span')[0];
 
       final authorId = by2A.attributes['href']!.split('-')[1];
-      final author = by2A.text;
+      late String author;
+      if (lastSpan.attributes['data-yjsemail'] != null) {
+        author = calculateProtectedEmail(lastSpan.attributes['data-yjsemail']!);
+        lastSpan = by2.getElementsByTagName('span')[1];
+      } else {
+        author = by2A.text;
+      }
+
       late String dateline;
       if (lastSpan.getElementsByTagName('span').isEmpty) {
         dateline = lastSpan.text;
@@ -87,5 +99,18 @@ class Guide {
         break;
       }
     }
+  }
+
+  // 计算加密的含@字符串
+  String calculateProtectedEmail(String str) {
+    final r = int.parse('0x' + str.substring(0, 2)) | 0;
+    var e = '';
+    for (var n = 2; str.length - n > 0; n += 2) {
+      final temp = ('0' +
+          (int.parse('0x' + str.substring(n, n + 2)) ^ r).toRadixString(16));
+      e += '%' + temp.substring(temp.length - 2);
+    }
+
+    return Uri.decodeComponent(e);
   }
 }

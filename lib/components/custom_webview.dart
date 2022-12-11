@@ -40,7 +40,8 @@ class CustomWebView extends StatelessWidget {
                     child: Text('在浏览器中打开'),
                     onTap: () async {
                       if (await canLaunchUrlString(_uri)) {
-                        launchUrlString(_uri);
+                        launchUrlString(_uri,
+                            mode: LaunchMode.externalApplication);
                       }
                     },
                   )

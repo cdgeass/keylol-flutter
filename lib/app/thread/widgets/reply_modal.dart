@@ -77,8 +77,8 @@ class _ReplyModalState extends State<ReplyModal> {
             child: Container(),
           )),
           Container(
-            color: Theme.of(context).backgroundColor,
             padding: EdgeInsets.fromLTRB(12.0, 8.0, 12.0, 8.0),
+            color: Theme.of(context).colorScheme.surface,
             child: TextField(
               controller: _controller,
               keyboardType: TextInputType.multiline,
@@ -104,62 +104,64 @@ class _ReplyModalState extends State<ReplyModal> {
             ),
           ),
           Container(
-              color: Theme.of(context).backgroundColor,
-              child: Row(
-                children: [
-                  // 表情
-                  IconButton(
-                    onPressed: () {
-                      setState(() {
-                        _showSmiley = true;
-                      });
-                    },
-                    icon: Icon(Icons.emoji_emotions_outlined),
-                    color: Theme.of(context).primaryColor,
-                  ),
-                  IconButton(
-                    onPressed: () async {
-                      final picker = ImagePicker();
-                      final image =
-                          await picker.pickImage(source: ImageSource.gallery);
+            color: Theme.of(context).colorScheme.surface,
+            child: Row(
+              children: [
+                // 表情
+                IconButton(
+                  onPressed: () {
+                    setState(() {
+                      _showSmiley = true;
+                    });
+                  },
+                  icon: Icon(Icons.emoji_emotions_outlined),
+                  color: Theme.of(context).primaryColor,
+                ),
+                IconButton(
+                  onPressed: () async {
+                    final picker = ImagePicker();
+                    final image =
+                        await picker.pickImage(source: ImageSource.gallery);
 
-                      if (image != null) {
-                        final uid = context
-                            .read<ProfileRepository>()
-                            .profile
-                            ?.memberUid;
-                        if (uid == null) {
-                          return;
-                        }
-                        final aid = await context
-                            .read<KeylolApiClient>()
-                            .fileUpload(uid, image);
-                        _insertText('[attachimg]$aid[/attachimg]');
-                        _aidList.add(aid);
+                    if (image != null) {
+                      final uid =
+                          context.read<AuthenticationRepository>().profile?.memberUid;
+                      if (uid == null) {
+                        return;
                       }
-                    },
-                    icon: Icon(Icons.photo_outlined),
-                    color: Theme.of(context).primaryColor,
-                  ),
-                  // 空白
-                  Expanded(child: Container()),
-                  // 发送
-                  IconButton(
-                    onPressed: () {
-                      _sendReply(context);
-                    },
-                    icon: Icon(Icons.send),
-                    color: Theme.of(context).primaryColor,
-                  )
-                ],
-              )),
+                      final aid = await context
+                          .read<KeylolApiClient>()
+                          .fileUpload(uid, image);
+                      _insertText('[attachimg]$aid[/attachimg]');
+                      _aidList.add(aid);
+                    }
+                  },
+                  icon: Icon(Icons.photo_outlined),
+                  color: Theme.of(context).primaryColor,
+                ),
+                // 空白
+                Expanded(child: Container()),
+                // 发送
+                IconButton(
+                  onPressed: () {
+                    _sendReply(context);
+                  },
+                  icon: Icon(Icons.send),
+                  color: Theme.of(context).primaryColor,
+                )
+              ],
+            ),
+          ),
           if (_showSmiley)
             Container(
-                color: Theme.of(context).backgroundColor,
-                height: 400.0,
-                child: _SmileyPicker(onSelect: (smiley) {
+              color: Theme.of(context).colorScheme.surface,
+              height: 400.0,
+              child: _SmileyPicker(
+                onSelect: (smiley) {
                   _insertText(smiley);
-                }))
+                },
+              ),
+            ),
         ],
       ),
     );

@@ -1,10 +1,9 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keylol_flutter/api/models/thread.dart';
 import 'package:keylol_flutter/app/thread/bloc/thread_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 Size boundingTextSize(String text, TextStyle style,
     {int maxLines = 2 ^ 31, double maxWidth = double.infinity}) {
@@ -20,6 +19,7 @@ class ThreadAppBar extends SliverPersistentHeaderDelegate {
   final Thread thread;
   final TextStyle textStyle;
   final double width;
+  final double appBarHeight;
 
   final String? favId;
 
@@ -31,10 +31,11 @@ class ThreadAppBar extends SliverPersistentHeaderDelegate {
     required this.thread,
     required this.textStyle,
     required this.width,
+    required this.appBarHeight,
     this.favId,
     double? topPadding,
   })  : _subjectHeight =
-            boundingTextSize(thread.subject, textStyle, maxWidth: width - 184.0)
+            boundingTextSize(thread.subject, textStyle, maxWidth: width - 32.0)
                 .height,
         this.topPadding = topPadding ?? 0.0;
 
@@ -48,13 +49,8 @@ class ThreadAppBar extends SliverPersistentHeaderDelegate {
     final title = toolbarOpacity == 0.0 ? Text(thread.subject) : null;
 
     final appBarTheme = Theme.of(context).appBarTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-    final foregroundColor = appBarTheme.foregroundColor ??
-        (colorScheme.brightness == Brightness.dark
-            ? colorScheme.onSurface
-            : colorScheme.onPrimary);
     final titleTextStyle = appBarTheme.titleTextStyle ??
-        Theme.of(context).textTheme.headline6?.copyWith(color: foregroundColor);
+        Theme.of(context).textTheme.headlineMedium;
 
     return AppBar(
       title: title,
@@ -63,11 +59,18 @@ class ThreadAppBar extends SliverPersistentHeaderDelegate {
         child: Stack(
           children: [
             Positioned(
-              top: 13.5 + topPadding - shrinkOffset,
+              top: appBarHeight - shrinkOffset,
               child: Container(
-                padding: EdgeInsets.only(left: 72.0, right: 112.0, bottom: 8.0),
+                padding: EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8.0),
                 width: width,
-                child: Text(thread.subject, style: titleTextStyle),
+                child: AnimatedCrossFade(
+                  firstChild: Text(thread.subject, style: titleTextStyle),
+                  secondChild: Container(),
+                  crossFadeState: toolbarOpacity == 0.0
+                      ? CrossFadeState.showSecond
+                      : CrossFadeState.showFirst,
+                  duration: const Duration(microseconds: 200),
+                ),
               ),
             )
           ],
@@ -95,7 +98,10 @@ class ThreadAppBar extends SliverPersistentHeaderDelegate {
               PopupMenuItem(
                 child: Text('在浏览器中打开'),
                 onTap: () {
-                  launch('https://keylol.com/t${thread.tid}-1-1');
+                  launchUrlString(
+                    'https://keylol.com/t${thread.tid}-1-1',
+                    mode: LaunchMode.externalApplication,
+                  );
                 },
               )
             ];
@@ -106,11 +112,10 @@ class ThreadAppBar extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  double get maxExtent =>
-      max(kToolbarHeight + topPadding, _subjectHeight + 27.0 + topPadding);
+  double get maxExtent => _subjectHeight + appBarHeight;
 
   @override
-  double get minExtent => kToolbarHeight + topPadding;
+  double get minExtent => appBarHeight;
 
   @override
   bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {

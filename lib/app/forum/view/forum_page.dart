@@ -49,14 +49,14 @@ class ForumPage extends StatelessWidget {
                           client: client,
                           fid: fid,
                         )..add(ThreadListReloaded()),
-                        child: DefaultForumThreadList(),
+                        child: ForumThreadList(),
                       ),
                       for (final type in types)
                         BlocProvider(
                           create: (_) => ThreadListBloc(
                               client: client, fid: fid, typeId: type.id)
                             ..add(ThreadListReloaded()),
-                          child: TypedForumThreadList(),
+                          child: ForumThreadList(),
                         )
                     ],
                   ),

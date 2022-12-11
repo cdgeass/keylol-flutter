@@ -88,31 +88,18 @@ class _SearchableAppBarState extends State<SearchableAppBar> {
 
   @override
   Widget build(BuildContext context) {
-    final appBarTheme = Theme.of(context).appBarTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-    final foregroundColor = appBarTheme.foregroundColor ??
-        (colorScheme.brightness == Brightness.dark
-            ? colorScheme.onSurface
-            : colorScheme.onPrimary);
-    final titleTextStyle = appBarTheme.titleTextStyle ??
-        Theme.of(context).textTheme.headline6?.copyWith(color: foregroundColor);
-
     return AppBar(
       leading: widget.leading,
       automaticallyImplyLeading: widget.automaticallyImplyLeading,
       title: _expanded
           ? TextField(
               controller: _controller,
-              style: titleTextStyle,
-              cursorColor: foregroundColor,
               autofocus: true,
               decoration: InputDecoration(
                 border: InputBorder.none,
               ),
               onSubmitted: (text) {
-                if (text.isNotEmpty) {
-                  widget.callback.call(text);
-                }
+                widget.callback.call(text);
                 if (text.isEmpty || widget.isClearAfterCallback) {
                   _controller.clear();
                   setState(() {

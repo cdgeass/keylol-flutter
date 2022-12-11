@@ -48,7 +48,7 @@ class ThreadBloc extends Bloc<ThreadEvent, ThreadState> {
         threadPost.message,
         attachments: threadPost.attachments,
         poll: viewThread.specialPoll,
-        pollFallback: (context) =>
+        pollCallback: (context) =>
             context.read<ThreadBloc>().add(ThreadReloaded()),
       ).splitBuild();
 

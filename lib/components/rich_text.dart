@@ -10,11 +10,13 @@ import 'package:keylol_flutter/api/keylol_api.dart';
 import 'package:keylol_flutter/common/url_utils.dart';
 import 'package:keylol_flutter/components/auto_resize_video_player.dart';
 import 'package:keylol_flutter/components/auto_resize_webview.dart';
+import 'package:keylol_flutter/components/image_viewer.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import 'package:video_player/video_player.dart';
 
 typedef ScrollToFunction = void Function(String pid);
-typedef PollFallback = void Function(BuildContext context);
+typedef PollCallback = void Function(BuildContext context);
 
 class KRichTextBuilder {
   final String message;
@@ -22,14 +24,15 @@ class KRichTextBuilder {
   final ScrollToFunction? scrollTo;
 
   final SpecialPoll? poll;
-  final PollFallback? pollFallback;
+  final PollCallback? pollCallback;
 
-  KRichTextBuilder(message,
-      {this.attachments = const {},
-      this.scrollTo,
-      this.poll,
-      this.pollFallback})
-      : message =
+  KRichTextBuilder(
+    message, {
+    this.attachments = const {},
+    this.scrollTo,
+    this.poll,
+    this.pollCallback,
+  }) : message =
             _formatMessage(HtmlUnescape().convert(message).trim(), attachments);
 
   static String _formatMessage(
@@ -68,7 +71,7 @@ class KRichTextBuilder {
         .replaceAll('[media]', '<video src="')
         .replaceAll('[/media]', '"></video>');
 
-    final tempAttachments = {};
+    final tempAttachments = <String, Attachment>{};
     attachments.forEach((key, value) {
       tempAttachments[key] = value;
     });
@@ -99,9 +102,7 @@ class KRichTextBuilder {
     message = message.replaceAll('http://', 'https://');
 
     // br 会导致高度计算异常
-    message = message
-        .replaceAll(RegExp(r'(<br\s?/>)+'), '<br/>')
-        .replaceAll('<br/>', '\n');
+    message = message.replaceAll(RegExp(r'(<br\s?/>)+'), '<br/>');
 
     return message;
   }
@@ -134,19 +135,15 @@ class KRichTextBuilder {
     if (html.isNotEmpty) {
       contents.add(html);
     }
+    final widgets = <Widget>[];
+    for (final content in contents) {
+      widgets.add(KRichText(message: content, attachments: attachments));
+    }
+    if (poll != null) {
+      widgets.add(Poll(poll: poll!, callback: pollCallback));
+    }
 
-    final temp = contents
-        .where((it) => it.trim().isNotEmpty)
-        .map((it) => _richText(it, attachments))
-        .toList();
-    return temp;
-  }
-
-  KRichText _richText(String message, Map<String, Attachment> attachments) {
-    return KRichText(
-      message: message,
-      attachments: attachments,
-    );
+    return widgets;
   }
 }
 
@@ -154,13 +151,15 @@ class KRichText extends StatefulWidget {
   final String message;
   final Map<String, Attachment> attachments;
   final ScrollToFunction? scrollTo;
+  final bool enableMargin;
 
-  const KRichText(
-      {Key? key,
-      required this.message,
-      this.attachments = const {},
-      this.scrollTo})
-      : super(key: key);
+  const KRichText({
+    Key? key,
+    required this.message,
+    this.attachments = const {},
+    this.scrollTo,
+    this.enableMargin = true,
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _KRichTextState();
@@ -179,190 +178,192 @@ class _KRichTextState extends State<KRichText> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext buildContext) {
     return Html(
-        data: widget.message,
-        onLinkTap: (url, _, attributes, element) {
-          url = HtmlUnescape().convert(url ?? '');
-          final subUrl = url.replaceFirst('https://keylol.com/', '');
-          if (subUrl.contains('findpost')) {
-            // 帖子内楼层跳转
-            final params = url.split('?')[1].split('&');
-            late String pid;
-            for (var param in params) {
-              if (param.startsWith('pid=')) {
-                pid = param.replaceAll('pid=', '');
-                break;
-              }
-            }
-            widget.scrollTo?.call(pid);
-          } else {
-            final resolveResult = UrlUtils.resolveUrl(url);
-            if (resolveResult.isNotEmpty) {
-              final router = resolveResult['router'];
-              final arguments = resolveResult['arguments'];
-              Navigator.of(context).pushNamed(router, arguments: arguments);
-            } else {
-              Navigator.of(context).pushNamed('/webView', arguments: url);
+      data: widget.message,
+      onLinkTap: (url, _, attributes, element) {
+        url = HtmlUnescape().convert(url ?? '');
+        final subUrl = url.replaceFirst('https://keylol.com/', '');
+        if (subUrl.contains('findpost')) {
+          // 帖子内楼层跳转
+          final params = url.split('?')[1].split('&');
+          late String pid;
+          for (var param in params) {
+            if (param.startsWith('pid=')) {
+              pid = param.replaceAll('pid=', '');
+              break;
             }
           }
-        },
-        tagsList: Html.tags
-          ..addAll(['collapse', 'spoil', 'countdown', 'blockquote']),
-        customRender: {
-          'iframe': (context, child) {
-            final src = context.tree.element!.attributes['src'];
-            if (src == null) {
-              return Container();
-            }
-
-            if (src.startsWith('http')) {
-              return AutoResizeWebView(url: src);
-            }
+          widget.scrollTo?.call(pid);
+        } else {
+          final resolveResult = UrlUtils.resolveUrl(url);
+          if (resolveResult.isNotEmpty) {
+            final router = resolveResult['router'];
+            final arguments = resolveResult['arguments'];
+            Navigator.of(buildContext).pushNamed(router, arguments: arguments);
+          } else {
+            launchUrlString(url, mode: LaunchMode.externalApplication);
+          }
+        }
+      },
+      tagsList: Html.tags
+        ..addAll(['collapse', 'spoil', 'countdown', 'blockquote']),
+      customRender: {
+        'iframe': (context, child) {
+          final src = context.tree.element!.attributes['src'];
+          if (src == null) {
             return Container();
-          },
-          'video': (context, child) {
-            final src = context.tree.element!.attributes['src']!;
-            if (src.contains('www.bilibili.com')) {
-              final splits = src.split('/');
-              late String bv;
-              if (src.endsWith('/')) {
-                bv = splits[splits.length - 2];
-              } else {
-                bv = splits[splits.length - 1];
-              }
-              if (bv.contains("?")) {
-                bv = bv.split('?')[0];
-              }
-              if (bv.contains('av')) {
-                final av = bv.replaceAll('av', '');
-                return AutoResizeWebView(
-                    url:
-                        'https://player.bilibili.com/player.html?high_quality=1&aid=$av&as_wide=1');
-              }
+          }
+
+          if (src.startsWith('http')) {
+            return AutoResizeWebView(url: src);
+          }
+          return Container();
+        },
+        'video': (context, child) {
+          final src = context.tree.element!.attributes['src']!;
+          if (src.contains('www.bilibili.com')) {
+            final splits = src.split('/');
+            late String bv;
+            if (src.endsWith('/')) {
+              bv = splits[splits.length - 2];
+            } else {
+              bv = splits[splits.length - 1];
+            }
+            if (bv.contains("?")) {
+              bv = bv.split('?')[0];
+            }
+            if (bv.contains('av')) {
+              final av = bv.replaceAll('av', '');
               return AutoResizeWebView(
                   url:
-                      'https://player.bilibili.com/player.html?high_quality=1&bvid=$bv&as_wide=1');
+                      'https://player.bilibili.com/player.html?high_quality=1&aid=$av&as_wide=1');
             }
-            return AutoResizeVideoPlayer(initialUrl: src);
-          },
-          'collapse': (context, child) {
-            final title = context.tree.element!.attributes['title'] ?? '';
-            final message = context.tree.element!.innerHtml;
-            return _Collapse(
-                title: title,
-                message: message,
-                attachments: widget.attachments);
-          },
-          'spoil': (context, child) {
-            final title = context.tree.element!.attributes['title'] ?? '';
-            final message = context.tree.element!.innerHtml;
-            return _Spoil(
-                title: title,
-                message: message,
-                attachments: widget.attachments);
-          },
-          'countdown': (context, child) {
-            final date = context.tree.element!.text;
+            return AutoResizeWebView(
+                url:
+                    'https://player.bilibili.com/player.html?high_quality=1&bvid=$bv&as_wide=1');
+          }
+          return AutoResizeVideoPlayer(initialUrl: src);
+        },
+        'collapse': (context, child) {
+          final title = context.tree.element!.attributes['title'] ?? '';
+          final message = context.tree.element!.innerHtml;
+          return _Collapse(
+              title: title, message: message, attachments: widget.attachments);
+        },
+        'spoil': (context, child) {
+          final title = context.tree.element!.attributes['title'] ?? '';
+          final message = context.tree.element!.innerHtml;
+          return _Spoil(
+              title: title, message: message, attachments: widget.attachments);
+        },
+        'countdown': (context, child) {
+          final date = context.tree.element!.text;
 
-            return _CountDown(date: date);
-          },
-          'blockquote': (context, child) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Image.asset('images/quote_proper_left.png'),
-                    Expanded(child: Container())
-                  ],
-                ),
-                Row(
-                  children: [
-                    SizedBox(width: 24.0),
-                    Expanded(child: child),
-                    SizedBox(width: 24.0)
-                  ],
-                ),
-                Row(
-                  children: [
-                    Expanded(child: Container()),
-                    Image.asset('images/quote_proper_right.png')
-                  ],
-                )
-              ],
-            );
-          },
-          'table': (context, child) {
-            var html = context.tree.element!.innerHtml;
+          return _CountDown(date: date);
+        },
+        'blockquote': (context, child) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Image.asset('images/quote_proper_left.png'),
+                  Expanded(child: Container())
+                ],
+              ),
+              Row(
+                children: [
+                  SizedBox(width: 24.0),
+                  Expanded(child: child),
+                  SizedBox(width: 24.0)
+                ],
+              ),
+              Row(
+                children: [
+                  Expanded(child: Container()),
+                  Image.asset('images/quote_proper_right.png')
+                ],
+              )
+            ],
+          );
+        },
+        'table': (context, child) {
+          var html = context.tree.element!.innerHtml;
 
-            html = html.replaceAllMapped(
-                RegExp(r'<table>((?!(<table>|</table>)).)+</table>'), (match) {
-              final subMessage = match[0]!
-                  .replaceAll('<table>', '')
-                  .replaceAll('</table>', '');
+          html = html.replaceAllMapped(
+              RegExp(r'<table>((?!(<table>|</table>)).)+</table>'), (match) {
+            final subMessage =
+                match[0]!.replaceAll('<table>', '').replaceAll('</table>', '');
 
-              final matches = RegExp(r'<tr>((?!(<tr>|</tr>)).)+</tr>')
-                  .allMatches(subMessage);
-              if (matches.isEmpty) {
-                return subMessage;
-              }
-              if (matches.length == 1) {
-                return matches.first[0]!.replaceAllMapped(
-                    RegExp(r'<td>((?!(<td>|</td>)).)+</td>'), (match) {
-                  return match[0]!
-                          .replaceAll('<td>', '')
+            final matches =
+                RegExp(r'<tr>((?!(<tr>|</tr>)).)+</tr>').allMatches(subMessage);
+            if (matches.isEmpty) {
+              return subMessage;
+            }
+            if (matches.length == 1) {
+              return matches.first[0]!.replaceAllMapped(
+                  RegExp(r'<td>((?!(<td>|</td>)).)+</td>'), (match) {
+                return match[0]!
+                        .replaceAll('<td>', '')
+                        .replaceAll('</td>', '') +
+                    '<br/>';
+              });
+            }
+
+            final titleRowMatch = matches.first;
+            final titleMatches = RegExp(r'<th((?!(<th|</th>)).)+</th>')
+                .allMatches(titleRowMatch[0]!);
+            final titles = titleMatches
+                .map((m) => m[0]!
+                    .replaceAll(RegExp(r'<th[^>]+>'), '')
+                    .replaceAll('</th>', ''))
+                .toList();
+            var start = 0;
+            if (titles.isNotEmpty) {
+              start = 1;
+            }
+
+            var str = '';
+            var i = 0;
+            for (final match in matches) {
+              if (i >= start) {
+                final rowMatches = RegExp(r'<td((?!(<td|</td>)).)+</td>')
+                    .allMatches(match[0]!);
+                var j = 0;
+                for (var rowMatch in rowMatches) {
+                  if (titles.isNotEmpty) {
+                    final title = titles[j];
+                    str += title + '<br/>';
+                  }
+                  str += rowMatch[0]!
+                          .replaceAll(RegExp(r'<td[^>]+>'), '')
                           .replaceAll('</td>', '') +
                       '<br/>';
-                });
-              }
-
-              final titleRowMatch = matches.first;
-              final titleMatches = RegExp(r'<th((?!(<th|</th>)).)+</th>')
-                  .allMatches(titleRowMatch[0]!);
-              final titles = titleMatches
-                  .map((m) => m[0]!
-                      .replaceAll(RegExp(r'<th[^>]+>'), '')
-                      .replaceAll('</th>', ''))
-                  .toList();
-              var start = 0;
-              if (titles.isNotEmpty) {
-                start = 1;
-              }
-
-              var str = '';
-              var i = 0;
-              for (final match in matches) {
-                if (i >= start) {
-                  final rowMatches = RegExp(r'<td((?!(<td|</td>)).)+</td>')
-                      .allMatches(match[0]!);
-                  var j = 0;
-                  for (var rowMatch in rowMatches) {
-                    if (titles.isNotEmpty) {
-                      final title = titles[j];
-                      str += title + '<br/>';
-                    }
-                    str += rowMatch[0]!
-                            .replaceAll(RegExp(r'<td[^>]+>'), '')
-                            .replaceAll('</td>', '') +
-                        '<br/>';
-                    j++;
-                  }
-                  str += '<br/>';
+                  j++;
                 }
-                i++;
+                str += '<br/>';
               }
-              return str;
-            });
-            return KRichText(
-              message: html,
-              attachments: widget.attachments,
-              scrollTo: widget.scrollTo,
-            );
-          }
-        },
-        customImageRenders: {
-          (attr, _) => attr['src'] != null: networkImageRender(mapUrl: (url) {
+              i++;
+            }
+            return str;
+          });
+          return KRichTextBuilder(
+            html,
+            attachments: widget.attachments,
+            scrollTo: widget.scrollTo,
+          ).build();
+        }
+      },
+      onImageTap: (url, context, attributes, element) {
+        Navigator.push(
+          buildContext,
+          MaterialPageRoute(builder: (context) => ImageViewer(url: url!)),
+        );
+      },
+      customImageRenders: {
+        (attr, _) => attr['src'] != null: networkImageRender(
+          mapUrl: (url) {
             if (url!.startsWith('http://')) {
               return url.replaceFirst('http://', 'https://');
             } else if (!url.startsWith('http')) {
@@ -370,12 +371,18 @@ class _KRichTextState extends State<KRichText> {
             } else {
               return url;
             }
-          })
-        },
-        style: {
-          'body': Style(margin: EdgeInsets.only(left: 16.0, right: 16.0)),
-          'blockquote': Style(margin: EdgeInsets.zero)
-        });
+          },
+        ),
+      },
+      style: {
+        'body': Style(
+          margin: widget.enableMargin
+              ? EdgeInsets.only(left: 16.0, right: 16.0)
+              : null,
+        ),
+        'blockquote': Style(margin: EdgeInsets.zero)
+      },
+    );
   }
 }
 
@@ -406,49 +413,58 @@ class _CollapseState extends State<_Collapse>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return Padding(
-        padding: EdgeInsets.all(8.0),
-        child: Material(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-          color: Colors.blue,
-          child: Column(
-            children: [
-              InkWell(
-                onTap: () {
-                  setState(() {
-                    _expanded = !_expanded;
-                  });
-                },
-                child: Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      _expanded
-                          ? Icon(Icons.arrow_drop_up, color: Colors.white)
-                          : Icon(Icons.arrow_right, color: Colors.white),
-                      Text(
-                        widget.title,
-                        style: TextStyle(color: Colors.white),
-                        overflow: TextOverflow.ellipsis,
-                      )
-                    ],
-                  ),
+    final backgroundColor = Theme.of(context).colorScheme.surface;
+    final foregroundColor = Theme.of(context).colorScheme.onSurface;
+    return Card(
+      color: backgroundColor,
+      margin: EdgeInsets.zero,
+      child: Column(
+        children: [
+          InkWell(
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(12.0),
+              bottom: !_expanded ? Radius.zero : Radius.circular(12.0),
+            ),
+            onTap: () {
+              setState(() {
+                _expanded = !_expanded;
+              });
+            },
+            child: Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  _expanded
+                      ? Icon(Icons.arrow_drop_up, color: foregroundColor)
+                      : Icon(Icons.arrow_right, color: foregroundColor),
+                  Text(
+                    widget.title,
+                    style: TextStyle(color: foregroundColor),
+                    overflow: TextOverflow.ellipsis,
+                  )
+                ],
+              ),
+            ),
+          ),
+          if (_expanded)
+            Material(
+              shape: RoundedRectangleBorder(
+                side: BorderSide(color: backgroundColor),
+                borderRadius:
+                    BorderRadius.vertical(bottom: Radius.circular(12.0)),
+              ),
+              child: Container(
+                padding: EdgeInsets.all(8.0),
+                child: KRichText(
+                  message: widget.message,
+                  attachments: widget.attachments,
+                  enableMargin: false,
                 ),
               ),
-              if (_expanded)
-                Material(
-                    color: Theme.of(context).backgroundColor,
-                    shape: RoundedRectangleBorder(
-                        side: BorderSide(color: Colors.blue),
-                        borderRadius: BorderRadius.vertical(
-                            bottom: Radius.circular(10.0))),
-                    child: KRichText(
-                        message: widget.message,
-                        attachments: widget.attachments))
-            ],
-          ),
-        ));
+            ),
+        ],
+      ),
+    );
   }
 }
 
@@ -478,55 +494,55 @@ class _SpoilState extends State<_Spoil> with AutomaticKeepAliveClientMixin {
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return Padding(
-        padding: EdgeInsets.all(8.0),
-        child: DottedBorder(
-            padding: EdgeInsets.all(4.0),
-            dashPattern: [2.0],
-            color: Colors.redAccent,
-            child: Container(
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      if (widget.title != "") Text(widget.title + ","),
-                      InkWell(
-                        onTap: () {
-                          setState(() {
-                            _expanded = !_expanded;
-                          });
-                        },
-                        child: Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Row(
-                            children: [
-                              _expanded
-                                  ? Text(
-                                      '点击隐藏',
-                                      style: TextStyle(
-                                          color: Colors.lightBlue,
-                                          decoration: TextDecoration.underline),
-                                    )
-                                  : Text(
-                                      '点击显示',
-                                      style: TextStyle(
-                                          color: Colors.lightBlue,
-                                          decoration: TextDecoration.underline),
-                                    )
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+    return DottedBorder(
+      padding: EdgeInsets.all(4.0),
+      dashPattern: [2.0],
+      color: Colors.redAccent,
+      child: Container(
+        child: Column(
+          children: [
+            Row(
+              children: [
+                if (widget.title != "") Text(widget.title + ","),
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _expanded = !_expanded;
+                    });
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Row(
+                      children: [
+                        _expanded
+                            ? Text(
+                                '点击隐藏',
+                                style: TextStyle(
+                                    color: Colors.lightBlue,
+                                    decoration: TextDecoration.underline),
+                              )
+                            : Text(
+                                '点击显示',
+                                style: TextStyle(
+                                    color: Colors.lightBlue,
+                                    decoration: TextDecoration.underline),
+                              )
+                      ],
+                    ),
                   ),
-                  if (_expanded)
-                    KRichText(
-                      message: widget.message,
-                      attachments: widget.attachments,
-                    )
-                ],
-              ),
-            )));
+                ),
+              ],
+            ),
+            if (_expanded)
+              KRichText(
+                message: widget.message,
+                attachments: widget.attachments,
+                enableMargin: false,
+              )
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -593,7 +609,7 @@ class _CountDownState extends State<_CountDown>
 // 投票组件
 class Poll extends StatefulWidget {
   final SpecialPoll poll;
-  final PollFallback? callback;
+  final PollCallback? callback;
 
   const Poll({Key? key, required this.poll, this.callback}) : super(key: key);
 

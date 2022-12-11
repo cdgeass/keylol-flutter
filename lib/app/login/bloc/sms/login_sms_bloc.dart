@@ -103,12 +103,12 @@ class LoginSmsBloc extends Bloc<LoginSmsEvent, LoginSmsState> {
   ) async {
     try {
       final secCodeParam = state.secCodeParam!;
-      final profile = await _client.loginWithSms(
+      await _client.loginWithSms(
         secCodeParam: secCodeParam,
         cellphone: event.cellphone,
         sms: event.sms,
       );
-      emit(state.copyWith(status: LoginSmsStatus.succeed, profile: profile));
+      emit(state.copyWith(status: LoginSmsStatus.success));
     } catch (error) {
       _logger.e('[登录] 手机号登录登录出错', error);
 

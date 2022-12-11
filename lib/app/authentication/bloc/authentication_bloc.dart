@@ -1,7 +1,9 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keylol_flutter/api/keylol_api.dart';
-import 'package:logger/logger.dart';
+import 'package:keylol_flutter/repository/repository.dart';
 
 part 'authentication_event.dart';
 
@@ -9,39 +11,51 @@ part 'authentication_state.dart';
 
 class AuthenticationBloc
     extends Bloc<AuthenticationEvent, AuthenticationState> {
-  final _logger = Logger();
-  final KeylolApiClient _client;
+  final AuthenticationRepository _authenticationRepository;
+  late StreamSubscription<AuthenticationStatus>
+      _authenticationStatusSubscription;
 
-  AuthenticationBloc({
-    required KeylolApiClient client,
-  })  : _client = client,
-        super(AuthenticationState.unauthenticated()) {
-    on<AuthenticationLoaded>(_onLoaded);
-    on<AuthenticationLogoutRequested>(_onLogoutRequested);
+  AuthenticationBloc(
+      {required AuthenticationRepository authenticationRepository})
+      : _authenticationRepository = authenticationRepository,
+        super(AuthenticationState.unknown()) {
+    on<_AuthenticationStatusChanged>(_onAuthenticationStatusChanged);
+    on<AuthenticationLogoutRequested>(_onAuthenticationLogoutRequested);
+    _authenticationStatusSubscription = _authenticationRepository.status.listen(
+      (status) => add(_AuthenticationStatusChanged(status)),
+    );
   }
 
-  Future<void> _onLoaded(
-    AuthenticationLoaded event,
+  @override
+  Future<void> close() {
+    _authenticationStatusSubscription.cancel();
+    _authenticationRepository.dispose();
+    return super.close();
+  }
+
+  Future<void> _onAuthenticationStatusChanged(
+    _AuthenticationStatusChanged event,
     Emitter<AuthenticationState> emit,
   ) async {
-    try {
-      final profile = await _client.fetchProfile();
-
-      _logger.d('${profile.memberUsername} 已登录');
-
-      emit(AuthenticationState.authenticated(profile));
-    } catch (error) {
-      _logger.d('[授权] 获取用户信息出错', error);
-
-      emit(AuthenticationState.unauthenticated());
+    switch (event.status) {
+      case AuthenticationStatus.unauthenticated:
+        return emit(const AuthenticationState.unauthenticated());
+      case AuthenticationStatus.authenticated:
+        final profile = _authenticationRepository.profile;
+        return emit(
+          profile != null && profile.memberUid != '0'
+              ? AuthenticationState.authenticated(profile)
+              : const AuthenticationState.unauthenticated(),
+        );
+      case AuthenticationStatus.unknown:
+        return emit(const AuthenticationState.unknown());
     }
   }
 
-  Future<void> _onLogoutRequested(
-    AuthenticationEvent event,
+  void _onAuthenticationLogoutRequested(
+    AuthenticationLogoutRequested event,
     Emitter<AuthenticationState> emit,
-  ) async {
-    _client.clearCookies();
-    emit(AuthenticationState.unauthenticated());
+  ) {
+    _authenticationRepository.logOut();
   }
 }

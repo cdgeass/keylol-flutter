@@ -50,7 +50,7 @@ class ThreadListBloc extends Bloc<ThreadListEvent, ThreadListState> {
         status: ThreadListStatus.success,
         page: 1,
         threads: threads,
-        hasReachedMax: false,
+        hasReachedMax: threads.length < 20,
         filter: filter,
         param: param,
       ));

@@ -40,12 +40,12 @@ abstract class _KeylolMobileInterceptor extends Interceptor {
   void doIntercept(Response response);
 }
 
-// space 拦截器, 获取 space 信息
-class _ProfileInterceptor extends _KeylolMobileInterceptor {
-  _ProfileInterceptor({required ProfileRepository profileRepository})
+// profile 拦截器, 获取 profile 信息
+class ProfileInterceptor extends _KeylolMobileInterceptor {
+  ProfileInterceptor({required AuthenticationRepository profileRepository})
       : _profileRepository = profileRepository;
 
-  final ProfileRepository _profileRepository;
+  final AuthenticationRepository _profileRepository;
 
   @override
   void doIntercept(Response<dynamic> response) {
@@ -55,29 +55,7 @@ class _ProfileInterceptor extends _KeylolMobileInterceptor {
         final profileJson = data['Variables'];
         if (profileJson != null) {
           final profile = Profile.fromJson(profileJson);
-          _profileRepository.update(profile);
-        }
-      }
-    }
-  }
-}
-
-// 通知拦截器, 获取 notice 信息
-class _NoticeInterceptor extends _KeylolMobileInterceptor {
-  _NoticeInterceptor({required NoticeRepository noticeRepository})
-      : _noticeRepository = noticeRepository;
-
-  final NoticeRepository _noticeRepository;
-
-  @override
-  void doIntercept(Response<dynamic> response) {
-    if (response.statusCode == 200) {
-      final data = response.data;
-      if (data is Map<String, dynamic>) {
-        final noticeJson = data['Variables']?['notice'];
-        if (noticeJson != null) {
-          final notice = Notice.fromJson(noticeJson);
-          _noticeRepository.update(notice);
+          _profileRepository.profile = profile;
         }
       }
     }
@@ -87,20 +65,15 @@ class _NoticeInterceptor extends _KeylolMobileInterceptor {
 class KeylolApiClient {
   final CookieJar _cj;
   final Dio _dio;
-  final ProfileRepository _profileRepository;
 
   static const _baseUrl = 'https://keylol.com';
 
   KeylolApiClient._internal(
     this._cj,
     this._dio,
-    this._profileRepository,
   );
 
-  static Future<KeylolApiClient> create({
-    required ProfileRepository profileRepository,
-    required NoticeRepository noticeRepository,
-  }) async {
+  static Future<KeylolApiClient> init() async {
     // 初始化 dio client
     final dio = Dio(BaseOptions(
       baseUrl: _baseUrl,
@@ -118,19 +91,11 @@ class KeylolApiClient {
         ignoreExpires: false, storage: FileStorage(appDocPath + "/.cookies/"));
     dio.interceptors.add(CookieManager(cj));
 
-    // 解析返回里profile信息
-    final profileInterceptor = _ProfileInterceptor(
-      profileRepository: profileRepository,
-    );
-    dio.interceptors.add(profileInterceptor);
+    return KeylolApiClient._internal(cj, dio);
+  }
 
-    // 解析返回里notice信息
-    final noticeInterceptor = _NoticeInterceptor(
-      noticeRepository: noticeRepository,
-    );
-    dio.interceptors.add(noticeInterceptor);
-
-    return KeylolApiClient._internal(cj, dio, profileRepository);
+  void addInterceptor(Interceptor interceptor) {
+    _dio.interceptors.add(interceptor);
   }
 
   // 获取首页信息
@@ -190,12 +155,13 @@ class KeylolApiClient {
 
   // 收藏帖子
   Future<void> favThread(String tid, String description) async {
+    final profile = await fetchProfile();
     final res = await _dio.post('/api/mobile/index.php',
         queryParameters: {
           'module': 'favthread',
           'type': 'thread',
           'id': tid,
-          'formhash': _profileRepository.profile?.formHash,
+          'formhash': profile.formHash,
         },
         data: FormData.fromMap({'description': description}));
 
@@ -207,12 +173,13 @@ class KeylolApiClient {
 
   // 删除收藏的帖子
   Future<void> deleteFavThread(String favId) async {
+    final profile = await fetchProfile();
     final res = await _dio.post('/api/mobile/index.php', queryParameters: {
       'module': 'favthread',
       'op': 'delete',
       'deletesubmit': 'true',
       'favid': favId,
-      'formhash': _profileRepository.profile?.formHash
+      'formhash': profile.formHash
     });
 
     if (res.data['Message']?['messageval'] != 'do_success') {
@@ -257,7 +224,7 @@ class KeylolApiClient {
             'uid': uid,
             'hash': allowPerm.uploadHash,
             'Filedata':
-            await MultipartFile.fromFile(image.path, filename: image.name)
+                await MultipartFile.fromFile(image.path, filename: image.name)
           }));
       return res.data;
     });
@@ -269,6 +236,7 @@ class KeylolApiClient {
     required String message,
     List<String> aids = const [],
   }) async {
+    final profile = await fetchProfile();
     final res = await _dio.post("/api/mobile/index.php",
         queryParameters: {
           'module': 'sendreply',
@@ -277,7 +245,7 @@ class KeylolApiClient {
           'tid': tid
         },
         data: FormData.fromMap({
-          'formhash': _profileRepository.profile?.formHash,
+          'formhash': profile.formHash,
           'message': message,
           'posttime': '${DateTime.now().millisecondsSinceEpoch}',
           'usesig': 1,
@@ -297,6 +265,7 @@ class KeylolApiClient {
   }) async {
     final dateTime = DateTime.now();
 
+    final profile = await fetchProfile();
     final res = await _dio.post('/api/mobile/index.php',
         queryParameters: {
           'module': 'sendreply',
@@ -306,7 +275,7 @@ class KeylolApiClient {
           'reppid': post.pid,
         },
         data: FormData.fromMap({
-          'formhash': _profileRepository.profile?.formHash,
+          'formhash': profile.formHash,
           'message': message,
           'noticetrimstr':
               '[quote][size=2][url=forum.php?mod=redirect&goto=findpost&pid=${post.pid}&ptid=${post.tid}][color=#999999]${post.author} 发表于 ${dateTime.year}-${dateTime.month}-${dateTime.day} ${dateTime.hour}:${dateTime.minute}[/color][/url][/size]<br/>${post.pureMessage()}[/quote]',
@@ -340,7 +309,6 @@ class KeylolApiClient {
 }
 
 extension CookieModule on KeylolApiClient {
-
   void clearCookies() {
     _cj.deleteAll();
   }
@@ -459,7 +427,7 @@ extension LoginModuleWithSms on KeylolApiClient {
   }
 
   // 登录
-  Future<Profile> loginWithSms({
+  Future<void> loginWithSms({
     required SecCode secCodeParam,
     required String cellphone,
     required String sms,
@@ -485,8 +453,7 @@ extension LoginModuleWithSms on KeylolApiClient {
     final data = res.data as String;
     if (data.contains('succeedhandle_login')) {
       // 登录成功
-      return fetchProfile()
-          .then((_) => _profileRepository.profile!);
+      return;
     }
     // 登录失败
     return Future.error('登录失败');
@@ -677,10 +644,13 @@ extension ForumModule on KeylolApiClient {
       'page': page,
     };
 
+    if (filter != null) {
+      queryParameters['filter'] = filter;
+    }
     if (typeId != null) {
       queryParameters.addAll({'filter': 'typeid', 'typeid': typeId});
-    } else if (filter != null && param != null) {
-      queryParameters['filter'] = filter;
+    }
+    if (param != null) {
       queryParameters.addAll(param);
     }
 
@@ -695,7 +665,6 @@ extension ForumModule on KeylolApiClient {
 }
 
 extension NoticeModuel on KeylolApiClient {
-
   Future<NoteList> fetchNoteList({required int page}) async {
     final res = await _dio.post('/api/mobile/index.php',
         queryParameters: {'module': 'mynotelist', 'page': page});

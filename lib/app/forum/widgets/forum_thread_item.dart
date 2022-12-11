@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:keylol_flutter/app/forum/models/models.dart';
-import 'package:keylol_flutter/components/thread_card.dart';
-import 'package:keylol_flutter/api/models/thread.dart';
+import 'package:keylol_flutter/api/keylol_api.dart';
+import 'package:keylol_flutter/components/thread_item.dart';
 
 class ForumThreadItem extends StatelessWidget {
   final ForumDisplayThread thread;
@@ -10,7 +9,7 @@ class ForumThreadItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ThreadBuilder? builder;
+    ThreadWrapperBuilder? builder;
     if (thread.displayOrder == 1) {
       builder = (child) {
         return ClipRect(
@@ -31,14 +30,15 @@ class ForumThreadItem extends StatelessWidget {
       };
     }
 
-    return ThreadCard(
-        thread: Thread.fromJson({
-          'tid': thread.tid!,
-          'subject': thread.subject!,
-          'authorid': thread.authorId!,
-          'author': thread.author!,
-          'dateline': thread.dateline!
-        }),
-        builder: builder);
+    return ThreadItem(
+      thread: Thread.fromJson({
+        'tid': thread.tid!,
+        'subject': thread.subject!,
+        'authorid': thread.authorId!,
+        'author': thread.author!,
+        'dateline': thread.dateline!
+      }),
+      wrapperBuilder: builder,
+    );
   }
 }

@@ -12,20 +12,17 @@ void main() async {
   final historyRepository = HistoryRepository();
   await historyRepository.initial();
 
-  final profileRepository = ProfileRepository();
-  final noticeRepository = NoticeRepository();
-  final client = await KeylolApiClient.create(
-    profileRepository: profileRepository,
-    noticeRepository: noticeRepository,
-  );
+  final client = await KeylolApiClient.init();
+  final authenticationRepository = AuthenticationRepository(client: client);
+  client.addInterceptor(ProfileInterceptor(
+    profileRepository: authenticationRepository,
+  ));
+  await authenticationRepository.logIn();
 
-  BlocOverrides.runZoned(
-    () => runApp(KeylolApp(
-      client: client,
-      settingsRepository: settingsRepository,
-      profileRepository: profileRepository,
-      noticeRepository: noticeRepository,
-      historyRepository: historyRepository,
-    )),
-  );
+  runApp(KeylolApp(
+    client: client,
+    settingsRepository: settingsRepository,
+    authenticationRepository: authenticationRepository,
+    historyRepository: historyRepository,
+  ));
 }
