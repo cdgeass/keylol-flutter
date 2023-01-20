@@ -6,4 +6,11 @@
 
 ## 界面
 
-<img src="https://raw.githubusercontent.com/cdgeass/pictures/main/20211130184535.jpg" width=200/> <img src="https://raw.githubusercontent.com/cdgeass/pictures/main/20211130184556.jpg" width=200/> <img src="https://raw.githubusercontent.com/cdgeass/pictures/main/20211130184608.jpg" width=200/> <img src="https://raw.githubusercontent.com/cdgeass/pictures/main/20211130184618.jpg" width=200/>
+![1](example/KeylolF-1.jpg)
+![2](example/KeylolF-2.jpg)
+![3](example/KeylolF-3.jpg)
+![4](example/KeylolF-4.jpg)
+
+## License
+
+[MIT © cdgeass.](LICENSE)
