@@ -6,7 +6,8 @@
 
 ## 界面
 
-![1](example/KeylolF-1.jpg)![2](example/KeylolF-2.jpg)![3](example/KeylolF-3.jpg)![4](example/KeylolF-4.jpg)
+![1](example/KeylolF-1.jpg)|![2](example/KeylolF-2.jpg)|![3](example/KeylolF-3.jpg)|![4](example/KeylolF-4.jpg)
+--|--|--|--
 
 ## License
 
