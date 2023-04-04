@@ -114,17 +114,13 @@ class _ThreadPageViewState extends State<ThreadPageView> {
             ),
           );
         }
+
         // 跳转指定回复
         if (state.scrollTo != null) {
           WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
             _scrollTo(state.scrollTo!);
           });
         }
-
-        final authorIndex = 0;
-        final threadIndex = authorIndex + state.threadWidgets.length;
-        final threadActionsIndex = threadIndex + 1;
-        final postsIndex = threadActionsIndex + state.posts.length - 1;
 
         // 记录浏览历史
         context.read<HistoryRepository>().insertHistory(state.thread!);
@@ -155,104 +151,86 @@ class _ThreadPageViewState extends State<ThreadPageView> {
                     topPadding: MediaQuery.of(context).padding.top,
                   ),
                 ),
+                SliverToBoxAdapter(
+                  child: Material(
+                    color: Theme.of(context).cardColor,
+                    child: _buildFirstHeader(state.posts[0]),
+                  ),
+                ),
                 SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
+                      // 帖子
+                      return Material(
+                        color: Theme.of(context).cardColor,
+                        child: state.threadWidgets[index],
+                      );
+                    },
+                    childCount: state.threadWidgets.length,
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Material(
+                    color: Theme.of(context).cardColor,
+                    elevation: 1.0,
+                    child: SizedBox(
+                      height: 16.0,
+                    ),
+                  ),
+                ),
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final post = state.posts[index + 1];
                       return AutoScrollTag(
-                        key: ValueKey(index),
+                        key: Key(post.pid),
                         controller: _controller,
                         index: index,
-                        child: _getListItem(
-                          index,
-                          authorIndex,
-                          threadIndex,
-                          threadActionsIndex,
-                          postsIndex,
-                          context,
-                          state,
+                        child: PostItem(
+                          post: post,
+                          builder: (post) {
+                            return KRichTextBuilder(
+                              post.message,
+                              attachments: post.attachments,
+                              scrollTo: _scrollTo,
+                            ).build();
+                          },
                         ),
                       );
                     },
-                    childCount:
-                        state.threadWidgets.length + 2 + state.posts.length,
+                    childCount: state.posts.length - 1,
                   ),
                 ),
+                if (state.status == ThreadStatus.failure)
+                  SliverToBoxAdapter(
+                    child: Container(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                            top: 8.0, left: 16.0, right: 16.0, bottom: 8.0),
+                        child: Center(
+                          child: Text(state.error ?? ''),
+                        ),
+                      ),
+                    ),
+                  ),
+                if (state.status != ThreadStatus.failure)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Center(
+                        child: Opacity(
+                          opacity: state.hasReachedMax ? 0.0 : 1.0,
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
         );
       },
     );
-  }
-
-  Widget _getListItem(
-    int index,
-    int authorIndex,
-    int threadIndex,
-    int threadActionsIndex,
-    int postsIndex,
-    BuildContext context,
-    ThreadState state,
-  ) {
-    if (index == authorIndex) {
-      // 帖子作者
-      return Material(
-        color: Theme.of(context).cardColor,
-        child: _buildFirstHeader(state.posts[0]),
-      );
-    } else if (index <= threadIndex) {
-      // 帖子
-      return Material(
-        color: Theme.of(context).cardColor,
-        child: state.threadWidgets[index - 1],
-      );
-    } else if (index == threadActionsIndex) {
-      // 间隔
-      return Material(
-        color: Theme.of(context).cardColor,
-        elevation: 1.0,
-        child: SizedBox(
-          height: 16.0,
-        ),
-      );
-    } else if (index <= postsIndex) {
-      // 回复
-      return PostItem(
-        post: state.posts[index - threadActionsIndex],
-        builder: (post) {
-          return KRichTextBuilder(
-            post.message,
-            attachments: post.attachments,
-            scrollTo: _scrollTo,
-          ).build();
-        },
-      );
-    } else if (index > postsIndex) {
-      if (state.status == ThreadStatus.failure) {
-        // 异常
-        return Container(
-          child: Padding(
-            padding:
-                EdgeInsets.only(top: 8.0, left: 16.0, right: 16.0, bottom: 8.0),
-            child: Center(
-              child: Text(state.error ?? ''),
-            ),
-          ),
-        );
-      } else {
-        // loading
-        return Padding(
-          padding: EdgeInsets.all(8.0),
-          child: Center(
-            child: Opacity(
-              opacity: state.hasReachedMax ? 0.0 : 1.0,
-              child: CircularProgressIndicator(),
-            ),
-          ),
-        );
-      }
-    }
-    return Container();
   }
 
   Widget _buildFirstHeader(Post post) {
@@ -279,6 +257,6 @@ class _ThreadPageViewState extends State<ThreadPageView> {
       index++;
     }
 
-    _controller.scrollToIndex(1 + state.threadWidgets.length + index);
+    _controller.scrollToIndex(index - 1);
   }
 }
