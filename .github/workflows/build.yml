@@ -40,7 +40,7 @@ jobs:
       - name: Build 
         run: |
           flutter pub get
-          flutter build apk
+          flutter build apk --no-tree-shake-icons
           
       # Nightly Release
       - name: Update Nightly Release
