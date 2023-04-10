@@ -63,7 +63,6 @@ class _GuideViewState extends State<GuideView>
           ),
           actions: [
             Container(
-              margin: EdgeInsets.fromLTRB(0.0, 4.0, 7.0, 4.0),
               padding: EdgeInsets.all(9.0),
               child: AvatarAction(),
               width: 48.0,
